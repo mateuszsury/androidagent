@@ -1,0 +1,13 @@
+test_command_progress_preserves_exact_command (test_codex_stream.CodexStreamTests.test_command_progress_preserves_exact_command) ... ok
+test_completed_turn (test_codex_stream.CodexStreamTests.test_completed_turn) ... ok
+test_failed_turn_is_not_success (test_codex_stream.CodexStreamTests.test_failed_turn_is_not_success) ... ok
+test_phone_tool_arguments_preserved (test_codex_stream.CodexStreamTests.test_phone_tool_arguments_preserved) ... ok
+test_protocol_error_visible (test_codex_stream.CodexStreamTests.test_protocol_error_visible) ... ok
+test_thread_resume_identifier (test_codex_stream.CodexStreamTests.test_thread_resume_identifier) ... ok
+test_unicode_response_is_routed_to_correct_chat (test_codex_stream.CodexStreamTests.test_unicode_response_is_routed_to_correct_chat) ... ok
+test_unrecognized_event_is_ignored (test_codex_stream.CodexStreamTests.test_unrecognized_event_is_ignored) ... ok
+
+----------------------------------------------------------------------
+Ran 8 tests in 0.135s
+
+OK

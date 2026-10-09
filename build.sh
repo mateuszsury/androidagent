@@ -6,8 +6,8 @@ cd "$(dirname "$0")"
 
 SDK_JAR=${SDK_JAR:-$HOME/android-sdk/android-36/android.jar}
 KEYSTORE=${KEYSTORE:-$HOME/.buddy-keys/release.jks}
-PACKAGE=app.buddy.assistant
-INFO=app/src/main/java/app/buddy/assistant/BuildInfo.java
+PACKAGE=dev.mateuszsury.androidagent
+INFO=app/src/main/java/dev/mateuszsury/androidagent/BuildInfo.java
 VERSION_NAME=$(sed -n 's/.*VERSION = "\(.*\)";/\1/p' "$INFO")
 VERSION_CODE=$(sed -n 's/.*VERSION_CODE = \([0-9]*\);/\1/p' "$INFO")
 SRC=app/src/main

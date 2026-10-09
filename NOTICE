@@ -1,0 +1,20 @@
+androidagent 0.1.0
+
+This is a modified version of Buddy by ghorbelhamdi and contributors.
+Upstream: https://github.com/ghorbelhamdi/buddy-android
+Base commit: 8c69699b1338f3b3c177979bbd0a69140bbdb9ce (Buddy 1.0.0)
+Upstream and these modifications are distributed under Apache License 2.0.
+
+Modifications (2026-10-09): separate application identity and MCP port;
+conversation-first androidagent UI; Codex defaults; device metrics; bounded local
+shell with per-command approvals; rich message rendering; draft preservation;
+ARM64/x86_64 Codex launcher; device instrumentation tests and build scripts.
+Java package paths were moved from app.buddy.assistant to dev.mateuszsury.androidagent.
+
+Geist and Geist Mono fonts: SIL Open Font License, bundled in
+app/src/main/assets/fonts/OFL-Geist.txt.
+Material Symbols icons: Apache License 2.0 (upstream).
+
+androidagent is an independent community application. It is not an official
+OpenAI or Anthropic application. Codex, ChatGPT and Claude belong to their
+respective owners. No provider credentials or model binaries are bundled.

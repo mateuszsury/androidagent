@@ -2,6 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <!-- Android 16 Live Updates: the "Buddy is using your phone" chip in the status bar -->
@@ -46,6 +47,8 @@
             </intent-filter>
         </activity>
 
+        <activity android:name=".DeviceActivity" android:exported="false" />
+
         <activity
             android:name=".ChatActivity"
             android:exported="false"
@@ -69,7 +72,7 @@
 
         <provider
             android:name=".FilesProvider"
-            android:authorities="app.buddy.assistant.files"
+            android:authorities="dev.mateuszsury.androidagent.files"
             android:exported="false"
             android:grantUriPermissions="true" />
 
