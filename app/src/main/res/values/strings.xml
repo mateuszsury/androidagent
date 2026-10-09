@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Buddy</string>
-    <string name="service_label">Buddy assistant</string>
-    <string name="service_description">Shows the Buddy chat bubble and lets Claude Code, running in Termux on this phone, read the screen and tap, type and scroll for you. Nothing leaves the phone except what Claude Code itself sends to Claude.</string>
+<string name="app_name">androidagent</string>
+<string name="service_label">androidagent · sterowanie telefonem</string>
+<string name="service_description">Pozwala agentowi Codex odczytywać ekran i wykonywać gesty na Twoje polecenie. Codex działa w Termux; treść odczytana przez agenta może być przesyłana do dostawcy modelu. Dostęp można wyłączyć w dowolnym momencie.</string>
 </resources>

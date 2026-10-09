@@ -3,16 +3,16 @@ plugins {
 }
 
 // Version lives in BuildInfo.java so the Gradle and on-device (build.sh) builds always agree.
-val buildInfo = file("src/main/java/app/buddy/assistant/BuildInfo.java").readText()
+val buildInfo = file("src/main/java/dev/mateuszsury/androidagent/BuildInfo.java").readText()
 val appVersionName = Regex("""VERSION = "([^"]+)"""").find(buildInfo)!!.groupValues[1]
 val appVersionCode = Regex("""VERSION_CODE = (\d+)""").find(buildInfo)!!.groupValues[1].toInt()
 
 android {
-    namespace = "app.buddy.assistant"
+    namespace = "dev.mateuszsury.androidagent"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "app.buddy.assistant"
+        applicationId = "dev.mateuszsury.androidagent"
         minSdk = 30
         targetSdk = 36
         versionCode = appVersionCode

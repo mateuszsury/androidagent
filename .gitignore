@@ -17,3 +17,9 @@ local.properties
 
 # design exports (kept locally)
 design/
+
+# Generated installables and local captures (reports are kept separately)
+artifacts/*.apk
+artifacts/*.png
+artifacts/emulator/*.png
+__pycache__/
