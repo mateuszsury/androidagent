@@ -1,0 +1,139 @@
+{
+  "version": "0.4.0",
+  "run_id": "7f114485-6218-43a1-9da8-b78cd07b96d0",
+  "api": 30,
+  "environment": "Android emulator; synthetic UART\/SAF fixtures and real local adbd; physical OTG unavailable",
+  "tests": [
+    {
+      "name": "UI: USB panel without Accessibility or Docker",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "UI: dark theme and rotation",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "MCP: standalone foreground service, one listener and both agent tools",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "USB: empty bus, agent cannot mint leases or request permission",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "JNI: real x86 library loads, invalid physical descriptor fails cleanly",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "UART bridge: occupied port fails cleanly and listener can reopen",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "UART: binary loopback, shared cursors and exclusive protocol",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "UART: bounded log overflow and malformed inputs",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "ESP: native port rejects cancelled operation, restores UART lease",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "ESP: segment validation before any target write",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "SAF: selected tree, binary read\/write and opaque handles",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "SAF: ownership, read-only grant, restore write and import SHA256",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "SAF: one-shot run grant expires, open streams and owned jobs revoked",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "SAF: provider read-only capability and unavailable-media status",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "SAF: unknown length import and partial provider write never succeeds",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "SAF: explicit document deletion and revoked tree",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "ADB AUTH: signature and Android RSA public-key encoding",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "ADB: corrupted legacy CNXN checksum is rejected",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "ADB: real emulator adbd shell_v2, stderr and nonzero exit",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "ADB: real sync push\/pull binary SHA256 and shell isolation",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "ADB: actual APK install and target package verification",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Jobs: other owner refused, cancellation is final",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "MCP: distinct run credentials and revoked authentication",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Leases: one-shot next-run grant activates and expires (session fixture)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Docker MCP: another run cannot operate a task with assigned USB",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Stop: blocks USB and Docker without Accessibility",
+      "pass": true,
+      "detail": ""
+    }
+  ],
+  "failures": 0
+}

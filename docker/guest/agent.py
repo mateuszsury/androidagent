@@ -34,6 +34,28 @@ PROCESSES = {}
 OUTPUT_LIMIT = 65536
 REQUEST_LIMIT = 1024 * 1024
 LABEL = 'dev.mateuszsury.androidagent.task'
+USB = {}
+SERIAL = {}  # Ephemeral grants: never restored after a VM restart.
+
+
+def usb_device(slot, vid, pid):
+    if not 1 <= slot <= 8 or not 0 <= vid <= 65535 or not 0 <= pid <= 65535:
+        raise ValueError('Invalid USB identity')
+    for device in Path('/sys/bus/usb/devices').iterdir():
+        try:
+            if device.joinpath('devpath').read_text().strip() != str(slot):
+                continue
+            if int(device.joinpath('idVendor').read_text(), 16) != vid or int(device.joinpath('idProduct').read_text(), 16) != pid:
+                continue
+            bus = int(device.joinpath('busnum').read_text())
+            address = int(device.joinpath('devnum').read_text())
+            node = Path(f'/dev/bus/usb/{bus:03d}/{address:03d}')
+            if node.is_char_device():
+                node.chmod(0o666)
+                return {'slot': slot, 'vid': vid, 'pid': pid, 'node': str(node), 'sysfs': device.name}
+        except (OSError, ValueError):
+            pass
+    return None
 
 
 def command(args, timeout=45, check=True):
@@ -56,6 +78,8 @@ def task_info(path):
     info = json.loads((path / 'task.json').read_text())
     # Large logs are fetched separately. Heartbeats must not duplicate every
     # job's output and exceed the phone's bounded HTTP response size.
+    info['usb'] = USB.get(path.name, [])
+    info['serial_sessions'] = list(SERIAL.get(path.name, {}))
     info['jobs'] = [{k: v for k, v in j.items() if k != 'output'}
                     for j in JOBS.values() if j['task'] == path.name][-5:]
     return info
@@ -291,6 +315,47 @@ def dispatch(a):
         task = path.name
         container = 'aa-' + task
         image = 'androidagent-task:' + task
+        if op == 'usb_attach':
+            if active(task):
+                raise ValueError('Wait for this task operation before attaching USB')
+            slot, vid, pid = int(a.get('slot', 0)), int(a.get('vid', -1)), int(a.get('pid', -1))
+            if any(x['slot'] == slot for grants in USB.values() for x in grants):
+                raise ValueError('USB port is already granted to a task')
+            # USB enumeration is asynchronous after QMP device_add.
+            found = None
+            for unused in range(100):
+                found = usb_device(slot, vid, pid)
+                if found:
+                    break
+                time.sleep(.1)
+            if not found:
+                raise ValueError('Redirected USB device did not enumerate')
+            found['session'] = str(a.get('session', ''))
+            if not re.fullmatch('[a-zA-Z0-9-]{1,64}', found['session']):
+                raise ValueError('Invalid USB session')
+            USB.setdefault(task, []).append(found)
+            return {'task': task, 'usb': USB[task], 'restart_container_required': True}
+        if op == 'serial_attach':
+            if active(task):
+                raise ValueError('Wait for task operation before attaching UART')
+            session, url = a.get('session'), a.get('url')
+            if not isinstance(session, str) or not re.fullmatch('[a-zA-Z0-9-]{1,64}', session):
+                raise ValueError('Invalid serial session')
+            if not isinstance(url, str) or not re.fullmatch(r'androidagent://10\.0\.2\.2:18782/[a-zA-Z0-9-]{64,100}', url):
+                raise ValueError('Invalid serial bridge URL')
+            if SERIAL.get(task):
+                raise ValueError('One serial bridge per task')
+            SERIAL[task] = {session: url}
+            return {'task': task, 'session': session, 'restart_container_required': True}
+        if op == 'usb_detach':
+            session = a.get('session')
+            raw = USB.get(task, [])
+            serial = SERIAL.get(task, {})
+            if any(g.get('session') == session for g in raw) or session in serial:
+                cancel(task)
+                USB[task] = [g for g in raw if g.get('session') != session]
+                serial.pop(session, None)
+            return {'task': task, 'usb': USB.get(task, []), 'serial_sessions': list(serial)}
         if op == 'write':
             if active(task):
                 raise ValueError('Wait for the active operation before changing files')
@@ -330,6 +395,15 @@ def dispatch(a):
             argv = ['docker', 'run', '-d', '--name', container, '--label', LABEL + '=' + task,
                     '--restart=no', '--memory', str(memory) + 'm', '--pids-limit', '256', '--cpus', '1',
                     '--mount', 'type=bind,src=' + str(path / 'work') + ',dst=/workspace']
+            for grant in USB.get(task, []):
+                current = usb_device(grant['slot'], grant['vid'], grant['pid'])
+                if not current or current['node'] != grant['node']:
+                    raise ValueError('USB disconnected: obtain a new grant before restarting')
+                argv += ['--device', grant['node'] + ':' + grant['node'] + ':rwm']
+            serial = SERIAL.get(task, {})
+            if serial:
+                argv += ['--mount', 'type=bind,src=/opt/androidagent/python,dst=/opt/androidagent/python,readonly',
+                         '-e', 'PYTHONPATH=/opt/androidagent/python', '-e', 'ANDROIDAGENT_SERIAL_URL=' + next(iter(serial.values()))]
             port = a.get('port')
             if port is not None:
                 port = int(port)
@@ -367,6 +441,8 @@ def dispatch(a):
             return task_info(path)
         if op == 'cleanup':
             cancel(task)
+            USB.pop(task, None)
+            SERIAL.pop(task, None)
             ids = command(['docker', 'ps', '-aq', '--filter', 'label=' + LABEL + '=' + task], check=False)
             if ids:
                 command(['docker', 'rm', '-f', '-v'] + ids.split())

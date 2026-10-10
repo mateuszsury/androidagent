@@ -1,4 +1,4 @@
-# Docker w androidagent 0.3.0
+# Docker w androidagent 0.4.0
 
 Aplikacja zawiera QEMU oraz obraz Alpine Linux z rzeczywistym Docker Engine. Silnik działa we własnym jądrze Linux w maszynie wirtualnej, uruchomionej z UID androidagent. Telefon nie wymaga roota, Termux ani Shizuku do tej funkcji. Termux pozostaje potrzebny do klientów Codex/Claude Code.
 
@@ -32,6 +32,14 @@ Obaj klienci otrzymują tę samą listę MCP. Użytkownik uruchamia maszynę z a
 
 `docker_build`, `docker_run` i `docker_exec` zwracają identyfikator operacji. Odczytuj go przez `docker_logs`; wynik początkowy nie oznacza zakończenia budowania. Każde zadanie dopuszcza jedną aktywną operację. Instrukcja obu agentów opisuje eksport przed sprzątaniem. Rozmowa z zalogowanym modelem pozostaje poza zakresem testów zgodnie z decyzją użytkownika.
 
+## USB w kontenerach
+
+W panelu **Urządzenia USB** otwórz profil Docker i przydziel urządzenie wybranemu zadaniu. Most libusb/usbredir przekazuje je do xHCI gościa, a kontener otrzymuje pojedynczy węzeł `/dev/bus/usb` przez `--device`. Obsługujemy do ośmiu urządzeń; dostęp nie wymaga trybu privileged ani montowania całego `/dev`.
+
+Dla sesji UART wybierz most do zadania. Kontener dostaje `ANDROIDAGENT_SERIAL_URL` oraz moduł URL dla pyserial; pyserial trzeba zainstalować w obrazie. Odczyt, zapis i linie sterujące trafiają do natywnego transportu aplikacji. Surowy profil i natywny UART/ADB są wyłączne dla danego urządzenia. Pliki nośników obsługuj przez SAF.
+
+Narzędzia `usb_docker_attach`, `usb_docker_serial` i `usb_docker_detach` wymagają przydziału sesji z panelu. Zadanie z przydzielonym USB wymaga tego samego właściciela także przy wywołaniach `docker_*`. Odłączenie, Stop, odebranie przydziału i sprzątanie zatrzymują używający urządzenia kontener. Restart VM nie przywraca przydziałów. Szczegóły, przykład Python i granice testów sprzętowych: [USB.md](USB.md). Docker pozostaje opcjonalny wobec bezpośrednich narzędzi USB.
+
 ## Dostęp i limity
 
 - QEMU wykonuje się jako aplikacja Android; nie używa roota, `/dev/kvm`, ADB, usług systemowych Shizuku ani serwera zdalnego. Izolację zapewnia oddzielne jądro VM i standardowy Docker. Nie jest to gwarancja odporności na błędy jądra/QEMU.
@@ -42,7 +50,7 @@ Obaj klienci otrzymują tę samą listę MCP. Użytkownik uruchamia maszynę z a
 - Dostęp do plików sprawdza każdą składową ścieżki przez `openat` z `O_NOFOLLOW`. Ścieżki bezwzględne, `..`, katalogi, urządzenia i linki symboliczne nie są obsługiwane przez odczyt/zapis/eksport.
 - Plik tekstowy: 256 KiB. Kontekst budowania: 512 MiB, bez linków symbolicznych. Zachowany plik: 128 MiB. Wynik operacji: ostatnie 64 tys. znaków. Limit czasu operacji: 15 minut zegara Linuxa gościa. Domyślny kontener: 512 MB RAM, 1 CPU, 256 PID; limit RAM można zmienić do 2 GB. Log Dockera rotuje 2 × 5 MB.
 - VM: 512 MB, 1 GB lub 2 GB RAM; jeden CPU w interfejsie. Dysk ma 8 GB pojemności wirtualnej, zajmuje miejsce stopniowo. Rzeczywisty limit zależy także od wolnego miejsca telefonu. Pierwsze rozpakowanie wymaga co najmniej 1 GB wolnego miejsca poza instalacją APK. Duże projekty wymagają więcej.
-- Środowisko działa w usłudze pierwszoplanowej z powiadomieniem. Android i producent telefonu mogą zakończyć proces; stan operacji po nieoczekiwanym restarcie otrzymuje `interrupted`. Zapisany dysk pozostaje. Globalny **Stop** odbiera agentowi kontrolę i natychmiast kończy QEMU; zwykłe zatrzymanie z panelu najpierw synchronizuje dysk.
+- Środowisko działa w usłudze pierwszoplanowej z powiadomieniem. Android i producent telefonu mogą zakończyć proces; stan operacji po nieoczekiwanym restarcie otrzymuje `interrupted`. Zapisany dysk pozostaje. Globalny **Stop** odbiera agentowi kontrolę i kończy QEMU; zwykłe zatrzymanie z panelu najpierw synchronizuje dysk.
 
 ## Możliwości i ograniczenia
 
@@ -56,10 +64,11 @@ Dockerfile może pobierać zależności przez internet. Stan sieci, DNS, dostęp
 
 ## Budowanie środowiska
 
-Wymagane na gospodarzu Linux: działający Docker, Python 3.9+, `dpkg-deb`, `readelf`, `patchelf` i moduł Python `pyelftools`. Oprócz standardowego SDK/JDK z README:
+Wymagane na gospodarzu Linux: działający Docker, Python 3.9+, `dpkg-deb`, `readelf`, `patchelf` i moduł Python `pyelftools`. Pełny APK 0.4.0 wymaga też JNI USB z Android NDK 29.0.14206865. Oprócz standardowego SDK/JDK z README:
 
 ```sh
 python3 tools/prepare-qemu.py
+ANDROID_NDK_ROOT=/ścieżka/do/ndk/29.0.14206865 bash tools/build-usb-native.sh
 bash tools/build-docker-guest.sh x86_64
 bash tools/build-docker-guest.sh aarch64
 bash tools/build-local.sh
@@ -76,7 +85,7 @@ Pochodzenie i licencje: [docker/SOURCES.md](../docker/SOURCES.md), inwentarze pa
 ## Testowanie
 
 ```sh
-adb install -r artifacts/androidagent-0.3.0.apk
+adb install -r artifacts/androidagent-0.4.0.apk
 bash tools/test-docker.sh
 ```
 

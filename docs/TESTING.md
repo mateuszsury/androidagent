@@ -1,61 +1,64 @@
-# Testy androidagent 0.3.0
+# Testy androidagent 0.4.0
 
-Weryfikacja lokalna 10 października 2026. Użytkownik wybrał testy bez zalogowanego modelu.
-
-## Potwierdzone wyniki
+Weryfikacja lokalna 10 października 2026, bez zalogowanych modeli, zgodnie z decyzją użytkownika. USB zostało wdrożone jako moduł bezpośredni oraz opcjonalny dostęp z Dockera. Końcowy APK przeszedł 114 sprawdzeń na emulatorze Androida; dodatkowo przeszło 40 testów hosta i 13 testów Linux ARM64 pod QEMU gospodarza. Wszystkie zestawy zakończyły się bez błędów.
 
 | Zestaw | Wynik | Dowód |
 | --- | --- | --- |
-| Docker VM/MCP/build/HTTP/eksport/restart, API 30 | **21/21** | `artifacts/docker/results.json` |
-| Docker UI: oba motywy, obrót, zatrzymanie rozruchu | **4/4** | `artifacts/docker-ui/results.json` |
-| Linux ARM64 pod QEMU gospodarza, dwa profile zegara | **9/9 + 9/9** | `artifacts/docker/arm-guest*-results.json` |
-| Instrumentacja aplikacji, Android 11 / API 30, x86_64 | **51/51** | `artifacts/emulator/results.json` |
-| Integracja aplikacja → Termux → pomocnik → MCP | **7/7** | `artifacts/termux/results.json` |
-| Kontrakty agentów oraz pliki i procesy kontrolera Docker VM | **31/31** | `artifacts/host-tests.txt` |
-| Kompilacja i podpis APK | Przeszły | `tools/build-local.sh` |
-| Oficjalne klienty Codex 0.162.1 i Claude Code 2.1.296 w Termux, UID `com.termux` | Uruchomione bez roota | `artifacts/termux/cli.txt` |
+| USB: panel, MCP, UART, JNI, SAF, realny adbd | 26/26 | `artifacts/usb/results.json` |
+| Kontrakty Codex/Claude, granice gościa, handler pyserial | 40/40 | `artifacts/host-tests.txt` |
+| Linux ARM64 pod QEMU gospodarza: build, kontener, USB fixture | 13/13 | `artifacts/docker/arm-guest-host-clock-results.json` |
+| Aplikacja i MCP, API 30 | 51/51 | `artifacts/emulator/results.json` |
+| Aplikacja → Termux → helper 13 → MCP | 7/7 | `artifacts/termux/results.json` |
+| Docker w Androidzie: QEMU, build, aplikacja, USB i UART | 26/26 | `artifacts/docker/results.json` |
+| Interfejs Dockera: motywy, obrót i Stop podczas startu VM | 4/4 | `artifacts/docker-ui/results.json` |
 
-Testy aplikacji wykonują prawdziwe operacje na emulatorze: odczyt baterii/RAM/dysku, powłoka z UID aplikacji, pliki UTF-8, kody wyjścia, limit wyniku, timeout i anulowanie wraz z procesami potomnymi. Sprawdzają również rozmowy i szkice po odtworzeniu Activity, wybór modelu, załączniki, kopiowanie kodu z zachowaniem wcięć, jasny/ciemny motyw i konfigurację. Nowe przypadki Claude używają rzeczywistych przycisków selektora agenta i modelu: wybierają Claude na ekranie głównym, tworzą rozmowę Claude, wybierają Sonnet, sprawdzają lokalne `/status` i blokadę bez logowania oraz potwierdzają, że przełączenie na Codex zachowuje osobne historie i modele.
+Sumy raportów, identyfikatory przebiegów, SHA256 końcowego APK i manifesty obu obrazów gościa: [indeks wydania 0.4.0](../artifacts/release-0.4.0.json). Każdy raport Androida pochodzi z przebiegu wykonanego po instalacji tego APK.
 
-Przez rzeczywisty serwer MCP potwierdzono odrzucenie żądania bez tokenu, inicjalizację, listę 29 narzędzi, diagnostykę, odczyt ekranu, kliknięcie, wpisanie polskich znaków, przewijanie, listę aplikacji, otwarcie Ustawień i odczyt ich ekranu, zrzut JPEG oraz nawigację systemową. Komenda jest blokowana bez trybu programisty. Przyciski **Odrzuć** i **Zatwierdź** w natywnej rozmowie rzeczywiście decydują o jej wykonaniu, a **Stop** odbiera sterowanie. Testy sprawdzają także odrzucanie traversal w dostawcy załączników i usunięcie zapisanej rozmowy.
+## Zakres USB
 
-Testowy tekst renderera jest jawnym fixture. `/status` pobiera rzeczywiste dane urządzenia bez zapytania do modelu. Testy kontraktu strumienia korzystają z kontrolowanych zdarzeń i nie potwierdzają rozmowy z usługą modelu. Przypadki Claude oznaczone jako `protocol fixture` sprawdzają rzeczywisty parser i natywny interfejs: tekst UTF-8 przed zakończeniem odpowiedzi, jedną zapisaną odpowiedź końcową, osobne delty subagentów, tablice błędów, deduplikację błędu logowania w obrębie jednego wywołania oraz zachowanie przerwanej odpowiedzi. Zrzut strumienia zawiera jawny napis `TEST STREAMU`.
+Emulator AOSP API 30/x86_64, 720 × 1480, 300 dpi, bez KVM. Testy mają osobny APK i nie są pakowane w produkt. Wyniki zawierają identyfikator bieżącego przebiegu; skrypty odrzucają stare raporty.
 
-Kod testowy znajduje się w osobnym APK, podpisanym tym samym kluczem co aplikacja. Nie jest częścią produktu. Android przyznaje uprawnienia Accessibility i RUN_COMMAND wyłącznie w ramach konfiguracji emulatora testowego; aplikacja na telefonie prowadzi użytkownika przez zwykłe zgody systemowe. Raport ma UUID bieżącego przebiegu, co zapobiega uznaniu starszego raportu za nowy sukces.
+APK: `artifacts/androidagent-0.4.0.apk`, 460913640 bajtów. SHA256: `b18b6020d0e8b98c5a3a3e7bde75e508a76d73c572b47bec2704e1b5ab68db18`. Podpis APK v3 i suma pliku zostały zweryfikowane.
 
-## Emulator i odtwarzanie
+- Panel w jasnym/ciemnym motywie i po obrocie. Wspólny serwer MCP działa bez Accessibility i bez VM. Odrzuca niewłaściwe tokeny i nie pozwala agentowi samodzielnie przydzielić urządzenia. Per-run credentials, jednorazowy przydział do następnego zadania oraz odebranie dostępu przy zakończeniu/Stop są sprawdzone. Inne wywołanie i token instalacji nie mogą użyć exec/plików/eksportu/cancel/cleanup zadania z przydzielonym USB.
+- UART korzysta z jawnego portu fixture i rzeczywistego `SerialTransport`: bajty binarne, wiele obserwatorów, kursory, przepełnienie bufora, wyłączność, konfiguracja i linie sterujące. Nie jest to fizyczny loopback USB.
+- JNI jest ładowane z rzeczywistego APK x86_64. Niewłaściwy descriptor USB kończy się błędem bez pozostawienia socketa. ESP testuje anulowanie i nieprawidłowe mapy segmentów przed zapisem, w tym zbyt duże offsety. Nie potwierdza fizycznego flashowania ani weryfikacji ROM na ESP.
+- SAF używa testowego `DocumentsProvider`, chronionego `MANAGE_DOCUMENTS`, oraz rzeczywistych zgód URI nadawanych przez Activity testowego APK. Testuje binarny zapis/odczyt, właścicieli, readonly, przywrócenie zapisu, SHA256 importu, nieznany rozmiar, brak nośnika, jawne usunięcie i odwołanie drzewa. Reliable pipe odtwarza częściowy zapis. Kontrolny odczyt celu zapobiega zgłoszeniu sukcesu po zapisaniu tylko części danych. Produkcyjna aplikacja nie otrzymuje uprawnień systemowych.
+- ADB używa rzeczywistego `adbd` emulatora przez testową trasę `adb reverse` do portu hosta. Potwierdzono shell_v2, stdout/stderr, kod 7, binarny push/pull 120000 bajtów z SHA256 oraz instalację i odinstalowanie minimalnego testowego APK. Osobno testowana jest struktura AUTH/RSA i odrzucenie uszkodzonego legacy CNXN. To nie jest test interfejsu USB ani akceptacji klucza na fizycznym drugim telefonie.
+- Zadania USB sprawdzają kontrolę właściciela i anulowanie. Zakończenie odpowiedzi odbiera jednorazowy dostęp SAF, unieważnia także otwarty strumień, anuluje transfer i nie przywraca dostępu w kolejnym wywołaniu. Testy hosta korzystają z pyserial 3.5 i rzeczywistego klienta URL wobec HTTP fixture: bajty, timeout, baud, DTR/RTS/break, czyszczenie wejścia, zamknięcie i odmowa niewłaściwego hosta.
 
-AVD `androidagent_api30`, system AOSP x86_64, ekran 720 × 1480, gęstość 300 dpi. Gospodarz nie udostępnia `/dev/kvm`, dlatego uruchomiono emulator w TCG, z wolniejszym zegarem gościa. Testy potwierdzają zachowanie funkcji; czasy raportu nie są miarą wydajności fizycznego telefonu.
+## Docker i regresje
+
+Test kontenera non-root wykrył nieczytelną bibliotekę UART: prywatne prawa 700/600 katalogów źródłowych trafiały do obrazu. Builder obu ABI nadaje teraz bibliotece odczyt i przejście katalogów dla użytkowników kontenera, a moduł pozostaje montowany readonly. Zestawy ARM64 i Androida potwierdzają odczyt biblioteki przez UID 1000 i rzeczywiste otwarcie wybranego węzła USB do odczytu/zapisu. Na Androidzie potwierdzono również odzyskanie listenera UART po zajętym porcie, ponowne otwarcie po odebraniu przydziału oraz pełną trasę UART z kontenera do aplikacji.
+
+Nowe testy Dockera uruchamiają rzeczywisty QEMU i Docker Engine w UID aplikacji Android. QMP sprawdza sterownik `usb-redir` i prywatny chardev Unix, a jawne wirtualne HID służy do sprawdzenia enumeracji Linuxa i mapowania pojedynczego węzła `/dev/bus/usb` do kontenera. Drugi task nie może przejąć tego samego portu, a stara generacja nie może odebrać nowego przydziału. UART fixture jest dostępny z prawdziwego kontenera przez QEMU `10.0.2.2`; sprawdzane są token, bajty i parametry. Nie potwierdza to fizycznego przekierowania descriptorów Android USB przez JNI.
+
+Osobno poprawiono przygotowanie i sprzątanie fixture: QEMU 11 usuwa własny chardev wraz z `usb-redir`, więc test sprawdza pozostałe kanały zamiast usuwać go ponownie. Odrzucona próba exec po odłączeniu USB jest oczekiwana do zakończenia przed przydzieleniem UART. Test anulowania uruchamia własny kontener. Po przerwanym przebiegu test Accessibility czeka na faktyczne wyłączenie usługi przed ponownym włączeniem, aby wyczyścić stan `crashed` w Androidzie.
+
+Linux ARM64 sprawdzono dodatkowo pod natywnym QEMU na gospodarzu: rzeczywisty build, podgląd HTTP, kontener non-root, limit pamięci, eksport, scoped cleanup i shutdown, rozszerzone o wirtualne USB oraz odebranie przydziału. Ten zestaw nie jest testem Androida ARM64.
+
+Regresje aplikacji obejmują metryki Androida, powłokę z UID aplikacji, timeout i procesy potomne, anulowanie, Unicode, trwałe pliki/rozmowy/szkice, renderer, oba motywy, konfigurację, prawdziwe Accessibility/MCP i sterowanie Androidowymi ekranami. Timeout terminala oczekuje teraz na zakończenie procesów po SIGKILL; test `/proc` rozpoznaje także proces znikający podczas odczytu. Fixture strumienia Claude nie zastępuje rozmowy z modelem. Termux sprawdza rzeczywiste oficjalne klienty i poprawne blokady bez logowania.
+
+## Odtwarzanie
+
+Przygotuj oba runtime'y QEMU, JNI USB i obrazy gościa według [USB.md](USB.md) i [DOCKER.md](DOCKER.md), a następnie:
 
 ```sh
-./tools/start-software-emulator.sh androidagent_api30
-adb install -r artifacts/androidagent-0.3.0.apk
-./tools/test-android.sh
+bash tools/build-local.sh
+adb install -r artifacts/androidagent-0.4.0.apk
+bash tools/test-usb.sh
+bash tools/test-android.sh
+bash tools/test-termux.sh
+bash tools/test-docker.sh
+bash tools/test-docker.sh --ui-only
 ```
 
-Wymagane zmienne SDK/JDK/KEYSTORE opisuje README. Raport i 12 zrzutów są eksportowane przez MediaStore, zgodnie ze scoped storage Androida, do `Download/androidagent-tests/` i kopiowane do `artifacts/emulator/`. Zrzuty pozostają lokalnymi artefaktami, raport JSON trafia do Git.
+Ustaw `JAVA_HOME`, `ANDROID_SDK_ROOT` i `KEYSTORE` zgodnie z README. Termux i klienty muszą być przygotowane na przeznaczonym do testów emulatorze. Testy tworzą i usuwają dane fixture, włączają Accessibility, instalują minimalny pakiet ADB oraz resetują dysk zadań VM. Testy hosta: `python3 -m unittest discover -s tests -p 'test_*.py' -v`, z zainstalowanym pyserial 3.5. Zegar emulowany nie daje miarodajnego porównania wydajności telefonu.
 
-## Runtime Termux
+## Granice wydania
 
-Na tym samym emulatorze zainstalowano oficjalny debug APK Termux 0.118.3 (x86_64). Aplikacja Termux samodzielnie zainstalowała swój bootstrap. Dodatkowe pakiety Termux pobrano, sprawdzono ich SHA256 względem metadanych repozytorium i skopiowano do środowiska testowego przez `run-as`, bez roota. Jest to konfiguracja fixture testowego, a nie potwierdzenie całej interaktywnej instalacji przez `pkg`/npm.
+Nie zweryfikowano fizycznego telefonu ARM64, kabla/zasilania OTG, zgód dla rzeczywistego USB, zgodności adapterów CP210x/CH340/CDC, flashowania ESP, drugiego telefonu z AUTH ani nośników FAT32/exFAT. Nie zweryfikowano fizycznego USB przekazanego przez usbredirhost do kontenera. Macierz sprzętowa pozostaje do wykonania według [planu USB](USB_PLAN.md). Emulator i porty fixture nie certyfikują profili sprzętowych.
 
-Rzeczywisty Node `v24.18.0`, oficjalny Codex `0.162.1` oraz oficjalny Claude Code `2.1.296` uruchomiły się pod UID `com.termux`, przez wrappery z proot. Wrappery wykryły x86_64 i odnalazły oficjalne pakiety binarne npm. Claude używa musl 1.2.5-r12 pobranego z Alpine i sprawdzonego przez SHA256. Pakiet npm Claude sprawdzono przez SHA512 zgodnie z `dist.integrity`. Nie emulowano wyjścia tych klientów. Na urządzeniu ARM64 używana jest druga ścieżka wrappera, której ten przebieg nie sprawdza.
+Brak zalogowanych modeli oznacza brak testu końcowego zadania z usługą Codexa/Claude. API 35/36 oraz Androidowe urządzenia z 16 KiB pages nie są potwierdzone tym przebiegiem. GitHub Actions ma przygotowaną macierz API 30/35; wcześniejsze uruchomienia zatrzymały się przed jobami z powodu płatności/limitu konta, a nie błędu aplikacji. Podstawą wyników są lokalne raporty z emulatora.
 
-Dodatkowy zestaw `./tools/test-termux.sh` wymaga Termux z jq/curl, Codexem, Claude Code i włączonym `allow-external-apps`. Instaluje osobne APK testowe, przyznaje testową zgodę RUN_COMMAND, uruchamia instalację pomocnika zawartego w zasobach aplikacji i sprawdza odpowiedź na `ping`. Nie loguje konta modelu. Raport jest eksportowany do `Download/androidagent-runtime-tests/` i kopiowany do `artifacts/termux/`.
-
-Wszystkie **7 testów** przeszły: RUN_COMMAND, ponowne połączenie Accessibility/MCP, instalacja pomocnika z APK, uwierzytelniony callback oraz wykrycie rzeczywistego braku logowania Claude. Następnie rzeczywisty `claude -p` połączył się z serwerem telefonu, wykrył **29 narzędzi MCP** i zakończył z błędem braku logowania. W zwykłym trybie nie udostępniał Bash/Edit. Drugie wywołanie wznowiło **ten sam identyfikator sesji Claude**, udostępniło Bash/Edit w trybie programisty i ponownie poprawnie zakończyło z błędem logowania. Błąd nie był pokazywany jako odpowiedź modelu, a rozmowa nie pozostała w stanie działania.
-
-Testy runtime używają APK 0.3.0 i pomocnika w wersji 12. Suma kontrolna finalnego APK znajduje się w `artifacts/androidagent-0.3.0.sha256`.
-
-## Docker
-
-Na gospodarzu przeszło **31/31** testów: 22 kontraktu agentów oraz 9 rzeczywistych kontroli plików i procesów kontrolera VM. Gość Linux ARM64 przeszedł **9/9** przypadków ze zwykłym zegarem oraz **9/9** z zegarem opartym na instrukcjach. Użyto obrazu dołączonego do APK, Docker Engine 29.5.2 i `overlay2`: rzeczywisty Dockerfile `RUN`, kontener z `USER 1000`, zachowane `WORKDIR`, limit pamięci, podgląd HTTP, zapis i eksport wyniku, sprzątanie oraz wyłączenie. Dowody: `artifacts/docker/arm-guest-results.json` i `arm-guest-host-clock-results.json`. To QEMU na gospodarzu Linux, a nie telefon Android ARM64.
-
-Zestaw Androida dla Docker 0.3.0 przeszedł **21/21** kontroli na świeżym dysku. Sprawdzono prawdziwy QEMU z APK, MCP, Dockerfile RUN/COPY, HTTP i JavaScript we wbudowanym podglądzie, wynik przez dostawcę Androida, kontener bez UID 0, anulowanie, pozostawienie drugiego kontenera po sprzątaniu, restart, globalny Stop i reset. Nie korzysta z atrapy silnika ani zalogowanego modelu. Raport: `artifacts/docker/results.json`. SHA256 APK, kodu integracji i zasobów zapisano w `artifacts/docker/runtime-input.json`. Osobny przebieg interfejsu przeszedł **4/4**: czytelny wybór RAM i faktycznie wyrenderowana ikona powrotu w obu motywach, zachowanie wyboru po odtworzeniu Activity oraz zatrzymanie prawdziwego procesu QEMU w czasie rozruchu. Dowód: `artifacts/docker-ui/results.json`.
-
-## Granice weryfikacji
-
-- Rozmowa i wykonanie zadania przez zalogowany model Codex/Claude, edycja plików przez model oraz Remote Control z kontem: nieprzetestowane, zgodnie z decyzją użytkownika o testowaniu bez logowania. Prawdziwy klient Claude/MCP i wznowienie sesji sprawdzono w stanie bez konta.
-- Telefon ARM64, Android API 35/36 i ograniczenia producentów: nieprzetestowane. CI ma macierz API 30/35, lecz GitHub zablokował uruchomienie z powodu limitu wydatków/problemu z rozliczeniem konta. Brak uruchomionych zadań CI nie jest wynikiem testu aplikacji.
-- Fizyczna kamera, rozpoznawanie mowy, TTS i niezawodność długich zadań w tle: nieprzetestowane. Otwarcie panelu załączników potwierdzono.
-- Shizuku nie jest jeszcze zaimplementowane w wersji 0.3.0.
+Historia weryfikacji 0.3.0: [raport w poprzednim commicie](https://github.com/mateuszsury/androidagent/blob/e46a00e36ac7c97bce942b8cb1d81692910f2bdd/docs/TESTING.md). Nie zastępuje testów aktualnego APK.

@@ -4,6 +4,8 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE" />
+    <uses-feature android:name="android.hardware.usb.host" android:required="false" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -53,6 +55,11 @@
         </activity>
 
         <activity android:name=".DeviceActivity" android:exported="false" />
+        <activity android:name=".UsbActivity" android:exported="false" />
+        <service android:name=".UsbService" android:exported="false" android:foregroundServiceType="connectedDevice" />
+        <service android:name=".AgentService" android:exported="false" android:foregroundServiceType="specialUse">
+            <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE" android:value="User-started local agent tool host and callbacks, independent of screen control" />
+        </service>
         <activity android:name=".DockerActivity" android:exported="false" />
         <activity android:name=".DockerTaskActivity" android:exported="false" />
         <activity android:name=".DockerPreviewActivity" android:exported="false" />

@@ -1,5 +1,6 @@
 {
-  "run_id": "5e2bc968-a6f6-4fce-b7b8-008e4b127c47",
+  "version": "0.4.0",
+  "run_id": "106a034b-3231-44ad-abcb-34edb2e27948",
   "tests": [
     {
       "name": "QEMU: actual Android binary and app UID",
@@ -73,6 +74,31 @@
     },
     {
       "name": "Run: image USER can edit sources and export results",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "USB QMP: actual usb-redir driver and private Unix chardev hotplug",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "USB QMP: real virtual HID enumerates in Linux guest (fixture, not OTG)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "USB Docker: selected real bus node in container, no broad device mount",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "USB: stale detach cannot revoke newer generation; correct detach stops task",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "UART Docker: actual guest\/container route, scoped token and baud\/DTR\/RTS\/break (serial fixture)",
       "pass": true,
       "detail": ""
     },

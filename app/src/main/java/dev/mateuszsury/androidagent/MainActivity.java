@@ -102,6 +102,7 @@ public class MainActivity extends Screen implements ChatHub.Listener {
             "Czytaj ekran, działaj w aplikacjach",
             () -> openChat("Sprawdź, co jest na ekranie telefonu, i opisz dostępne działania.")),
         full());
+    cards.addView(suggestion(R.drawable.ms_terminal, "Urządzenia USB", "UART, ESP, drugi Android i nośniki", () -> startActivity(new Intent(this, UsbActivity.class))), full());
     center.addView(cards, cardsP);
     scroll.addView(center);
     root.addView(scroll, new LinearLayout.LayoutParams(-1, 0, 1));

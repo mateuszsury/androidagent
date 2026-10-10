@@ -1,4 +1,4 @@
-# Architektura androidagent 0.3
+# Architektura androidagent 0.4
 
 ## Wybór bazy
 
@@ -12,7 +12,7 @@ Sprawdzono 9 października 2026:
 | [android-codex-bridge](https://github.com/tamir-oss/android-codex-bridge) | Konfiguracja Termux + Shizuku/rish i diagnostyka | Materiał do późniejszej integracji Shizuku, nie gotowa baza interfejsu |
 | [OpenAI Codex](https://github.com/openai/codex) | Właściwy klient agenta | Używamy oficjalnego pakietu npm w Termux, nie imitacji modelu |
 
-Wybrano Buddy, bo już łączy lokalnego agenta z narzędziami telefonu. Nowe UI pozostaje natywne, bez WebView i backendu sieciowego projektu. Część ustawień i zaawansowanych ekranów zachowuje angielskie teksty upstream.
+Wybrano Buddy, bo już łączy lokalnego agenta z narzędziami telefonu. Interfejs rozmowy pozostaje natywny; podgląd aplikacji zbudowanych w Dockerze używa WebView. Część ustawień i zaawansowanych ekranów zachowuje angielskie teksty upstream.
 
 ## Przepływ
 
@@ -28,6 +28,12 @@ flowchart TD
   CLAUDE --> EVENTS
   CODEX --> MODEL[Usługa modelu po zalogowaniu]
   CODEX --> MCP[Lokalny MCP + token]
+  MCP --> USB[UsbSessions: przydział USB do rozmowy]
+  USB --> SERIAL[SerialTransport / JNI EspFlasher]
+  USB --> ADB[AdbClient: USB AUTH / shell_v2 / sync]
+  MCP --> SAF[UsbStorage: katalogi SAF]
+  USB --> REDIR[libusb + usbredirhost]
+  REDIR --> VM
   MCP --> DOCKER[DockerTools: projekty i operacje]
   DOCKER --> VM[DockerService / QEMU: UID aplikacji]
   VM --> LINUX[Oddzielny Linux / Docker Engine]
@@ -51,7 +57,7 @@ Docker używa własnego jądra w VM: QEMU TCG, Alpine Linux 3.23, Docker Engine 
 
 ## Najbliższe etapy
 
-Obsługa UART/ESP, drugiego Androida przez ADB i nośników USB jest opisana w [planie USB](USB_PLAN.md). Dostęp podstawowy ma działać bezpośrednio w aplikacji, bez wymagania Dockera; most do kontenerów jest osobnym, opcjonalnym etapem. Wersja 0.3.0 nie obsługuje jeszcze podłączonych urządzeń USB.
+Moduł [USB](USB.md) implementuje bezpośredni UART, ESP/JNI, USB ADB i SAF. `McpHost` ma jednego listenera, wspólnego dla Accessibility, AgentService i UsbService. Helper otrzymuje poświadczenie aktywnego uruchomienia, a urządzenia/katalogi wymagają przydziału przez panel. Surowe USB jest opcjonalnie przekazywane przez usbredir i QMP do pojedynczego węzła kontenera; UART ma osobny most z parametrami i kontrolą linii. Testy sprzętowe pozostają kolejnym etapem. Historyczny zakres: [plan USB](USB_PLAN.md).
 
 1. Pełny test rozmowy z prawdziwym modelem po zalogowaniu właściciela konta oraz test telefonu ARM64. Emulator nie rozstrzyga zgodności różnych producentów.
 2. Przejście z `codex exec` do app-server: przyrostowe tokeny, edycja kolejki, bogatsze zatwierdzanie operacji i obsługa zmian plików. Obecny most przekazuje zdarzenia, a tekst odpowiedzi po zakończeniu elementu.

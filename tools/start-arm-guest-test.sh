@@ -17,7 +17,7 @@ if [ -n "${CODEX_PROXY_CERT:-}" ]; then
   CA_ARGS=(-v /etc/ssl/certs/ca-certificates.crt:/run/proxy-ca.pem:ro -e SSL_CERT_FILE=/run/proxy-ca.pem)
 fi
 "${DOCKER[@]}" run --rm --name androidagent-arm-guest-test \
-  -p 127.0.0.1:19780:7080 -p 127.0.0.1:19781:8080 \
+  -p 127.0.0.1:19780:7080 -p 127.0.0.1:19781:8080 -p 127.0.0.1:19782:7082 \
   "${CA_ARGS[@]}" -e AA_CLOCK_MODE="$CLOCK_MODE" -v "$PWD/app/src/main/assets/docker/arm64-v8a:/vm-base:ro" -v "$OUT:/vm" \
   alpine@sha256:1f3591b8a02ea153f41c5bba878ad477f63ab3d19349762cb77504db02a23e15 sh -ec '
     apk add --no-cache qemu-system-aarch64 qemu-img >/dev/null
@@ -30,5 +30,5 @@ fi
       -drive if=none,file=/vm/user.qcow2,format=qcow2,id=root,cache=writeback -device virtio-blk-device,drive=root \
       -drive if=none,file=/vm/token,format=raw,readonly=on,id=secret -device virtio-blk-device,drive=secret \
       -netdev user,id=net,hostfwd=tcp:0.0.0.0:7080-:7080,hostfwd=tcp:0.0.0.0:8080-:8080 \
-      -device virtio-net-device,netdev=net -nodefaults -display none -serial stdio -monitor none -no-reboot
+      -device virtio-net-device,netdev=net -device qemu-xhci,id=aausb,p2=8,p3=8 -qmp tcp:0.0.0.0:7082,server=on,wait=off -nodefaults -display none -serial stdio -monitor none -no-reboot
   '

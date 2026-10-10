@@ -13,12 +13,14 @@ final class SetupState {
             "Allow background running", "Try it",
     };
     /** Must match HELPER_VERSION in termux/buddy-run. */
-    static final int HELPER_VERSION = 12;
+    static final int HELPER_VERSION = 13;
 
+    private final Context app;
     final boolean[] done = new boolean[5];
 
     SetupState(Context c) {
-        done[0] = accessibilityEnabled(c);
+        app=c.getApplicationContext();
+        done[0] = accessibilityEnabled(c) || McpHost.get(c).running();
         done[1] = Termux.installed(c) && Termux.permitted(c);
         done[2] = helperCurrent(c) && agentReady(c, Prefs.backend(c));
         PowerManager pm = c.getSystemService(PowerManager.class);
@@ -56,7 +58,7 @@ final class SetupState {
 
     /** Chats can run once the service, Termux permission and helper are in place. */
     boolean canRun() {
-        return done[0] && done[1] && done[2] && BuddyService.get() != null;
+        return done[1] && done[2] && McpHost.get(app).running();
     }
 
     static boolean accessibilityEnabled(Context c) {

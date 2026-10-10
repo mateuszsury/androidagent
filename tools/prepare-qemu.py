@@ -120,7 +120,7 @@ def package(abi, packages):
     patchelf = shutil.which("patchelf") or str(Path.home() / ".local/bin/patchelf")
     system = {"libc.so", "libm.so", "libdl.so", "liblog.so", "libandroid.so"}
     # Bundle only the ELF dependency closure, not unrelated package executables.
-    wanted = ["libqemu.so", "libqemu_img.so"]
+    wanted = ["libqemu.so", "libqemu_img.so", "libusbredirhost.so"]
     done = set()
     while wanted:
         name = wanted.pop()
@@ -144,7 +144,7 @@ def package(abi, packages):
         fix_version_dependencies(output, aliases)
         done.add(name)
     for f in dest.glob("*.so"):
-        if f.name not in done:
+        if f.name not in done and f.name != "libaausb.so":
             f.unlink()
     notices = ROOT / 'docker/licenses/termux'
     for doc in (prefix / 'share/doc').glob('*/*'):

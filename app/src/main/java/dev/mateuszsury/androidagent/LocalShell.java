@@ -98,17 +98,35 @@ final class LocalShell {
         // Stop the shell before killing children: otherwise `wait` could return
         // and let the shell execute its next instruction during cancellation.
         android.os.Process.sendSignal(parent, 19);
-        killChildren(parent);
+        java.util.Set<Integer> killed = new java.util.HashSet<>();
+        killChildren(parent, killed);
         // Android's Process implementation may map destroyForcibly to SIGTERM.
         // A stopped shell needs SIGKILL, which also handles TERM traps.
         android.os.Process.sendSignal(parent, 9);
+        killed.add(parent);
+        awaitKilled(killed);
       } catch (Exception ignored) {
       }
       p.destroyForcibly();
     }
   }
 
-  private static void killChildren(int parent) {
+  /** SIGKILL delivery is asynchronous; do not return while a signalled child still runs. */
+  private static void awaitKilled(java.util.Set<Integer> pids) {
+    long deadline = android.os.SystemClock.elapsedRealtime() + 1000;
+    while (!pids.isEmpty() && android.os.SystemClock.elapsedRealtime() < deadline) {
+      java.util.Iterator<Integer> iterator = pids.iterator();
+      while (iterator.hasNext()) {
+        try (BufferedReader reader = new BufferedReader(new FileReader("/proc/" + iterator.next() + "/stat"))) {
+          String line = reader.readLine();
+          if (line == null || line.substring(line.lastIndexOf(')') + 2).startsWith("Z ")) iterator.remove();
+        } catch (IOException ignored) { iterator.remove(); }
+      }
+      if (!pids.isEmpty()) android.os.SystemClock.sleep(10);
+    }
+  }
+
+  private static void killChildren(int parent, java.util.Set<Integer> killed) {
     File[] entries = new File("/proc").listFiles();
     if (entries == null) return;
     for (File entry : entries) {
@@ -118,7 +136,8 @@ final class LocalShell {
         String[] fields = line.substring(line.lastIndexOf(')') + 2).split(" ");
         if (Integer.parseInt(fields[1]) == parent) {
           int pid = Integer.parseInt(entry.getName());
-          killChildren(pid);
+          killChildren(pid, killed);
+          killed.add(pid);
           android.os.Process.sendSignal(pid, 9);
         }
       } catch (Exception ignored) {

@@ -50,8 +50,7 @@ public class BuddyService extends AccessibilityService implements McpServer.Hand
         bubble = new Bubble(this);
         control = new ControlIndicator(this);
         bubble.show();
-        server = new McpServer(Prefs.token(this), this);
-        server.start();
+        McpHost.get(this).acquire(this);
 
         // Hide the bubble on the lock screen.
         IntentFilter f = new IntentFilter();
@@ -98,8 +97,8 @@ public class BuddyService extends AccessibilityService implements McpServer.Hand
             unregisterReceiver(lockReceiver);
         } catch (Exception ignored) {
         }
-        if (tools != null) tools.cancelCommands();
-        if (server != null) server.stop();
+        if (tools != null) tools.cancelLocalCommands();
+        McpHost.get(this).release(this);
         if (bubble != null) bubble.remove();
         if (control != null) control.end();
         instance = null;
@@ -221,21 +220,18 @@ public class BuddyService extends AccessibilityService implements McpServer.Hand
 
     /** Null if phone actions are allowed, else why not (the user took back control). */
     String controlRevoked() {
-        long left = revokedUntil - android.os.SystemClock.elapsedRealtime();
-        if (left <= 0) return null;
-        return "The user tapped Stop to take back control of the phone. Don't use the phone tools for now; "
-                + "stop and ask the user what they want.";
+        return McpHost.get(this).controlRevoked();
     }
 
     /** The user asked for something new: phone actions are allowed again. */
     void allowControl() {
-        revokedUntil = 0;
+        McpHost.get(this).allowControl();
     }
 
     /** Stop from the indicator or its notification: stop Buddy's chats and refuse phone actions for a minute. */
     void takeBackControl() {
         main.post(() -> {
-            revokedUntil = android.os.SystemClock.elapsedRealtime() + 60_000;
+            McpHost.get(this).emergencyStop();
             if (tools != null) tools.cancelCommands();
             ChatHub.get(this).stopAll();
             control.end();

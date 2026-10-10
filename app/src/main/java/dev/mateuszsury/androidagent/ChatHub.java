@@ -105,6 +105,8 @@ final class ChatHub {
     }
 
     void delete(Sessions.Session s) {
+        McpHost.get(app).revoke(s.id);
+        UsbSessions.get(app).closeOwner("pending:"+s.id);
         try {
             Termux.run(app, "delete", s.id);
         } catch (Exception ignored) {
@@ -129,18 +131,19 @@ final class ChatHub {
             changed();
             return null;
         }
-        if (BuddyService.get() == null) return "Włącz sterowanie ekranem w konfiguracji androidagent. /status działa lokalnie.";
+        if (!McpHost.get(app).running()) return "Włącz dostęp agentów w panelu USB lub sterowanie ekranem w konfiguracji.";
         if (!SetupState.helperCurrent(app) || !SetupState.agentReady(app, ses.backend))
             return "Skonfiguruj i zaloguj " + ses.brainName() + " w Termux. /status działa bez logowania.";
         boolean hasFiles = files != null && !files.isEmpty();
         if (text.isEmpty() && !hasFiles) return null;
         String forAgent = text.isEmpty() && hasFiles ? "Have a look at what I attached." : text;
         BuddyService svc = BuddyService.get();
-        if (svc != null) svc.allowControl();
+        McpHost.get(app).allowControl();
         try {
             Termux.run(app, "ask", ses.id, ses.backend, Prefs.devMode(app) ? "1" : "0", forAgent, ses.model,
-                    hasFiles ? android.text.TextUtils.join(",", files) : "");
+                    hasFiles ? android.text.TextUtils.join(",", files) : "", McpHost.get(app).credential(ses.id));
         } catch (Exception e) {
+            McpHost.get(app).revoke(ses.id);
             return e.getMessage();
         }
         sessions.add(ses, Bubble.Kind.USER, text, hasFiles ? new ArrayList<>(files) : null);
@@ -153,6 +156,7 @@ final class ChatHub {
         main.postDelayed(() -> {
             if (ses.running && id == ses.runId && SystemClock.elapsedRealtime() - ses.lastEventAt >= NO_RESPONSE_MS - 100) {
                 ses.running = false;
+                McpHost.get(app).revoke(ses.id);
                 add(ses, Bubble.Kind.ERROR, "No response from Termux. Open androidagent settings and check the Termux helper step.");
                 changed();
             }
@@ -173,6 +177,7 @@ final class ChatHub {
     }
 
     void stop(Sessions.Session ses) {
+        McpHost.get(app).revoke(ses.id);
         if (!ses.running) return;
         try {
             Termux.run(app, "stop", ses.id);
@@ -292,6 +297,7 @@ final class ChatHub {
             case "buddy_stopped":
                 flushStream(ses);
                 ses.running = false;
+                McpHost.get(app).revoke(ses.id);
                 ses.status = "";
                 add(ses, Bubble.Kind.STEP, "Stopped.");
                 break;
@@ -299,6 +305,7 @@ final class ChatHub {
                 flushStream(ses);
                 if (ses.running) {
                     ses.running = false;
+                McpHost.get(app).revoke(ses.id);
                     ses.status = "";
                     if (!ses.lastReply.isEmpty()) {
                         Prefs.setHadReply(app);

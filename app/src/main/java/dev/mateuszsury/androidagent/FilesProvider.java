@@ -39,6 +39,7 @@ public class FilesProvider extends ContentProvider {
         if (p.size() == 1 && "capture".equals(p.get(0))) return captureFile(getContext());
         if (p.size() == 2 && "a".equals(p.get(0))) return Attachments.file(getContext(), p.get(1));
         if (p.size() == 2 && "docker".equals(p.get(0))) return DockerVm.exportedFile(getContext(), p.get(1));
+        if (p.size() == 2 && "usb".equals(p.get(0))) return UsbArtifacts.file(getContext(), p.get(1));
         return null;
     }
 
@@ -86,6 +87,7 @@ public class FilesProvider extends ContentProvider {
                 name = new org.json.JSONObject(new String(data, 0, count, java.nio.charset.StandardCharsets.UTF_8)).optString("name", f.getName());
             } catch (Exception ignored) { name = f.getName(); }
         }
+        if(uri.getPathSegments().size()==2&&"usb".equals(uri.getPathSegments().get(0))){try{name=UsbArtifacts.metadata(getContext(),f.getName()).optString("name",f.getName());}catch(Exception ignored){name=f.getName();}}
         c.addRow(new Object[]{name, f.length()});
         return c;
     }

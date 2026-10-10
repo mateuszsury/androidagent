@@ -4,7 +4,7 @@
       "name": "home: conversation-first UI",
       "pass": true,
       "detail": "",
-      "duration_ms": 1632
+      "duration_ms": 1757
     },
     {
       "name": "defaults: Codex, no fabricated ready state",
@@ -16,193 +16,193 @@
       "name": "device: live battery, RAM, storage",
       "pass": true,
       "detail": "",
-      "duration_ms": 1
+      "duration_ms": 3
     },
     {
       "name": "terminal: real Android application UID",
       "pass": true,
       "detail": "",
-      "duration_ms": 108
+      "duration_ms": 106
     },
     {
       "name": "terminal: persistent working files and Unicode",
       "pass": true,
       "detail": "",
-      "duration_ms": 206
+      "duration_ms": 222
     },
     {
       "name": "terminal: nonzero exit reported",
       "pass": true,
       "detail": "",
-      "duration_ms": 108
+      "duration_ms": 102
     },
     {
       "name": "terminal: invalid command",
       "pass": true,
       "detail": "",
-      "duration_ms": 110
+      "duration_ms": 104
     },
     {
       "name": "terminal: output truncation",
       "pass": true,
       "detail": "",
-      "duration_ms": 309
+      "duration_ms": 306
     },
     {
       "name": "terminal: timeout and process cleanup",
       "pass": true,
       "detail": "",
-      "duration_ms": 10022
+      "duration_ms": 10029
     },
     {
       "name": "terminal: explicit cancellation",
       "pass": true,
       "detail": "",
-      "duration_ms": 807
+      "duration_ms": 803
     },
     {
       "name": "device UI: metrics and command controls",
       "pass": true,
       "detail": "",
-      "duration_ms": 1477
+      "duration_ms": 1419
     },
     {
       "name": "device UI: execute button returns real output",
       "pass": true,
       "detail": "",
-      "duration_ms": 1225
+      "duration_ms": 1217
     },
     {
       "name": "chat: local \/status through composer",
       "pass": true,
       "detail": "",
-      "duration_ms": 1523
+      "duration_ms": 1732
     },
     {
       "name": "chat: session persists to disk",
       "pass": true,
       "detail": "",
-      "duration_ms": 0
+      "duration_ms": 1
     },
     {
       "name": "chat: draft survives activity recreation",
       "pass": true,
       "detail": "",
-      "duration_ms": 161
+      "duration_ms": 116
     },
     {
       "name": "chat: real model picker opens",
       "pass": true,
       "detail": "",
-      "duration_ms": 951
+      "duration_ms": 898
     },
     {
       "name": "chat: attachments sheet opens",
       "pass": true,
       "detail": "",
-      "duration_ms": 1626
+      "duration_ms": 1647
     },
     {
       "name": "chat renderer: copy preserves code indentation",
       "pass": true,
       "detail": "",
-      "duration_ms": 23
+      "duration_ms": 136
     },
     {
       "name": "appearance: dark theme",
       "pass": true,
       "detail": "",
-      "duration_ms": 1879
+      "duration_ms": 1676
     },
     {
       "name": "setup: accessible onboarding",
       "pass": true,
       "detail": "",
-      "duration_ms": 1343
+      "duration_ms": 1262
     },
     {
       "name": "accessibility: service starts with explicit test grant",
       "pass": true,
       "detail": "",
-      "duration_ms": 521
+      "duration_ms": 541
     },
     {
       "name": "MCP: unauthenticated requests rejected",
       "pass": true,
       "detail": "",
-      "duration_ms": 4
+      "duration_ms": 6
     },
     {
       "name": "MCP: authenticated initialize",
       "pass": true,
       "detail": "",
-      "duration_ms": 5
+      "duration_ms": 2
     },
     {
       "name": "MCP: tool discovery includes phone, shell and Docker",
       "pass": true,
       "detail": "",
-      "duration_ms": 12
+      "duration_ms": 17
     },
     {
       "name": "MCP: device status matches Android",
       "pass": true,
       "detail": "",
-      "duration_ms": 7
+      "duration_ms": 5
     },
     {
       "name": "MCP: read actual screen",
       "pass": true,
       "detail": "",
-      "duration_ms": 574
+      "duration_ms": 671
     },
     {
       "name": "MCP: actual tap focuses command field",
       "pass": true,
       "detail": "",
-      "duration_ms": 2183
+      "duration_ms": 2127
     },
     {
       "name": "MCP: writes Unicode to real native field",
       "pass": true,
       "detail": "",
-      "duration_ms": 64
+      "duration_ms": 40
     },
     {
       "name": "MCP: scroll moves native content",
       "pass": true,
       "detail": "",
-      "duration_ms": 1492
+      "duration_ms": 1491
     },
     {
       "name": "MCP: installed apps",
       "pass": true,
       "detail": "",
-      "duration_ms": 77
+      "duration_ms": 31
     },
     {
       "name": "MCP: open Settings and read its screen",
       "pass": true,
       "detail": "",
-      "duration_ms": 1864
+      "duration_ms": 1565
     },
     {
       "name": "MCP: screenshot returns real JPEG",
       "pass": true,
       "detail": "",
-      "duration_ms": 400
+      "duration_ms": 429
     },
     {
       "name": "MCP: system navigation",
       "pass": true,
       "detail": "",
-      "duration_ms": 659
+      "duration_ms": 642
     },
     {
       "name": "MCP: unknown tool errors",
       "pass": true,
       "detail": "",
-      "duration_ms": 3
+      "duration_ms": 2
     },
     {
       "name": "MCP: shell blocked when developer mode off",
@@ -214,19 +214,19 @@
       "name": "MCP: shell approval denied means no execution",
       "pass": true,
       "detail": "",
-      "duration_ms": 679
+      "duration_ms": 728
     },
     {
       "name": "MCP: approved command executes in app sandbox",
       "pass": true,
       "detail": "",
-      "duration_ms": 1317
+      "duration_ms": 1316
     },
     {
       "name": "MCP: stop revokes further phone actions",
       "pass": true,
       "detail": "",
-      "duration_ms": 238
+      "duration_ms": 225
     },
     {
       "name": "attachments: provider rejects traversal",
@@ -238,49 +238,49 @@
       "name": "sessions: delete removes persisted conversation",
       "pass": true,
       "detail": "",
-      "duration_ms": 50
+      "duration_ms": 49
     },
     {
       "name": "Claude UI: choose backend on home",
       "pass": true,
       "detail": "",
-      "duration_ms": 2029
+      "duration_ms": 2169
     },
     {
       "name": "Claude UI: home creates a Claude conversation",
       "pass": true,
       "detail": "",
-      "duration_ms": 116
+      "duration_ms": 203
     },
     {
       "name": "Claude UI: real model picker selects Sonnet alias",
       "pass": true,
       "detail": "",
-      "duration_ms": 1530
+      "duration_ms": 1437
     },
     {
       "name": "Claude UI: local status and unsigned model gate",
       "pass": true,
       "detail": "",
-      "duration_ms": 43
+      "duration_ms": 41
     },
     {
       "name": "Claude UI: backend switch keeps histories separate",
       "pass": true,
       "detail": "",
-      "duration_ms": 1187
+      "duration_ms": 1291
     },
     {
       "name": "Claude protocol fixture: live Unicode text before final message",
       "pass": true,
       "detail": "",
-      "duration_ms": 1167
+      "duration_ms": 1159
     },
     {
       "name": "Claude protocol fixture: final text is persisted once",
       "pass": true,
       "detail": "",
-      "duration_ms": 179
+      "duration_ms": 181
     },
     {
       "name": "Claude protocol fixture: subagent deltas stay separate",
@@ -292,23 +292,23 @@
       "name": "Claude protocol fixture: error arrays and auth errors are visible",
       "pass": true,
       "detail": "",
-      "duration_ms": 114
+      "duration_ms": 115
     },
     {
       "name": "Claude protocol fixture: stop preserves partial text and ends run",
       "pass": true,
       "detail": "",
-      "duration_ms": 199
+      "duration_ms": 198
     },
     {
       "name": "final: clean home",
       "pass": true,
       "detail": "",
-      "duration_ms": 1623
+      "duration_ms": 1547
     }
   ],
   "failures": 0,
   "api": 30,
   "model": "Android SDK built for x86_64",
-  "run_id": "a111b6dc-6164-4336-835d-25fbbc66c51d"
+  "run_id": "b54d3035-9e35-491f-81cf-d3ebe455819c"
 }

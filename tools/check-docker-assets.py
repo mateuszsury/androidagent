@@ -22,6 +22,8 @@ for abi in ['arm64-v8a', 'x86_64']:
         libraries = json.loads((root.parents[2] / 'docker' / ('qemu-libraries-' + abi + '.json')).read_text())
         for name, metadata in libraries.items():
             assert hashlib.sha256((native / name).read_bytes()).hexdigest() == metadata['sha256'], f'Invalid {abi}/{name}'
+        usb_manifest = json.loads((root.parents[2] / 'usb/native-manifest.json').read_text())
+        assert hashlib.sha256((native / 'libaausb.so').read_bytes()).hexdigest() == usb_manifest[abi], f'Invalid USB JNI for {abi}'
         assert (assets / 'qemu').is_dir(), f'Missing {abi} firmware'
     except (OSError, AssertionError) as error:
         raise SystemExit(f'{error}\nPrepare QEMU and both Docker guests first; see docs/DOCKER.md.')

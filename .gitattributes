@@ -1,2 +1,6 @@
-# Preserve upstream copyright and license texts byte for byte.
+# Preserve pinned upstream sources, copyright and license texts byte for byte.
 docker/licenses/** -whitespace
+usb/native/vendor/** -text -whitespace
+usb/licenses/** -text -whitespace
+app/src/main/java/com/hoho/android/usbserial/** -text -whitespace
+app/src/main/assets/usb/*.txt -text -whitespace

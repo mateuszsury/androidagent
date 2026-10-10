@@ -14,6 +14,7 @@ SRC=app/src/main
 OUT=build
 
 python3 tools/check-docker-assets.py
+python3 tools/check-usb-assets.py
 
 rm -rf "$OUT"
 mkdir -p "$OUT/gen" "$OUT/classes" "$OUT/dex"
