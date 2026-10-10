@@ -20,6 +20,10 @@ with zipfile.ZipFile(sys.argv[1],'a',zipfile.ZIP_DEFLATED) as z:z.write(sys.argv
 PY
 zipalign -f 4 "$OUT/base.apk" "$OUT/aligned.apk"
 apksigner sign --ks "$KEYSTORE" --ks-key-alias buddy --ks-pass "file:$(dirname "$KEYSTORE")/password" --out "$OUT/tests.apk" "$OUT/aligned.apk"
+if [ "${1:-}" = --build-only ]; then
+  echo "Built $OUT/tests.apk"
+  exit 0
+fi
 "$ADB" install --no-incremental -r "$OUT/tests.apk"
 "$ADB" shell am instrument -w dev.mateuszsury.androidagent.tests/dev.mateuszsury.androidagent.AndroidAgentTests
 mkdir -p artifacts/emulator

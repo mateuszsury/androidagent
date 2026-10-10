@@ -96,7 +96,9 @@ public class AndroidAgentTests extends Instrumentation {
   }
 
   private Activity launch(Intent intent) {
-    current = startActivitySync(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+    current =
+        startActivitySync(
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK));
     waitForIdleSync();
     return current;
   }
@@ -287,10 +289,24 @@ public class AndroidAgentTests extends Instrumentation {
         "terminal: timeout and process cleanup",
         () -> {
           long start = SystemClock.elapsedRealtime();
-          LocalShell.Result r = new LocalShell().run(app, "sleep 30; echo too_late");
+          LocalShell.Result r =
+              new LocalShell()
+                  .run(app, "sleep 30 & child=$!; echo CHILD=$child; wait $child; echo too_late");
           check(r.timedOut && r.exitCode == 124, "Timeout");
           check(SystemClock.elapsedRealtime() - start < 15000, "Timeout too slow");
           check(!r.output.contains("too_late"), "Command continued");
+          java.util.regex.Matcher pid =
+              java.util.regex.Pattern.compile("CHILD=(\\d+)").matcher(r.output);
+          check(pid.find(), "Child did not start");
+          File stat = new File("/proc/" + pid.group(1) + "/stat");
+          if (stat.exists()) {
+            try (BufferedReader reader = new BufferedReader(new FileReader(stat))) {
+              String line = reader.readLine();
+              check(
+                  line.substring(line.lastIndexOf(')') + 2).startsWith("Z "),
+                  "Child survived timeout");
+            }
+          }
         });
     test(
         "terminal: explicit cancellation",
