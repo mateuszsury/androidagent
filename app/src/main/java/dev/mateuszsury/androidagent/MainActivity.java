@@ -90,6 +90,13 @@ public class MainActivity extends Screen implements ChatHub.Listener {
         full());
     cards.addView(
         suggestion(
+            R.drawable.ms_build_circle,
+            "Docker",
+            "Buduj aplikacje i sprzątaj środowiska",
+            () -> startActivity(new Intent(this, DockerActivity.class))),
+        full());
+    cards.addView(
+        suggestion(
             R.drawable.ms_chat_bubble,
             "Zleć zadanie agentowi",
             "Czytaj ekran, działaj w aplikacjach",

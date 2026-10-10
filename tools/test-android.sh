@@ -12,7 +12,7 @@ export PATH="$JAVA_HOME/bin:$BT:$PATH"
 OUT=build/device-tests
 mkdir -p "$OUT/classes" "$OUT/dex"
 aapt2 link -I "$SDK" --manifest tests/android/AndroidManifest.xml -o "$OUT/base.apk"
-javac --release 8 -classpath "$SDK:build/classes" -encoding UTF-8 -d "$OUT/classes" tests/android/AndroidAgentTests.java
+javac --release 8 -classpath "$SDK:build/classes" -encoding UTF-8 -d "$OUT/classes" tests/android/*.java
 d8 --min-api 30 --lib "$SDK" --classpath build/classes --output "$OUT/dex" $(find "$OUT/classes" -name '*.class')
 python3 - "$OUT/base.apk" "$OUT/dex/classes.dex" <<'PY'
 import sys,zipfile

@@ -13,6 +13,8 @@ VERSION_CODE=$(sed -n 's/.*VERSION_CODE = \([0-9]*\);/\1/p' "$INFO")
 SRC=app/src/main
 OUT=build
 
+python3 tools/check-docker-assets.py
+
 rm -rf "$OUT"
 mkdir -p "$OUT/gen" "$OUT/classes" "$OUT/dex"
 
@@ -25,7 +27,7 @@ sed "s|<manifest |<manifest package=\"$PACKAGE\" |" "$SRC/AndroidManifest.xml" >
 aapt2 link -I "$SDK_JAR" --manifest "$OUT/AndroidManifest.xml" \
   --min-sdk-version 30 --target-sdk-version 36 \
   --version-code "$VERSION_CODE" --version-name "$VERSION_NAME" \
-  -A "$SRC/assets" --java "$OUT/gen" -o "$OUT/base.apk" "$OUT/res.zip"
+  -A "$SRC/assets" -0 gz --java "$OUT/gen" -o "$OUT/base.apk" "$OUT/res.zip"
 
 echo "3/6 Compiling Java"
 javac --release 8 -classpath "$SDK_JAR" -Xlint:-options -encoding UTF-8 \
@@ -36,10 +38,15 @@ d8 --release --min-api 30 --lib "$SDK_JAR" --output "$OUT/dex" $(find "$OUT/clas
 
 echo "5/6 Packaging and aligning"
 cp "$OUT/base.apk" "$OUT/unaligned.apk"
-python3 - "$OUT/unaligned.apk" "$OUT/dex/classes.dex" <<'EOF'
+python3 - "$OUT/unaligned.apk" "$OUT/dex/classes.dex" "$SRC/jniLibs" <<'EOF'
 import sys, zipfile
+from pathlib import Path
 with zipfile.ZipFile(sys.argv[1], "a", zipfile.ZIP_DEFLATED) as z:
     z.write(sys.argv[2], "classes.dex")
+    native = Path(sys.argv[3])
+    if native.exists():
+        for f in sorted(native.glob('*/*.so')):
+            z.write(f, 'lib/' + str(f.relative_to(native)), compress_type=zipfile.ZIP_DEFLATED)
 EOF
 python3 tools/zipalign.py "$OUT/unaligned.apk" "$OUT/aligned.apk"
 

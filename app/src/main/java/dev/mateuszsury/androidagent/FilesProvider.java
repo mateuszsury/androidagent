@@ -26,6 +26,10 @@ public class FilesProvider extends ContentProvider {
         return Uri.parse("content://" + AUTHORITY + "/a/" + id);
     }
 
+    static Uri dockerUri(String id) {
+        return Uri.parse("content://" + AUTHORITY + "/docker/" + id);
+    }
+
     static File captureFile(android.content.Context c) {
         return new File(c.getCacheDir(), "capture.jpg");
     }
@@ -34,6 +38,7 @@ public class FilesProvider extends ContentProvider {
         java.util.List<String> p = uri.getPathSegments();
         if (p.size() == 1 && "capture".equals(p.get(0))) return captureFile(getContext());
         if (p.size() == 2 && "a".equals(p.get(0))) return Attachments.file(getContext(), p.get(1));
+        if (p.size() == 2 && "docker".equals(p.get(0))) return DockerVm.exportedFile(getContext(), p.get(1));
         return null;
     }
 
@@ -61,6 +66,8 @@ public class FilesProvider extends ContentProvider {
         if (n.endsWith(".webp")) return "image/webp";
         if (n.endsWith(".gif")) return "image/gif";
         if (n.endsWith(".pdf")) return "application/pdf";
+        if (n.endsWith(".apk")) return "application/vnd.android.package-archive";
+        if (n.endsWith(".html")) return "text/html";
         if (n.endsWith(".txt") || n.endsWith(".md") || n.endsWith(".csv")) return "text/plain";
         return "application/octet-stream";
     }
@@ -72,6 +79,13 @@ public class FilesProvider extends ContentProvider {
         MatrixCursor c = new MatrixCursor(new String[]{OpenableColumns.DISPLAY_NAME, OpenableColumns.SIZE});
         String name = f.getParentFile() != null && "attachments".equals(f.getParentFile().getName())
                 ? Attachments.name(f.getName()) : "photo.jpg";
+        if (uri.getPathSegments().size() == 2 && "docker".equals(uri.getPathSegments().get(0))) {
+            try (java.io.InputStream in = new java.io.FileInputStream(new File(f.getPath() + ".json"))) {
+                byte[] data = new byte[(int)Math.min(16384, new File(f.getPath() + ".json").length())];
+                int count = in.read(data);
+                name = new org.json.JSONObject(new String(data, 0, count, java.nio.charset.StandardCharsets.UTF_8)).optString("name", f.getName());
+            } catch (Exception ignored) { name = f.getName(); }
+        }
         c.addRow(new Object[]{name, f.length()});
         return c;
     }

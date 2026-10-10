@@ -1,10 +1,10 @@
-# Claude Code w androidagent 0.2.0
+# Claude Code w androidagent 0.3.0
 
 Claude Code jest drugim pełnym backendem rozmów. Selektor na ekranie głównym wybiera agenta nowych rozmów. Istniejąca rozmowa zachowuje swój backend, model i historię; sesja Codexa nie jest przekazywana do Claude. Oba środowiska można zainstalować w tym samym Termux.
 
 ## Instalacja i logowanie
 
-1. Zainstaluj APK 0.2.0 i Termux. W konfiguracji włącz Accessibility, RUN_COMMAND oraz pomocnika w wersji **11**.
+1. Zainstaluj APK 0.3.0 i Termux. W konfiguracji włącz Accessibility, RUN_COMMAND oraz pomocnika w wersji **12**.
 2. Wybierz Claude Code lub obu agentów w przewodniku. Skopiuj polecenie instalacji i wklej je do Termux.
 3. Instalator z zasobów APK instaluje pakiety Termux, oficjalny `@anthropic-ai/claude-code-linux-{arm64,x64}-musl@2.1.296` oraz musl `1.2.5-r12` z Alpine. Musl jest sprawdzany przez SHA256, npm sprawdza integralność pakietu klienta. Wrapper znajduje się w `~/bin/claude`. Root i patchowanie ELF nie są potrzebne.
 4. Zaloguj się przez oficjalne `~/bin/claude auth login`. W razie powrotu do przeglądarki postępuj zgodnie z instrukcją CLI. Nie wpisuj danych konta do rozmowy androidagent.
@@ -17,7 +17,7 @@ Przycisk **Napraw lub zaktualizuj instalację** ponownie uruchamia instalator, z
 - Wyjście `stream-json --include-partial-messages`: tekst na żywo w rozmowie i pływającym panelu. Zakończona odpowiedź jest renderowana i zapisywana raz. Zdarzenia subagentów nie mieszają się ze strumieniem głównej odpowiedzi.
 - Model Default, aliasy **Sonnet**, **Opus**, **Haiku** oraz własny identyfikator. Aliasy rozstrzyga oficjalny klient; interfejs nie obiecuje konkretnej wersji ani dostępu z danego konta.
 - Wznowienie przez prawdziwy identyfikator `session_id`, osobny dla każdej rozmowy; załączniki pobierane z uwierzytelnionego serwera telefonu do katalogu sesji.
-- Wszystkie 17 narzędzi MCP telefonu, z tokenem instalacji i `--strict-mcp-config`. Potwierdzenia oraz Stop współdzielą ten sam interfejs, co Codex.
+- Wszystkie 29 narzędzi MCP, w tym 12 narzędzi lokalnego Dockera, z tokenem instalacji i `--strict-mcp-config`. Potwierdzenia oraz Stop współdzielą ten sam interfejs, co Codex. [Docker: budowanie, eksport i sprzątanie](DOCKER.md).
 - Zwykły tryb udostępnia WebSearch/WebFetch/Read oraz narzędzia MCP; odczyt załączników jest zatwierdzony regułą ich katalogu. Powłoka i edycja plików są usunięte z zestawu narzędzi.
 - Tryb programisty dodaje Bash/Read/Write/Edit/Glob/Grep/Skill/Agent i narzędzia kodowania z uprawnieniami UID Termux. Mogą odczytywać i zmieniać całe środowisko Termux. Nie jest to sandbox projektu ani dostęp root. Preautoryzowane operacje kodowania wykonują się bez osobnych kart zgody; inne żądania uprawnień w trybie nieinteraktywnym są odrzucane. MCP `run_command` zawsze wymaga zatwierdzenia dokładnej komendy.
 - Stop zatrzymuje drzewo procesów pomocnika, również procesy ignorujące SIGTERM. Odbiera także sterowanie telefonem. Nie usuwa historii rozmowy.
