@@ -33,6 +33,8 @@ CID=$("${DOCKER[@]}" create --platform "$PLATFORM" "${CA_ARGS[@]}" -v "$PWD/dock
   apk add --no-cache alpine-base linux-virt docker docker-cli-buildx docker-cli-compose python3 curl ca-certificates
   mkdir -p /opt/androidagent /var/lib/androidagent/tasks
   cp /input/agent.py /opt/androidagent/agent.py
+  cp -r /input/python /opt/androidagent/python
+  chmod -R a+rX /opt/androidagent/python
   cp /input/init.sh /opt/androidagent/init.sh
   cp /out/alpine-base.tar /out/alpine-base-id /opt/androidagent/
   chmod 755 /opt/androidagent/init.sh

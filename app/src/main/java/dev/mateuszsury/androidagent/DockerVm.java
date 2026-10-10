@@ -102,6 +102,8 @@ final class DockerVm {
                     "-device", "arm64-v8a".equals(abi) ? "virtio-blk-device,drive=secret" : "virtio-blk-pci,drive=secret",
                     "-netdev", "user,id=net,hostfwd=tcp:127.0.0.1:" + API_PORT + "-:7080,hostfwd=tcp:127.0.0.1:" + PREVIEW_PORT + "-:8080",
                     "-device", "arm64-v8a".equals(abi) ? "virtio-net-device,netdev=net" : "virtio-net-pci,netdev=net,romfile=",
+                    "-device", "qemu-xhci,id=aausb,p2=8,p3=8",
+                    "-qmp", "unix:" + new File(directory,"qmp.sock").getAbsolutePath() + ",server=on,wait=off",
                     "-nodefaults", "-display", "none", "-serial", "stdio", "-monitor", "none", "-no-reboot");
             // Only nested Android emulators need an instruction-count clock.
             // Physical phones retain normal Linux wall-clock timeout semantics.
@@ -205,6 +207,7 @@ final class DockerVm {
     }
 
     JSONObject request(JSONObject args) throws Exception {
+        if("cleanup".equals(args.optString("op"))||"cancel".equals(args.optString("op")))UsbDocker.closeTask(context,args.optString("task"));
         if (!"ready".equals(state)) throw new IOException("Otwórz Docker w androidagent i uruchom środowisko. " + detail);
         final int generation = epoch;
         JSONObject result = requestRaw(args, 60000);
@@ -269,6 +272,7 @@ final class DockerVm {
         return list;
     }
     void stop(boolean graceful) {
+        UsbDocker.closeVm(context);
         synchronized (lifecycle) { ++epoch; state = "stopping"; detail = "Zatrzymywanie środowiska"; }
         if (graceful && alive()) {
             try { requestRaw(new JSONObject().put("op", "shutdown"), 12000); } catch (Exception ignored) {}
@@ -277,6 +281,7 @@ final class DockerVm {
         kill(); guest = new JSONObject(); state = "stopped"; detail = "Środowisko zatrzymane; zadania zapisane";
     }
     void emergencyStop() {
+        UsbDocker.closeVm(context);
         synchronized (lifecycle) { ++epoch; kill(); state = "stopped"; detail = "Przerwano pracę środowiska"; }
     }
     private void kill() {
@@ -288,6 +293,20 @@ final class DockerVm {
             } catch (Exception ignored) {}
             p.destroyForcibly(); process = null;
         }
+    }
+    JSONObject qmp(String command,JSONObject arguments)throws Exception{
+        android.net.LocalSocket socket=new android.net.LocalSocket();
+        try{
+            socket.connect(new android.net.LocalSocketAddress(new File(directory,"qmp.sock").getAbsolutePath(),android.net.LocalSocketAddress.Namespace.FILESYSTEM));socket.setSoTimeout(10000);
+            java.io.BufferedReader in=new java.io.BufferedReader(new java.io.InputStreamReader(socket.getInputStream(),StandardCharsets.UTF_8));
+            String greeting=in.readLine();if(greeting==null||!new JSONObject(greeting).has("QMP"))throw new IOException("Missing QMP greeting");
+            java.io.OutputStream out=socket.getOutputStream();
+            for(String execute:new String[]{"qmp_capabilities",command}){
+                String id=UUID.randomUUID().toString();JSONObject request=new JSONObject().put("execute",execute).put("id",id);if(execute.equals(command)&&arguments!=null)request.put("arguments",arguments);
+                out.write((request.toString()+"\n").getBytes(StandardCharsets.UTF_8));out.flush();
+                while(true){String line=in.readLine();if(line==null||line.length()>1024*1024)throw new IOException("QMP disconnected or response exceeds limit");JSONObject reply=new JSONObject(line);if(!id.equals(reply.optString("id")))continue;if(reply.has("error"))throw new IOException(reply.getJSONObject("error").optString("desc"));if(execute.equals(command))return reply;break;}
+            }throw new IOException("QMP returned no response");
+        }finally{socket.close();}
     }
     void reset() throws Exception {
         if (alive() || "preparing".equals(state) || "booting".equals(state)) throw new IOException("Najpierw zatrzymaj środowisko");

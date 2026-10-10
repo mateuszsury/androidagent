@@ -1,5 +1,6 @@
 {
-  "run_id": "f874ee49-6f77-4db8-ba35-9c1ccc372741",
+  "version": "0.4.0",
+  "run_id": "80022527-ae80-48ff-8f94-8a319517e9e3",
   "tests": [
     {
       "name": "UI: readable memory selector in light theme",

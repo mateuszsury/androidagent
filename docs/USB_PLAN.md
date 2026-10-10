@@ -1,6 +1,6 @@
 # Plan obsługi USB w androidagent
 
-Status: plan implementacji po wersji 0.3.0. Zakres uzgodniony z użytkownikiem: UART/USB-serial i ESP, drugi telefon Android oraz nośniki danych. Podstawowy dostęp ma działać bezpośrednio w aplikacji, bez roota, Dockera, Termux ani Shizuku. Codex i Claude Code będą korzystać z tych samych narzędzi MCP. Ich obecne klienty nadal wymagają Termux do uruchomienia agenta; obsługa USB tego wymagania nie rozszerza.
+Status: historyczny plan po wersji 0.3.0, wdrożony programowo w 0.4.0; weryfikacja na fizycznym sprzęcie pozostaje do wykonania. Aktualny kontrakt, sposób użycia i ograniczenia znajdują się w [USB.md](USB.md). Surowe przekazywanie USB do Dockera zostało dodane do zakresu zgodnie z dalszą decyzją użytkownika. Zakres uzgodniony z użytkownikiem: UART/USB-serial i ESP, drugi telefon Android oraz nośniki danych. Podstawowy dostęp działa bezpośrednio w aplikacji, bez roota, Dockera, Termux ani Shizuku. Codex i Claude Code korzystają z tych samych narzędzi MCP. Ich obecne klienty nadal wymagają Termux do uruchomienia agenta; obsługa USB tego wymagania nie rozszerza.
 
 ## Stan obecny
 

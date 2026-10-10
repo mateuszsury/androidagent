@@ -104,5 +104,46 @@ class GuestBoundaryTests(unittest.TestCase):
         self.assertLessEqual(len(result['output']), 65536)
 
 
+    def test_serial_grant_is_private_and_generation_scoped(self):
+        from unittest.mock import patch
+        url = 'androidagent://10.0.2.2:18782/' + 'a' * 72
+        self.agent.dispatch({'op': 'serial_attach', 'task': self.task, 'session': 'first', 'url': url})
+        public = self.agent.task_info(self.path)
+        self.assertEqual(['first'], public['serial_sessions'])
+        self.assertNotIn(url, str(public))
+        with patch.object(self.agent, 'cancel') as cancel:
+            self.agent.dispatch({'op': 'usb_detach', 'task': self.task, 'session': 'stale'})
+            cancel.assert_not_called()
+            self.assertIn('first', self.agent.SERIAL[self.task])
+            self.agent.dispatch({'op': 'usb_detach', 'task': self.task, 'session': 'first'})
+            cancel.assert_called_once_with(self.task)
+        self.assertFalse(self.agent.SERIAL[self.task])
+
+    def test_serial_url_cannot_point_to_another_host_or_credential(self):
+        for url in ['http://127.0.0.1/token', 'androidagent://10.0.2.2:8766/root-token',
+                    'androidagent://remote:18782/' + 'x' * 72]:
+            with self.assertRaises(ValueError):
+                self.agent.dispatch({'op': 'serial_attach', 'task': self.task, 'session': 'first', 'url': url})
+
+    def test_usb_grant_only_maps_selected_char_device(self):
+        from unittest.mock import patch
+        device = {'slot': 1, 'vid': 1575, 'pid': 1, 'node': '/dev/bus/usb/001/002'}
+        with patch.object(self.agent, 'usb_device', return_value=device.copy()):
+            grant = self.agent.dispatch({'op': 'usb_attach', 'task': self.task, 'session': 'first', **{k: device[k] for k in ('slot', 'vid', 'pid')}})
+            self.assertEqual(device['node'], grant['usb'][0]['node'])
+            other = self.agent.dispatch({'op': 'create'})['id']
+            with self.assertRaises(ValueError):
+                self.agent.dispatch({'op': 'usb_attach', 'task': other, 'session': 'second', 'slot': 1, 'vid': 1575, 'pid': 1})
+            with patch.object(self.agent, 'start_job', return_value={}) as start:
+                self.agent.dispatch({'op': 'run', 'task': self.task, 'image': 'alpine'})
+                argv = start.call_args.args[2]
+                self.assertIn('/dev/bus/usb/001/002:/dev/bus/usb/001/002:rwm', str(argv))
+                self.assertNotIn('--privileged', str(argv))
+                self.assertNotIn('src=/dev', str(argv))
+        with patch.object(self.agent, 'usb_device', return_value=None):
+            with self.assertRaises(ValueError):
+                self.agent.dispatch({'op': 'run', 'task': self.task, 'image': 'alpine'})
+
+
 if __name__ == '__main__':
     unittest.main()

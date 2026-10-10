@@ -12,7 +12,7 @@
 #   buddy-run <token> adopt <session> <claude|codex> <agent-session-id>  continue that session as a Buddy chat
 #   buddy-run <token> handoff <session>    (run in a Termux tab) reopen a Buddy chat with remote control (that session only)
 # Every event sent to the bubble carries "buddy_session" so the app can route it.
-HELPER_VERSION=12
+HELPER_VERSION=13
 set -u
 export PATH=$HOME/bin:/data/data/com.termux/files/usr/bin:$PATH
 # The claude launcher sets BUN_OPTIONS with a path relative to its folder; never inherit a stale one.
@@ -162,7 +162,7 @@ case "$CMD" in
     echo "Opening this Buddy chat with Remote Control for this session only."
     echo "It appears in the Claude app (Code). Type /exit when done; this tab then closes."
     echo "Exit with /exit when you're done; you can keep using the chat in Buddy afterwards."
-    mcp=$(jq -cn --arg url "$URL/mcp" --arg auth "Bearer $TOKEN" \
+    mcp=$(jq -cn --arg url "$URL/mcp" --arg auth "Bearer ${MCP_TOKEN:-$TOKEN}" \
       '{mcpServers:{phone:{type:"http",url:$url,headers:{Authorization:$auth}}}}')
     args=(--resume "$CS" --remote-control "androidagent chat $SID"
       --mcp-config "$mcp" --strict-mcp-config
@@ -197,7 +197,7 @@ case "$CMD" in
     [ -f "$S/pid" ] && kill_tree "$(cat "$S/pid")"
     rm -rf "${S:?}"
     exit 0 ;;
-  ask) SID=${3:-}; BACKEND=${4:-claude}; DEV=${5:-0}; MSG=${6:-}; MODEL=${7:-}; FILES=${8:-} ;;
+  ask) SID=${3:-}; BACKEND=${4:-claude}; DEV=${5:-0}; MSG=${6:-}; MODEL=${7:-}; FILES=${8:-}; MCP_TOKEN=${9:-$TOKEN} ;;
   *) echo "usage: buddy-run <token> ask|stop|delete|ping ..." >&2; exit 2 ;;
 esac
 
@@ -247,7 +247,7 @@ fi
 # ---------------------------------------------------------------- Claude Code
 run_claude() {
   local mcp tools
-  mcp=$(jq -cn --arg url "$URL/mcp" --arg auth "Bearer $TOKEN" \
+  mcp=$(jq -cn --arg url "$URL/mcp" --arg auth "Bearer ${MCP_TOKEN:-$TOKEN}" \
     '{mcpServers:{phone:{type:"http",url:$url,headers:{Authorization:$auth}}}}')
   tools=("mcp__phone" "WebSearch" "WebFetch" "Read(/$S/files/**)")
   [ "$DEV" = 1 ] && tools+=("Bash" "Read" "Write" "Edit" "Glob" "Grep" "Skill" "Agent" "NotebookEdit" "TodoWrite")
@@ -291,12 +291,12 @@ run_codex() {
   for f in "${IMGS[@]}"; do img+=("--image=$f"); done
   cd "$W" || return 1
   if [ -s "$S/codex-thread" ]; then
-    BUDDY_TOKEN=$TOKEN codex exec "${cfg[@]}" "${sandbox[@]}" --json --skip-git-repo-check \
+    BUDDY_TOKEN=${MCP_TOKEN:-$TOKEN} codex exec "${cfg[@]}" "${sandbox[@]}" --json --skip-git-repo-check \
       resume "${img[@]}" -- "$(cat "$S/codex-thread")" "$prompt" </dev/null 2>"$S/last-error.log"
   else
     # codex exec has no system-prompt flag, so Buddy's instructions lead the first message.
     prompt="$SYSTEM"$'\n\n---\n\nUser message from the Buddy bubble:\n'"$MSG"
-    BUDDY_TOKEN=$TOKEN codex exec "${cfg[@]}" "${sandbox[@]}" "${img[@]}" --json --skip-git-repo-check \
+    BUDDY_TOKEN=${MCP_TOKEN:-$TOKEN} codex exec "${cfg[@]}" "${sandbox[@]}" "${img[@]}" --json --skip-git-repo-check \
       -- "$prompt" </dev/null 2>"$S/last-error.log"
   fi
 }

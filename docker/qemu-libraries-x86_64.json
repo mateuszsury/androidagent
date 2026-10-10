@@ -263,6 +263,10 @@
     "source": "lib/libusb-1.0.so",
     "sha256": "6d559b96384aeb2c21e52c68b0862c348fb6bb2ed6869e2c6073c2f04f31ebc7"
   },
+  "libusbredirhost.so": {
+    "source": "lib/libusbredirhost.so",
+    "sha256": "8a605ecf55ed0f6e8aa6c3cc67c1a8d79324a6f5398154710efac40af6bda74f"
+  },
   "libusbredirparser.so": {
     "source": "lib/libusbredirparser.so",
     "sha256": "24f18d681fef35c2e2f04570ab92282bfc1e8dba78213f077bb399f9ee8abf4c"

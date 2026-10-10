@@ -52,3 +52,10 @@ android {
         jniLibs.useLegacyPackaging = true
     }
 }
+
+// Both build paths require verified USB/ESP and QEMU artifacts.
+val verifyUsbAssets by tasks.registering(Exec::class) {
+    workingDir(rootProject.projectDir)
+    commandLine("python3", "tools/check-usb-assets.py")
+}
+tasks.named("preBuild") { dependsOn(verifyUsbAssets) }

@@ -107,6 +107,10 @@ public class DockerRuntimeTests extends Instrumentation {
         test("UI: Docker dashboard without model account",()->{launch(DockerActivity.class);check(find(screen.getWindow().getDecorView(),"Uruchom środowisko")!=null,"Start button");shot("01-docker-dashboard");});
         if(!test("MCP: real accessibility server connected",()->{
             shell("settings put secure enabled_accessibility_services ''");shell("settings put secure accessibility_enabled 0");
+            android.view.accessibility.AccessibilityManager manager=(android.view.accessibility.AccessibilityManager)app.getSystemService(Context.ACCESSIBILITY_SERVICE);
+            long disabledUntil=SystemClock.elapsedRealtime()+10000;
+            while(!manager.getEnabledAccessibilityServiceList(android.accessibilityservice.AccessibilityServiceInfo.FEEDBACK_ALL_MASK).isEmpty()&&SystemClock.elapsedRealtime()<disabledUntil)SystemClock.sleep(250);
+            check(manager.getEnabledAccessibilityServiceList(android.accessibilityservice.AccessibilityServiceInfo.FEEDBACK_ALL_MASK).isEmpty(),"Previous accessibility binding did not clear");
             shell("settings put secure enabled_accessibility_services dev.mateuszsury.androidagent/dev.mateuszsury.androidagent.BuddyService");shell("settings put secure accessibility_enabled 1");
             long until=SystemClock.elapsedRealtime()+30000;while(BuddyService.get()==null&&SystemClock.elapsedRealtime()<until)SystemClock.sleep(250);
             check(BuddyService.get()!=null,"MCP server missing");BuddyService.get().allowControl();
@@ -182,6 +186,8 @@ public class DockerRuntimeTests extends Instrumentation {
                 check(read(app.getContentResolver().openInputStream(android.net.Uri.parse(result.getString("uri")))).equals("SOURCEEDITED"),"Non-root artifact");
             }finally{task=original;}
         });
+        usbPassthrough();
+        test("UART Docker: actual guest/container route, scoped token and baud/DTR/RTS/break (serial fixture)",this::serialBridgeTest);
         test("UI: editor keeps draft across rotation",()->{
             launch(new Intent(app,DockerTaskActivity.class).putExtra("task",task));
             runOnMainSync(()->((EditText)find(screen.getWindow().getDecorView(),"Treść pliku")).setText("DRAFT_AFTER_ROTATION"));
@@ -190,6 +196,7 @@ public class DockerRuntimeTests extends Instrumentation {
             check(((EditText)find(screen.getWindow().getDecorView(),"Treść pliku")).getText().toString().equals("DRAFT_AFTER_ROTATION"),"Draft lost");shot("03-docker-task");
         });
         test("Cancel: real running command and container stopped",()->{
+            check("succeeded".equals(waitJob(call("docker_run",args("task",task,"memory_mb",128)).getString("id")).optString("state")),"Cannot start the dedicated cancellation container");
             job=call("docker_exec",args("task",task,"command","while :; do echo WORKING; sleep 1; done")).getString("id");
             SystemClock.sleep(1500);call("docker_cancel",args("task",task));check("cancelled".equals(call("docker_logs",args("task",task,"job",job)).optString("state")),"Job still running");
         });
@@ -215,6 +222,73 @@ public class DockerRuntimeTests extends Instrumentation {
             SystemClock.sleep(500);DockerVm.get(app).reset();check(!new File(DockerVm.get(app).directory,"user.qcow2").exists(),"Disk remains");
             check(DockerVm.exportedFile(app,artifactId)!=null,"Reset deleted exported results");launch(DockerActivity.class);shot("05-docker-export-retained");
         });
+    }
+    void usbPassthrough()throws Exception{
+        final String[] node={""};final boolean[] attached={false};DockerVm vm=DockerVm.get(app);
+        test("USB QMP: actual usb-redir driver and private Unix chardev hotplug",this::usbRedirTest);
+        test("USB QMP: real virtual HID enumerates in Linux guest (fixture, not OTG)",()->{
+            vm.qmp("device_add",args("driver","usb-kbd","id","usb-fixture","bus","aausb.0","port","1"));
+            JSONObject grant=vm.request(args("op","usb_attach","task",task,"session","fixture-qmp","slot",1,"vid",0x0627,"pid",1));
+            node[0]=grant.getJSONArray("usb").getJSONObject(0).getString("node");attached[0]=true;
+            check(node[0].startsWith("/dev/bus/usb/"),grant.toString());
+            boolean refused=false;try{vm.request(args("op","usb_attach","task",other,"session","fixture-other","slot",1,"vid",0x0627,"pid",1));}catch(Exception e){refused=true;}check(refused,"USB device granted twice");
+        });
+        if(attached[0])test("USB Docker: selected real bus node in container, no broad device mount",()->{
+            check("succeeded".equals(waitJob(call("docker_run",args("task",task,"memory_mb",128)).getString("id")).optString("state")),"USB-enabled container failed");
+            JSONObject result=waitJob(call("docker_exec",args("task",task,"command","test -c "+node[0]+" && exec 3<>"+node[0]+" && exec 3>&- && test ! -e /dev/vdb && test ! -e /dev/bus/usb/001/001 && echo REAL_SCOPED_USB_NODE")).getString("id"));
+            check("succeeded".equals(result.optString("state"))&&result.optString("output").contains("REAL_SCOPED_USB_NODE"),result.toString());
+        });
+        if(attached[0])test("USB: stale detach cannot revoke newer generation; correct detach stops task",()->{
+            vm.request(args("op","usb_detach","task",task,"session","wrong-generation"));
+            check(vm.request(args("op","status")).getJSONArray("tasks").toString().contains("fixture-qmp"),"Stale detach revoked grant");
+            vm.request(args("op","usb_detach","task",task,"session","fixture-qmp"));vm.qmp("device_del",args("id","usb-fixture"));
+            String rejectedJob=null;try{rejectedJob=call("docker_exec",args("task",task,"command","echo SHOULD_NOT_RUN")).getString("id");}catch(IOException expected){}
+            if(rejectedJob!=null){JSONObject result=waitJob(rejectedJob);check("failed".equals(result.optString("state"))&&!result.optString("output").contains("SHOULD_NOT_RUN"),"Container was not stopped: "+result);}
+        });
+    }
+    void serialBridgeTest()throws Exception{
+        UsbRuntimeTests.FixturePort port=new UsbRuntimeTests.FixturePort();
+        UsbSessions.Session session=new UsbSessions.Session("synthetic-uart","serial","external",null);
+        session.serial=new SerialTransport(port,null);UsbSessions hub=UsbSessions.get(app);synchronized(hub){hub.sessions.put(session.id,session);}
+        try{
+            JSONObject grant=UsbSerialBridge.attach(app,"external",session.id,task);
+            check(grant.optString("url").startsWith("androidagent://10.0.2.2:"),"Missing scoped bridge");
+            boolean refused=false;try{UsbSerialBridge.attach(app,"other",session.id,task);}catch(SecurityException e){refused=true;}check(refused,"Other owner bridged the UART");
+            check("succeeded".equals(waitJob(call("docker_run",args("task",task,"memory_mb",128)).getString("id")).optString("state")),"UART-enabled container failed");
+            String script="set -eu; test -r /opt/androidagent/python/sitecustomize.py || { echo UART_MODULE_NOT_READABLE; exit 1; }; test -n \"${ANDROIDAGENT_SERIAL_URL:-}\" || { echo UART_URL_MISSING; exit 1; }; token=${ANDROIDAGENT_SERIAL_URL##*/}; "
+                +"wget -qO- --header=\"Authorization: Bearer $token\" --post-data='{"+"\"op\":\"configure\",\"baud\":9600}' http://10.0.2.2:18782/serial; "
+                +"wget -qO- --header=\"Authorization: Bearer $token\" --post-data='{"+"\"op\":\"control\",\"dtr\":true,\"rts\":false,\"break\":true}' http://10.0.2.2:18782/serial; "
+                +"wget -qO- --header=\"Authorization: Bearer $token\" --post-data='{"+"\"op\":\"write\",\"data\":\"AAECAw==\"}' http://10.0.2.2:18782/serial; sleep 1; "
+                +"wget -qO- --header=\"Authorization: Bearer $token\" --post-data='{"+"\"op\":\"read\",\"cursor\":0}' http://10.0.2.2:18782/serial";
+            JSONObject result=waitJob(call("docker_exec",args("task",task,"command",script)).getString("id"));
+            check("succeeded".equals(result.optString("state"))&&result.optString("output").contains("AAECAw=="),result.toString());
+            check(session.serial.baud==9600&&port.dtr&&!port.rts&&port.brk,"UART settings did not reach native fixture");
+            UsbSerialBridge.revoke(session);
+            check(UsbSerialBridge.grants.isEmpty(),"Bridge token survived revoke");
+        }finally{synchronized(hub){hub.sessions.remove(session.id);}session.serial.close();UsbSerialBridge.revoke(session);DockerVm.get(app).request(args("op","usb_detach","task",task,"session",session.id));}
+    }
+    void usbRedirTest()throws Exception{
+        DockerVm vm=DockerVm.get(app);String socket=new File(vm.directory,"redir-fixture.sock").getAbsolutePath();
+        try{
+            vm.qmp("chardev-add",args("id","redir-fixture","backend",args("type","socket","data",args("addr",args("type","unix","data",args("path",socket)),"server",true,"wait",false))));
+            vm.qmp("device_add",args("driver","usb-redir","id","redir-device-fixture","chardev","redir-fixture","bus","aausb.0","port","2"));
+            check(new File(socket).exists(),"QEMU did not create the private socket");
+            vm.qmp("device_del",args("id","redir-device-fixture"));
+            // QEMU 11 destroys the owned chardev with usb-redir. Older versions
+            // may leave it for explicit removal; inspect rather than delete twice.
+            if(hasChardev(vm,"redir-fixture"))vm.qmp("chardev-remove",args("id","redir-fixture"));
+            check(!hasChardev(vm,"redir-fixture"),"USB chardev survived device removal");
+        }finally{
+            // Preserve the original failure when setup did not finish.
+            try{vm.qmp("device_del",args("id","redir-device-fixture"));}catch(Exception ignored){}
+            try{vm.qmp("chardev-remove",args("id","redir-fixture"));}catch(Exception ignored){}
+            new File(socket).delete();
+        }
+    }
+    boolean hasChardev(DockerVm vm,String id)throws Exception{
+        JSONArray channels=vm.qmp("query-chardev",null).getJSONArray("return");
+        for(int i=0;i<channels.length();i++)if(id.equals(channels.getJSONObject(i).optString("label")))return true;
+        return false;
     }
     void uiSuite()throws Exception{
         check(!DockerVm.get(app).alive(),"Stop the VM before this dedicated emulator suite");DockerVm.get(app).reset();
@@ -251,7 +325,7 @@ public class DockerRuntimeTests extends Instrumentation {
         });
     }
     void save()throws Exception{
-        JSONObject report=new JSONObject().put("run_id",runId).put("tests",tests).put("failures",failures).put("api",Build.VERSION.SDK_INT).put("abi",Build.SUPPORTED_ABIS[0]).put("cache_reused",reuseCache);
+        JSONObject report=new JSONObject().put("version",BuildInfo.VERSION).put("run_id",runId).put("tests",tests).put("failures",failures).put("api",Build.VERSION.SDK_INT).put("abi",Build.SUPPORTED_ABIS[0]).put("cache_reused",reuseCache);
         try(OutputStream out=new FileOutputStream(new File(evidence,"results.json"))){out.write(report.toString(2).getBytes(StandardCharsets.UTF_8));}
     }
     void export()throws Exception{

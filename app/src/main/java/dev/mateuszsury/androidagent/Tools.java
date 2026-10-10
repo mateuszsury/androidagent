@@ -37,9 +37,11 @@ final class Tools {
     private final BuddyService svc;
     private final java.util.Set<LocalShell> commands = new java.util.HashSet<>();
     void cancelCommands() {
-        synchronized (commands) { for (LocalShell command : commands) command.stop(); }
+        cancelLocalCommands();
         DockerVm.get(svc).emergencyStop();
+        UsbSessions.get(svc).closeAll();
     }
+    void cancelLocalCommands() { synchronized (commands) { for (LocalShell command : commands) command.stop(); } }
     private final Object lock = new Object();
     private final List<AccessibilityNodeInfo> lastNodes = new ArrayList<>();
 

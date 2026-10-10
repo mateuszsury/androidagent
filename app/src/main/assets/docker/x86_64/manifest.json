@@ -2,8 +2,8 @@
   "version": 1,
   "disk_gb": 8,
   "files": {
-    "base.qcow2.gz": "dffb4638a57f22a9fac26557c0171a92ef23fa0ad28b78ed7b35c5472384a9de",
+    "base.qcow2.gz": "3a8ca5fa0a4791f009f7ec1ba0192e644c64b89cef19309e7e658b83cbc9c8f5",
     "vmlinuz-virt": "2d76a33ca6a22b3f1620d09b1462f13a528e44eb37ef35643aabe0dffcb24049",
-    "initramfs-virt": "d918066555b2c9d36e81f77b145bb89e7603a8521c1565456adef3eb8f8e7372"
+    "initramfs-virt": "35b7a334f086dad379cb2547935f2f8b8d5c46e205c977f66e544b805fcf808c"
   }
 }

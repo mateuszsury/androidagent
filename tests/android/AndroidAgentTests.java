@@ -163,7 +163,11 @@ public class AndroidAgentTests extends Instrumentation {
               "com.termux.RUN_COMMAND_ARGUMENTS", new String[] {"-c", TermuxSetup.command(app)});
           install.putExtra("com.termux.RUN_COMMAND_WORKDIR", Termux.HOME);
           install.putExtra("com.termux.RUN_COMMAND_BACKGROUND", true);
-          app.startService(install);
+          try {
+            app.startService(install);
+          } catch (IllegalStateException backgroundRestricted) {
+            app.startForegroundService(install);
+          }
           SystemClock.sleep(3000);
         });
     test(
@@ -197,7 +201,7 @@ public class AndroidAgentTests extends Instrumentation {
         () -> {
           runUnsignedClaude(claude[0], false);
           check(
-              claude[0].phoneConnected && claude[0].phoneToolCount == new Tools(BuddyService.get()).list().length(),
+              claude[0].phoneConnected && claude[0].phoneToolCount == McpHost.get(app).listTools().length(),
               "Native Claude MCP handshake failed: connected="
                   + claude[0].phoneConnected
                   + ", tools="
@@ -217,7 +221,7 @@ public class AndroidAgentTests extends Instrumentation {
         "Termux Claude: native resume and developer code tools work without logging in",
         () -> {
           runUnsignedClaude(claude[0], true);
-          check(claude[0].phoneConnected && claude[0].phoneToolCount == new Tools(BuddyService.get()).list().length(), "Resume lost MCP");
+          check(claude[0].phoneConnected && claude[0].phoneToolCount == McpHost.get(app).listTools().length(), "Resume lost MCP");
           check(
               claude[0].agentTools.contains("Bash") && claude[0].agentTools.contains("Edit"),
               "Developer mode lacks real code tools");
@@ -230,8 +234,15 @@ public class AndroidAgentTests extends Instrumentation {
   private void runUnsignedClaude(Sessions.Session session, boolean dev) throws Exception {
     check(session != null && !SetupState.agentReady(app, "claude"), "No unsigned Claude fixture");
     int before = session.messages.size();
+    main(() -> {
+      session.running = true;
+      session.lastError = "";
+      session.phoneConnected = false;
+      session.phoneToolCount = 0;
+    });
+    String credential = McpHost.get(app).credential(session.id);
     Termux.run(
-        app, "ask", session.id, "claude", dev ? "1" : "0", "Unsigned integration check", "", "");
+        app, "ask", session.id, "claude", dev ? "1" : "0", "Unsigned integration check", "", "", credential);
     long until = SystemClock.elapsedRealtime() + 60000;
     while (SystemClock.elapsedRealtime() < until) {
       if (!session.running && session.messages.size() > before) break;
@@ -239,7 +250,9 @@ public class AndroidAgentTests extends Instrumentation {
     }
     check(
         session.messages.size() > before && !session.running,
-        "Native headless request did not finish");
+        "Native headless request did not finish: running=" + session.running
+            + ", new_messages=" + (session.messages.size() - before));
+    check(McpHost.get(app).principal(credential) == null, "Finished CLI retained its run credential");
     check(
         session.messages.subList(before, session.messages.size()).stream()
             .anyMatch(
@@ -556,6 +569,10 @@ public class AndroidAgentTests extends Instrumentation {
               check(
                   line.substring(line.lastIndexOf(')') + 2).startsWith("Z "),
                   "Child survived timeout");
+            } catch (IOException e) {
+              // A killed child can disappear between exists(), open() and read().
+              // ESRCH on an already-open /proc fd also proves that it exited.
+              if (stat.exists() && !String.valueOf(e.getMessage()).contains("ESRCH")) throw e;
             }
           }
         });

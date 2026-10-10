@@ -27,18 +27,21 @@ jobs:
           echo "ANDROID_SDK_ROOT=$ANDROID_HOME" >> "$GITHUB_ENV"
           echo "KEYSTORE=$RUNNER_TEMP/androidagent-keys/development.jks" >> "$GITHUB_ENV"
           sudo chmod 666 /dev/kvm
-          sdkmanager 'platforms;android-36' 'build-tools;35.0.0' 'platform-tools' 'emulator' 'system-images;android-${{ matrix.api }};google_apis;x86_64'
+          sdkmanager 'platforms;android-36' 'build-tools;35.0.0' 'platform-tools' 'ndk;29.0.14206865' 'emulator' 'system-images;android-${{ matrix.api }};google_apis;x86_64'
       - name: Prepare bundled Docker runtimes
         run: |
           sudo apt-get update
           sudo apt-get install -y patchelf python3-pyelftools
           python3 tools/prepare-qemu.py
+          ANDROID_NDK_ROOT="$ANDROID_HOME/ndk/29.0.14206865" bash tools/build-usb-native.sh
           bash tools/build-docker-guest.sh x86_64
           bash tools/build-docker-guest.sh aarch64
       - name: Build signed development APK
         run: ./tools/build-local.sh
       - name: Test Codex event adapter
-        run: python3 -m unittest discover -s tests -p 'test_*.py' -v
+        run: |
+          python3 -m pip install pyserial==3.5
+          python3 -m unittest discover -s tests -p 'test_*.py' -v
       - name: Start Android emulator
         run: |
           echo no | avdmanager create avd --force --name androidagent --package 'system-images;android-${{ matrix.api }};google_apis;x86_64' --device pixel_3a
@@ -51,9 +54,11 @@ jobs:
           adb shell settings put global transition_animation_scale 0
           adb shell settings put global animator_duration_scale 0
           adb shell input keyevent 82
-          adb install -r artifacts/androidagent-0.3.0.apk
+          adb install -r artifacts/androidagent-0.4.0.apk
       - name: Device tests
         run: ./tools/test-android.sh
+      - name: USB emulator and real adbd tests
+        run: ./tools/test-usb.sh
       - name: Real local Docker tests
         run: ./tools/test-docker.sh
       - name: Device logs

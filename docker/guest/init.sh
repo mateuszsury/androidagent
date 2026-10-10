@@ -10,7 +10,7 @@ mount -t devpts devpts /dev/pts
 mount -t tmpfs tmpfs /run
 mount -t cgroup2 none /sys/fs/cgroup
 hostname androidagent-linux
-for module in overlay bridge br_netfilter nf_nat iptable_nat ip_tables nf_tables tun; do modprobe "$module" 2>/dev/null || true; done
+for module in overlay bridge br_netfilter nf_nat iptable_nat ip_tables nf_tables tun usbcore xhci-pci usb-storage; do modprobe "$module" 2>/dev/null || true; done
 sysctl -w net.ipv4.ip_forward=1 >/dev/null
 ip link set lo up
 ip link set eth0 up

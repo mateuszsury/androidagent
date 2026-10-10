@@ -28,11 +28,14 @@ import java.util.concurrent.Executors;
  * Every request must carry "Authorization: Bearer <token>".
  */
 final class McpServer {
+    private static final ThreadLocal<String> CALLER = new ThreadLocal<>();
+    static String caller() { String value=CALLER.get();return value==null?"external":value; }
     static final int PORT = 8766;
     private static final String TAG = "androidagentMcp";
     private static final String DEFAULT_PROTOCOL = "2025-06-18";
 
     interface Handler {
+        default String principal(String credential) { return null; }
         JSONArray listTools() throws JSONException;
 
         JSONObject callTool(String name, JSONObject args) throws Exception;
@@ -63,6 +66,8 @@ final class McpServer {
         t.start();
     }
 
+    boolean listening() { ServerSocket s=socket;return running&&s!=null&&s.isBound()&&!s.isClosed(); }
+
     void stop() {
         running = false;
         try {
@@ -74,8 +79,7 @@ final class McpServer {
 
     private void acceptLoop() {
         while (running) {
-            try {
-                ServerSocket ss = new ServerSocket();
+            try (ServerSocket ss = new ServerSocket()) {
                 ss.setReuseAddress(true);
                 ss.bind(new InetSocketAddress(InetAddress.getByName("127.0.0.1"), PORT));
                 socket = ss;
@@ -119,10 +123,14 @@ final class McpServer {
                     headers.put(line.substring(0, c).trim().toLowerCase(Locale.ROOT), line.substring(c + 1).trim());
                 }
             }
-            if (!("Bearer " + token).equals(headers.get("authorization"))) {
+            String auth=headers.get("authorization");
+            String principal=("Bearer "+token).equals(auth)?"external":auth!=null&&auth.startsWith("Bearer ")?handler.principal(auth.substring(7)):null;
+            if (principal==null) {
                 send(out, 401, "application/json", "{\"error\":\"unauthorized\"}");
                 return;
             }
+            if(!principal.equals("external")&&!path.equals("/mcp")){send(out,401,"application/json","{\"error\":\"session credential is for MCP only\"}");return;}
+            CALLER.set(principal);
 
             byte[] body = readBody(in, headers);
 
@@ -167,6 +175,7 @@ final class McpServer {
         } catch (Exception e) {
             Log.w(TAG, "request failed", e);
         } finally {
+            CALLER.remove();
             try {
                 s.close();
             } catch (IOException ignored) {

@@ -1,4 +1,4 @@
-androidagent 0.3.0
+androidagent 0.4.0
 
 This is a modified version of Buddy by ghorbelhamdi and contributors.
 Upstream: https://github.com/ghorbelhamdi/buddy-android
@@ -28,3 +28,13 @@ Additional modifications (2026-10-10): own local Linux VM lifecycle, Docker
 task controller, native project UI, shared Codex/Claude MCP tools, artifact
 export and task cleanup. QEMU/SeaBIOS, Linux and Alpine packages are separately
 licensed runtime components; see docker/SOURCES.md and docker/licenses.
+
+Additional modifications (2026-10-10): shared MCP host independent of
+Accessibility, per-run USB grants, native UART and ESP flashing, USB ADB,
+SAF storage, scoped USB redirection into Docker and a task-bound UART bridge.
+usb-serial-for-android by mik3y and contributors retains its MIT license.
+esp-serial-flasher by Espressif and contributors retains its Apache-2.0 license.
+Pinned sources, adaptations and notices: usb/README.md, usb/sources.json,
+usb/licenses and the original copyright notices in vendored source files.
+libusb and usbredir retain their separately documented runtime licenses
+under docker/licenses and docker/SOURCES.md.

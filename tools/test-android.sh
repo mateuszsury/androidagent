@@ -10,8 +10,10 @@ SDK="$ANDROID_SDK_ROOT/platforms/android-36/android.jar"
 ADB="$ANDROID_SDK_ROOT/platform-tools/adb"
 export PATH="$JAVA_HOME/bin:$BT:$PATH"
 OUT=build/device-tests
-mkdir -p "$OUT/classes" "$OUT/dex"
-aapt2 link -I "$SDK" --manifest tests/android/AndroidManifest.xml -o "$OUT/base.apk"
+mkdir -p "$OUT/classes" "$OUT/dex" "$OUT/assets"
+aapt2 link -I "$SDK" --manifest tests/android/AdbFixtureManifest.xml -o "$OUT/fixture-unsigned.apk"
+apksigner sign --ks "$KEYSTORE" --ks-key-alias buddy --ks-pass "file:$(dirname "$KEYSTORE")/password" --out "$OUT/assets/adb-fixture.apk" "$OUT/fixture-unsigned.apk"
+aapt2 link -I "$SDK" --manifest tests/android/AndroidManifest.xml -A "$OUT/assets" -o "$OUT/base.apk"
 javac --release 8 -classpath "$SDK:build/classes" -encoding UTF-8 -d "$OUT/classes" tests/android/*.java
 d8 --min-api 30 --lib "$SDK" --classpath build/classes --output "$OUT/dex" $(find "$OUT/classes" -name '*.class')
 python3 - "$OUT/base.apk" "$OUT/dex/classes.dex" <<'PY'

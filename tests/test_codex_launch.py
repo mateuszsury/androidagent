@@ -42,6 +42,13 @@ class CodexLaunchTests(unittest.TestCase):
         self.assertNotIn("features.shell_tool=false", args)
         self.assertNotIn("workspace-write", args)
 
+    def test_run_credential_reaches_the_codex_environment(self):
+        with tempfile.TemporaryDirectory() as state:
+            script = SCRIPT.replace("codex() { printf '%s\\0' \"$@\"; }", "codex() { printf '%s' \"$BUDDY_TOKEN\"; }")
+            script = script.replace("run_codex\n", "MCP_TOKEN=scoped-run-credential\nrun_codex\n")
+            result = subprocess.run(["bash", "-c", script, "test", state, "0"], capture_output=True, check=True)
+            self.assertEqual("scoped-run-credential", result.stdout.decode())
+
     def test_resume_passes_saved_thread_and_unicode_prompt(self):
         args = self.args(0, resume=True)
         self.assertEqual(args[-4:], ["resume", "--", "existing-thread", "Zażółć"])

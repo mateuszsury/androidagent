@@ -1,6 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="dev.mateuszsury.androidagent.tests">
 <uses-sdk android:minSdkVersion="30" android:targetSdkVersion="36" />
-<application android:label="androidagent device tests" android:usesCleartextTraffic="true" />
+<application android:label="androidagent device tests" android:usesCleartextTraffic="true"><provider android:name="dev.mateuszsury.androidagent.UsbFixtureProvider" android:authorities="dev.mateuszsury.androidagent.tests.documents" android:permission="android.permission.MANAGE_DOCUMENTS" android:exported="true" android:grantUriPermissions="true" /><activity android:name="dev.mateuszsury.androidagent.UsbFixtureGrantActivity" android:exported="true" android:theme="@android:style/Theme.NoDisplay" /></application>
 <instrumentation android:name="dev.mateuszsury.androidagent.AndroidAgentTests" android:targetPackage="dev.mateuszsury.androidagent" android:functionalTest="true" />
 <instrumentation android:name="dev.mateuszsury.androidagent.DockerRuntimeTests" android:targetPackage="dev.mateuszsury.androidagent" android:functionalTest="true" />
+<instrumentation android:name="dev.mateuszsury.androidagent.UsbRuntimeTests" android:targetPackage="dev.mateuszsury.androidagent" android:functionalTest="true" />
 </manifest>

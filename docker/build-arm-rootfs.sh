@@ -11,6 +11,8 @@ apk --root "$ROOTFS" --arch aarch64 --initdb --no-scripts --no-cache add alpine-
 /bin/busybox --install -s "$ROOTFS/bin"
 mkdir -p "$ROOTFS/opt/androidagent" "$ROOTFS/var/lib/androidagent/tasks"
 cp /input/guest/agent.py "$ROOTFS/opt/androidagent/agent.py"
+cp -r /input/guest/python "$ROOTFS/opt/androidagent/python"
+chmod -R a+rX "$ROOTFS/opt/androidagent/python"
 cp /input/guest/init.sh "$ROOTFS/opt/androidagent/init.sh"
 chmod 755 "$ROOTFS/opt/androidagent/init.sh"
 cp /out/alpine-base.tar /out/alpine-base-id "$ROOTFS/opt/androidagent/"

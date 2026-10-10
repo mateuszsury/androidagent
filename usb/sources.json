@@ -1,0 +1,11 @@
+{
+  "usb-serial": {
+    "url": "https://github.com/mik3y/usb-serial-for-android",
+    "commit": "8e694372dee4531d140766df7af3189d3d9531c5",
+    "tag": "3.11.0"
+  },
+  "esp-flasher": {
+    "url": "https://github.com/espressif/esp-serial-flasher",
+    "commit": "7d89055bc88302acc7ef339ae4277b96cbc22f3b"
+  }
+}

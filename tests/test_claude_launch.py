@@ -13,17 +13,17 @@ HANDOFF = SOURCE.split("  handoff)\n", 1)[1].split("\n  adopt)", 1)[0]
 
 
 class ClaudeLaunchTests(unittest.TestCase):
-    def args(self, dev, resume=False, model=""):
+    def args(self, dev, resume=False, model="", credential=""):
         with tempfile.TemporaryDirectory(prefix="androidagent-claude-") as state:
             if resume:
                 pathlib.Path(state, "claude-session").write_text("existing-session")
             script = LAUNCH + r'''
 claude() { printf '%s\0' "$@"; }
 S=$1; W=$1; DEV=$2; MODEL=$3; MSG='Zażółć'; SYSTEM='phone instructions'
-URL=http://127.0.0.1:8766; TOKEN=test-only
+URL=http://127.0.0.1:8766; TOKEN=test-only; MCP_TOKEN=$4
 run_claude
 '''
-            out = subprocess.run(["bash", "-c", script, "test", state, str(dev), model],
+            out = subprocess.run(["bash", "-c", script, "test", state, str(dev), model, credential],
                                  check=True, capture_output=True)
             return out.stdout.decode().rstrip("\0").split("\0")
 
@@ -53,6 +53,11 @@ run_claude
         self.assertEqual(cfg["mcpServers"]["phone"]["url"], "http://127.0.0.1:8766/mcp")
         self.assertEqual(cfg["mcpServers"]["phone"]["headers"]["Authorization"], "Bearer test-only")
         self.assertIn("--strict-mcp-config", args)
+
+    def test_run_credential_replaces_installation_token(self):
+        args = self.args(0, credential="scoped-run-credential")
+        cfg = json.loads(args[args.index("--mcp-config") + 1])
+        self.assertEqual("Bearer scoped-run-credential", cfg["mcpServers"]["phone"]["headers"]["Authorization"])
 
     def test_resume_model_and_unicode_prompt(self):
         args = self.args(1, True, "sonnet")

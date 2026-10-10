@@ -7,11 +7,13 @@ test_real_streaming_and_noninteractive_permission_policy (test_claude_launch.Cla
 test_remote_control_developer_policy_matches_code_mode (test_claude_launch.ClaudeLaunchTests.test_remote_control_developer_policy_matches_code_mode) ... ok
 test_remote_control_keeps_authenticated_phone_tools_model_and_resume (test_claude_launch.ClaudeLaunchTests.test_remote_control_keeps_authenticated_phone_tools_model_and_resume) ... ok
 test_resume_model_and_unicode_prompt (test_claude_launch.ClaudeLaunchTests.test_resume_model_and_unicode_prompt) ... ok
+test_run_credential_replaces_installation_token (test_claude_launch.ClaudeLaunchTests.test_run_credential_replaces_installation_token) ... ok
 test_stop_kills_shell_and_children_even_when_term_is_ignored (test_claude_launch.ClaudeLaunchTests.test_stop_kills_shell_and_children_even_when_term_is_ignored) ... ok
 test_stream_preserves_deltas_tools_and_session_identity (test_claude_launch.ClaudeLaunchTests.test_stream_preserves_deltas_tools_and_session_identity) ... ok
 test_developer_mode_uses_android_uid_instead_of_linux_sandbox (test_codex_launch.CodexLaunchTests.test_developer_mode_uses_android_uid_instead_of_linux_sandbox) ... ok
 test_normal_mode_disables_shell_and_retains_read_only_policy (test_codex_launch.CodexLaunchTests.test_normal_mode_disables_shell_and_retains_read_only_policy) ... ok
 test_resume_passes_saved_thread_and_unicode_prompt (test_codex_launch.CodexLaunchTests.test_resume_passes_saved_thread_and_unicode_prompt) ... ok
+test_run_credential_reaches_the_codex_environment (test_codex_launch.CodexLaunchTests.test_run_credential_reaches_the_codex_environment) ... ok
 test_command_progress_preserves_exact_command (test_codex_stream.CodexStreamTests.test_command_progress_preserves_exact_command) ... ok
 test_completed_turn (test_codex_stream.CodexStreamTests.test_completed_turn) ... ok
 test_failed_turn_is_not_success (test_codex_stream.CodexStreamTests.test_failed_turn_is_not_success) ... ok
@@ -25,12 +27,19 @@ test_job_output_is_bounded_with_real_process (test_docker_guest.GuestBoundaryTes
 test_parent_symlink_cannot_escape (test_docker_guest.GuestBoundaryTests.test_parent_symlink_cannot_escape) ... ok
 test_real_build_archive_keeps_sources_and_rejects_external_links (test_docker_guest.GuestBoundaryTests.test_real_build_archive_keeps_sources_and_rejects_external_links) ... ok
 test_real_unicode_file_round_trip (test_docker_guest.GuestBoundaryTests.test_real_unicode_file_round_trip) ... ok
+test_serial_grant_is_private_and_generation_scoped (test_docker_guest.GuestBoundaryTests.test_serial_grant_is_private_and_generation_scoped) ... ok
+test_serial_url_cannot_point_to_another_host_or_credential (test_docker_guest.GuestBoundaryTests.test_serial_url_cannot_point_to_another_host_or_credential) ... ok
 test_symlink_cannot_read_or_replace_other_files (test_docker_guest.GuestBoundaryTests.test_symlink_cannot_read_or_replace_other_files) ... ok
 test_text_upload_limit_is_enforced (test_docker_guest.GuestBoundaryTests.test_text_upload_limit_is_enforced) ... ok
 test_traversal_cannot_overwrite_neighbor (test_docker_guest.GuestBoundaryTests.test_traversal_cannot_overwrite_neighbor) ... ok
 test_unknown_task_and_job_are_rejected (test_docker_guest.GuestBoundaryTests.test_unknown_task_and_job_are_rejected) ... ok
+test_usb_grant_only_maps_selected_char_device (test_docker_guest.GuestBoundaryTests.test_usb_grant_only_maps_selected_char_device) ... ok
+test_baud_dtr_rts_break_follow_pyserial_properties (test_serial_bridge.PyserialBridgeTests.test_baud_dtr_rts_break_follow_pyserial_properties) ... ok
+test_binary_io_and_timeout (test_serial_bridge.PyserialBridgeTests.test_binary_io_and_timeout) ... ok
+test_close_and_non_qemu_host_rejected (test_serial_bridge.PyserialBridgeTests.test_close_and_non_qemu_host_rejected) ... ok
+test_reset_input_discards_previous_bytes_without_resetting_target (test_serial_bridge.PyserialBridgeTests.test_reset_input_discards_previous_bytes_without_resetting_target) ... ok
 
 ----------------------------------------------------------------------
-Ran 31 tests in 0.366s
+Ran 40 tests in 2.739s
 
 OK
