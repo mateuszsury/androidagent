@@ -98,7 +98,7 @@ public class SetupActivity extends Screen {
         LinearLayout head = column(this);
         head.setPadding(dp(this, 20), dp(this, 8), dp(this, 20), dp(this, 4));
         head.addView(title(this, "Ustawienia", 28));
-        TextView sub = text(this, "androidagent uruchamia Codexa z Twoim kontem ChatGPT w Termux na telefonie.", 14, MUTED);
+        TextView sub = text(this, "Codex z kontem ChatGPT lub Claude Code z kontem Claude. Obaj agenci działają w Termux na tym telefonie.", 14, MUTED);
         sub.setPadding(0, dp(this, 4), 0, 0);
         head.addView(sub);
         list.addView(head, full());
@@ -152,7 +152,7 @@ public class SetupActivity extends Screen {
         else if (pingSentAt > 0 && System.currentTimeMillis() - pingSentAt < PING_WAIT_MS) helperText = "Checking Termux…";
         else helperText = howTo + " Come back here when it says Done.";
         if (helperCurrent && answered && !SetupState.agentReady(this, backend)) helperText = agent
-                + " is installed but not signed in. Run " + ("codex".equals(backend) ? "codex login" : "claude")
+                + " is installed but not signed in. Run " + ("codex".equals(backend) ? "~/bin/codex login --device-auth" : "~/bin/claude auth login")
                 + " in Termux once and sign in.";
         boolean canSetup = a11y && perm;
         steps[2] = step("Set up the Termux helper", helperText, canSetup ? helperOk : null,
@@ -204,7 +204,7 @@ public class SetupActivity extends Screen {
         list.addView(sectionLabel(this, "Agent"));
         LinearLayout ag = card();
         ag.setPadding(dp(this, 16), dp(this, 14), dp(this, 16), dp(this, 16));
-        ag.addView(title(this, "Default brain", 15));
+        ag.addView(title(this, "Domyślny agent", 15));
         TextView brainInfo = text(this, "Who answers new chats from the bubble or the New chat button. Claude Code uses your Claude plan; "
                 + "Codex uses your ChatGPT plan."
                 + (answered ? " Installed in Termux: " + (hasClaude && hasCodex ? "both" : hasClaude ? "Claude Code"
@@ -213,6 +213,7 @@ public class SetupActivity extends Screen {
         ag.addView(brainInfo);
         ag.addView(segmented(this, new String[][]{{"claude", "Claude Code"}, {"codex", "Codex"}}, backend, false, v -> {
             Prefs.setBackend(this, v);
+            if (!"both".equals(Prefs.agents(this))) Prefs.setAgents(this, v);
             Toast.makeText(this, "New chats will use " + ("codex".equals(v) ? "Codex" : "Claude Code")
                     + ". You can pick per chat with the New chat button.", Toast.LENGTH_LONG).show();
             render();
@@ -237,7 +238,7 @@ public class SetupActivity extends Screen {
                 }), full());
         ex.addView(divider(), lineParams());
         final boolean dev = Prefs.devMode(this);
-        ex.addView(switchRow(this, "Tryb programisty", "Codex może wykonywać komendy i zmieniać pliki dostępne dla Termux. "
+        ex.addView(switchRow(this, "Tryb programisty", "Codex i Claude Code mogą wykonywać komendy i zmieniać pliki dostępne dla Termux. "
                 + "Katalog startowy: ~/.buddy/work. Dostęp obejmuje także inne pliki i uprawnienia Termux.", dev, on -> {
             Prefs.setDevMode(this, on);
             render();
@@ -248,7 +249,7 @@ public class SetupActivity extends Screen {
             warn.setPadding(dp(this, 12), dp(this, 10), dp(this, 12), dp(this, 10));
             warn.setBackground(rounded(this, ERR_SOFT, 12));
             warn.addView(icon(this, R.drawable.ms_warning, ERR, 18));
-            TextView wt = text(this, "Komendy Codexa w Termux wykonują się bez osobnego potwierdzenia. "
+            TextView wt = text(this, "Komendy agentów w Termux wykonują się bez osobnego potwierdzenia. "
                     + "Android ogranicza je do uprawnień Termux; nie są ograniczone do katalogu projektu. "
                     + "Komendy narzędzia telefonu run_command wymagają zatwierdzenia dokładnej treści.", 13, ERR);
             wt.setPadding(dp(this, 10), 0, 0, 0);

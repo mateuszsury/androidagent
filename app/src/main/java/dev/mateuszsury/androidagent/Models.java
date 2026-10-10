@@ -4,11 +4,9 @@ package dev.mateuszsury.androidagent;
 final class Models {
     static final String[][] CLAUDE = {
             {"", "Default"},
-            {"claude-opus-5-5", "Opus 5.5"},
-            {"claude-sonnet-5-5", "Sonnet 5.5"},
-            {"claude-haiku-5-5", "Haiku 5.5"},
-            {"claude-haiku-4-5-20251001", "Haiku 4.5"},
-            {"claude-fable-5-1", "Fable 5.1"},
+            {"sonnet", "Sonnet"},
+            {"opus", "Opus"},
+            {"haiku", "Haiku"},
     };
     /** Used until the helper reports Codex's own model list. */
     static final String[][] CODEX = {

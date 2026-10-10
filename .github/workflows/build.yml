@@ -44,7 +44,7 @@ jobs:
           adb shell settings put global transition_animation_scale 0
           adb shell settings put global animator_duration_scale 0
           adb shell input keyevent 82
-          adb install -r artifacts/androidagent-0.1.0.apk
+          adb install -r artifacts/androidagent-0.2.0.apk
       - name: Device tests
         run: ./tools/test-android.sh
       - name: Device logs

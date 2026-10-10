@@ -1,3 +1,14 @@
+test_developer_mode_enables_code_tools_without_disabling_permissions (test_claude_launch.ClaudeLaunchTests.test_developer_mode_enables_code_tools_without_disabling_permissions) ... ok
+test_failed_result_is_preserved_without_fabricated_success (test_claude_launch.ClaudeLaunchTests.test_failed_result_is_preserved_without_fabricated_success) ... ok
+test_invalid_session_identifier_cannot_replace_resume_state (test_claude_launch.ClaudeLaunchTests.test_invalid_session_identifier_cannot_replace_resume_state) ... ok
+test_mcp_is_authenticated_and_isolated_from_user_servers (test_claude_launch.ClaudeLaunchTests.test_mcp_is_authenticated_and_isolated_from_user_servers) ... ok
+test_normal_mode_removes_shell_and_mutation_tools (test_claude_launch.ClaudeLaunchTests.test_normal_mode_removes_shell_and_mutation_tools) ... ok
+test_real_streaming_and_noninteractive_permission_policy (test_claude_launch.ClaudeLaunchTests.test_real_streaming_and_noninteractive_permission_policy) ... ok
+test_remote_control_developer_policy_matches_code_mode (test_claude_launch.ClaudeLaunchTests.test_remote_control_developer_policy_matches_code_mode) ... ok
+test_remote_control_keeps_authenticated_phone_tools_model_and_resume (test_claude_launch.ClaudeLaunchTests.test_remote_control_keeps_authenticated_phone_tools_model_and_resume) ... ok
+test_resume_model_and_unicode_prompt (test_claude_launch.ClaudeLaunchTests.test_resume_model_and_unicode_prompt) ... ok
+test_stop_kills_shell_and_children_even_when_term_is_ignored (test_claude_launch.ClaudeLaunchTests.test_stop_kills_shell_and_children_even_when_term_is_ignored) ... ok
+test_stream_preserves_deltas_tools_and_session_identity (test_claude_launch.ClaudeLaunchTests.test_stream_preserves_deltas_tools_and_session_identity) ... ok
 test_developer_mode_uses_android_uid_instead_of_linux_sandbox (test_codex_launch.CodexLaunchTests.test_developer_mode_uses_android_uid_instead_of_linux_sandbox) ... ok
 test_normal_mode_disables_shell_and_retains_read_only_policy (test_codex_launch.CodexLaunchTests.test_normal_mode_disables_shell_and_retains_read_only_policy) ... ok
 test_resume_passes_saved_thread_and_unicode_prompt (test_codex_launch.CodexLaunchTests.test_resume_passes_saved_thread_and_unicode_prompt) ... ok
@@ -11,6 +22,6 @@ test_unicode_response_is_routed_to_correct_chat (test_codex_stream.CodexStreamTe
 test_unrecognized_event_is_ignored (test_codex_stream.CodexStreamTests.test_unrecognized_event_is_ignored) ... ok
 
 ----------------------------------------------------------------------
-Ran 11 tests in 0.131s
+Ran 22 tests in 0.217s
 
 OK

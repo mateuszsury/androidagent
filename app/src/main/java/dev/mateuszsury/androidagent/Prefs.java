@@ -44,7 +44,7 @@ final class Prefs {
         sp(c).edit().putString("helper", status).putLong("helper_at", System.currentTimeMillis()).apply();
     }
 
-    /** Which agent answers the bubble: "claude" (default) or "codex". */
+    /** Default agent for new conversations: "codex" or "claude". */
     static String backend(Context c) {
         return sp(c).getString("backend", "codex");
     }

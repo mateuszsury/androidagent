@@ -1,0 +1,23 @@
+#!/data/data/com.termux/files/usr/bin/bash
+# Dependencies only from Termux, Alpine (musl MIT) and Anthropic's official npm package.
+set -euo pipefail
+P=/data/data/com.termux/files/usr
+case "$(uname -m)" in
+  aarch64|arm64)
+    ARCH=aarch64; CPU=arm64
+    SHA=ac281d1e7f9e9c447c51e309317b975f48be6edaf3ab91ae73b959cf86703782 ;;
+  x86_64)
+    ARCH=x86_64; CPU=x64
+    SHA=4990a5e0ba312e478f94cfe431a70efef1538004eb361c8ae424516848be45bb ;;
+  *) echo 'Claude Code requires a 64-bit ARM or x86 Android device.' >&2; exit 1 ;;
+esac
+pkg install -y nodejs-lts npm proot curl tar coreutils
+R=$P/opt/androidagent/musl
+TMP=$(mktemp -d)
+trap 'rm -rf -- "$TMP"' EXIT
+curl -fL --retry 2 "https://dl-cdn.alpinelinux.org/alpine/v3.22/main/$ARCH/musl-1.2.5-r12.apk" -o "$TMP/musl.apk"
+printf '%s  %s\n' "$SHA" "$TMP/musl.apk" | sha256sum -c -
+mkdir -p "$R"
+tar -xzf "$TMP/musl.apk" -C "$R" lib
+npm install -g --os=linux --libc=musl "@anthropic-ai/claude-code-linux-$CPU-musl@2.1.296"
+echo 'Official Claude Code 2.1.296 runtime installed.'

@@ -128,6 +128,8 @@ public class AndroidAgentTests extends Instrumentation {
 
   /** Real cross-UID integration, after the official Termux APK and helper are installed. */
   private void termuxSuite() {
+    final Sessions.Session[] claude = {null};
+    final String[] nativeSession = {null};
     test(
         "Termux: installed and RUN_COMMAND granted",
         () -> {
@@ -181,6 +183,68 @@ public class AndroidAgentTests extends Instrumentation {
               "App readiness does not match actual login state");
           shot("01-runtime-setup");
         });
+    test(
+        "Termux Claude: actual CLI authentication status stays unsigned",
+        () -> {
+          check(
+              SetupState.agentInstalled(app, "claude"),
+              "Helper cannot find official Claude runtime");
+          check(!SetupState.agentReady(app, "claude"), "Use an emulator without a model account");
+          main(() -> claude[0] = ChatHub.get(app).create("claude"));
+        });
+    test(
+        "Termux Claude: real headless CLI connects all phone tools and reports no login",
+        () -> {
+          runUnsignedClaude(claude[0], false);
+          check(
+              claude[0].phoneConnected && claude[0].phoneToolCount == 17,
+              "Native Claude MCP handshake failed: connected="
+                  + claude[0].phoneConnected
+                  + ", tools="
+                  + claude[0].phoneToolCount);
+          check(
+              !claude[0].agentTools.contains("Bash") && !claude[0].agentTools.contains("Edit"),
+              "Normal mode exposes mutation tools");
+          check(!claude[0].agentSessionId.isEmpty(), "Native session id missing");
+          nativeSession[0] = claude[0].agentSessionId;
+          check(
+              claude[0].messages.stream().noneMatch(m -> m.kind == Bubble.Kind.BUDDY),
+              "Authentication error shown as model reply");
+          launch(new Intent(app, ChatActivity.class).putExtra("id", claude[0].id));
+          shot("02-claude-auth-error");
+        });
+    test(
+        "Termux Claude: native resume and developer code tools work without logging in",
+        () -> {
+          runUnsignedClaude(claude[0], true);
+          check(claude[0].phoneConnected && claude[0].phoneToolCount == 17, "Resume lost MCP");
+          check(
+              claude[0].agentTools.contains("Bash") && claude[0].agentTools.contains("Edit"),
+              "Developer mode lacks real code tools");
+          check(
+              nativeSession[0].equals(claude[0].agentSessionId), "Native session was not resumed");
+          check(!claude[0].running, "Failed auth leaves running chat");
+        });
+  }
+
+  private void runUnsignedClaude(Sessions.Session session, boolean dev) throws Exception {
+    check(session != null && !SetupState.agentReady(app, "claude"), "No unsigned Claude fixture");
+    int before = session.messages.size();
+    Termux.run(
+        app, "ask", session.id, "claude", dev ? "1" : "0", "Unsigned integration check", "", "");
+    long until = SystemClock.elapsedRealtime() + 60000;
+    while (SystemClock.elapsedRealtime() < until) {
+      if (!session.running && session.messages.size() > before) break;
+      SystemClock.sleep(200);
+    }
+    check(
+        session.messages.size() > before && !session.running,
+        "Native headless request did not finish");
+    check(
+        session.messages.subList(before, session.messages.size()).stream()
+            .anyMatch(
+                m -> m.kind == Bubble.Kind.ERROR && m.text.toLowerCase().contains("not logged in")),
+        "Missing actual CLI login error");
   }
 
   private void test(String name, Check fn) {
@@ -289,6 +353,61 @@ public class AndroidAgentTests extends Instrumentation {
           check(v != null, "Missing UI: " + label);
           v.performClick();
         });
+  }
+
+  private void dialogClick(String label) {
+    long until = SystemClock.elapsedRealtime() + 5000;
+    while (SystemClock.elapsedRealtime() < until) {
+      android.view.accessibility.AccessibilityNodeInfo root = ui.getRootInActiveWindow();
+      if (root != null)
+        for (android.view.accessibility.AccessibilityNodeInfo match :
+            root.findAccessibilityNodeInfosByText(label)) {
+          if (!label.contentEquals(match.getText())) continue;
+          android.view.accessibility.AccessibilityNodeInfo node = match;
+          while (node != null && !node.isClickable()) node = node.getParent();
+          if (node != null
+              && node.performAction(
+                  android.view.accessibility.AccessibilityNodeInfo.ACTION_CLICK)) {
+            SystemClock.sleep(300);
+            waitForIdleSync();
+            return;
+          }
+        }
+      SystemClock.sleep(100);
+    }
+    throw new AssertionError("Dialog action missing: " + label);
+  }
+
+  private Activity openHomeChat() {
+    ActivityMonitor monitor = addMonitor(ChatActivity.class.getName(), null, false);
+    try {
+      click("Rozpocznij rozmowę");
+      Activity opened = waitForMonitorWithTimeout(monitor, 15000);
+      check(opened != null, "Home did not open chat");
+      current = opened;
+      waitForIdleSync();
+      return opened;
+    } finally {
+      removeMonitor(monitor);
+    }
+  }
+
+  private void event(Sessions.Session session, String json) throws Exception {
+    JSONObject value = new JSONObject(json).put("buddy_session", session.id);
+    main(() -> ChatHub.get(app).onEvent(value));
+  }
+
+  private void delta(Sessions.Session session, String text) throws Exception {
+    JSONObject part =
+        new JSONObject()
+            .put("type", "content_block_delta")
+            .put("delta", new JSONObject().put("type", "text_delta").put("text", text));
+    JSONObject value =
+        new JSONObject()
+            .put("type", "stream_event")
+            .put("buddy_session", session.id)
+            .put("event", part);
+    main(() -> ChatHub.get(app).onEvent(value));
   }
 
   private void shot(String name) throws Exception {
@@ -851,11 +970,179 @@ public class AndroidAgentTests extends Instrumentation {
           main(() -> ChatHub.get(app).delete(session[0]));
           check(new Sessions(app).find(session[0].id) == null, "Deleted session remains");
         });
+    claudeUiSuite();
     test(
         "final: clean home",
         () -> {
           launch(MainActivity.class);
           shot("08-home-final");
         });
+  }
+
+  private void claudeUiSuite() throws Exception {
+    final Sessions.Session[] claude = {null};
+    test(
+        "Claude UI: choose backend on home",
+        () -> {
+          launch(MainActivity.class);
+          click("Wybierz agenta");
+          dialogClick("Claude Code");
+          check("claude".equals(Prefs.backend(app)), "Backend selection not saved");
+          check(
+              "Napisz do Claude Code"
+                  .contentEquals(edit(current.getWindow().getDecorView()).getHint()),
+              "Composer uses wrong backend");
+          shot("10-home-claude");
+        });
+    test(
+        "Claude UI: home creates a Claude conversation",
+        () -> {
+          openHomeChat();
+          claude[0] = ChatHub.get(app).sessions.current;
+          check("claude".equals(claude[0].backend), "Home forced Codex");
+          check(
+              edit(current.getWindow().getDecorView()).getHint().toString().contains("Claude Code"),
+              "Wrong chat composer");
+        });
+    test(
+        "Claude UI: real model picker selects Sonnet alias",
+        () -> {
+          click("Wybierz model");
+          check(
+              ui.getRootInActiveWindow()
+                      .findAccessibilityNodeInfosByText("Model Claude Code")
+                      .size()
+                  > 0,
+              "Wrong picker backend");
+          dialogClick("Sonnet");
+          check("sonnet".equals(claude[0].model), "Model not selected");
+          check("sonnet".equals(new Sessions(app).find(claude[0].id).model), "Model not persisted");
+          shot("11-claude-chat");
+        });
+    test(
+        "Claude UI: local status and unsigned model gate",
+        () -> {
+          main(() -> edit(current.getWindow().getDecorView()).setText("/status"));
+          click("Wyślij");
+          check(
+              claude[0].messages.stream().anyMatch(m -> m.text.contains("Odczyt lokalny")),
+              "Claude lost local diagnostics");
+          int before = claude[0].messages.size();
+          final String[] error = {null};
+          main(() -> error[0] = ChatHub.get(app).send(claude[0], "Unsigned test"));
+          check(
+              error[0] != null && error[0].contains("Claude Code"),
+              "Missing Claude login guidance");
+          check(
+              claude[0].messages.size() == before && !claude[0].running,
+              "Unsigned run was started");
+        });
+    test(
+        "Claude UI: backend switch keeps histories separate",
+        () -> {
+          launch(MainActivity.class);
+          click("Wybierz agenta");
+          dialogClick("Codex");
+          openHomeChat();
+          Sessions.Session codex = ChatHub.get(app).sessions.current;
+          check(
+              "codex".equals(codex.backend) && codex.model.isEmpty() && codex.messages.isEmpty(),
+              "Claude state leaked into Codex");
+          Sessions.Session saved = new Sessions(app).find(claude[0].id);
+          check(
+              saved != null && "claude".equals(saved.backend) && "sonnet".equals(saved.model),
+              "Claude history changed");
+          launch(new Intent(app, ChatActivity.class).putExtra("id", claude[0].id));
+        });
+    test(
+        "Claude protocol fixture: live Unicode text before final message",
+        () -> {
+          event(claude[0], "{\"type\":\"system\",\"subtype\":\"init\"}");
+          int before = claude[0].messages.size();
+          delta(claude[0], "TEST STREAMU: Zażółć ");
+          delta(claude[0], "gęślą");
+          TextView live = (TextView) find("Odpowiedź na żywo");
+          check(
+              live != null && "TEST STREAMU: Zażółć gęślą".contentEquals(live.getText()),
+              "No live text in native UI");
+          check(
+              claude[0].messages.size() == before, "Partial tokens persisted as separate messages");
+          shot("12-claude-stream-fixture");
+        });
+    test(
+        "Claude protocol fixture: final text is persisted once",
+        () -> {
+          event(
+              claude[0],
+              "{\"type\":\"assistant\",\"message\":{\"content\":[{\"type\":\"text\",\"text\":\"TEST"
+                  + " STREAMU: Zażółć gęślą\"}]}}");
+          event(
+              claude[0],
+              "{\"type\":\"result\",\"subtype\":\"success\",\"result\":\"TEST STREAMU: Zażółć"
+                  + " gęślą\"}");
+          event(claude[0], "{\"type\":\"buddy_done\"}");
+          check(
+              claude[0].streamText.isEmpty() && find("Odpowiedź na żywo") == null,
+              "Partial view remains");
+          long count =
+              new Sessions(app)
+                  .find(claude[0].id).messages.stream()
+                      .filter(m -> m.text.equals("TEST STREAMU: Zażółć gęślą"))
+                      .count();
+          check(count == 1 && !claude[0].running, "Duplicated final reply or stuck run");
+        });
+    test(
+        "Claude protocol fixture: subagent deltas stay separate",
+        () -> {
+          event(
+              claude[0],
+              "{\"type\":\"stream_event\",\"parent_tool_use_id\":\"other-agent\",\"event\":{\"type\":\"content_block_delta\",\"delta\":{\"type\":\"text_delta\",\"text\":\"SHOULD_NOT_APPEAR\"}}}");
+          check(
+              claude[0].streamText.isEmpty() && find("SHOULD_NOT_APPEAR") == null,
+              "Subagent text mixed into main stream");
+        });
+    test(
+        "Claude protocol fixture: error arrays and auth errors are visible",
+        () -> {
+          event(claude[0], "{\"type\":\"system\",\"subtype\":\"init\"}");
+          event(
+              claude[0],
+              "{\"type\":\"result\",\"subtype\":\"error_during_execution\",\"is_error\":true,\"errors\":[\"TEST:"
+                  + " brak uprawnienia\"]}");
+          event(
+              claude[0],
+              "{\"type\":\"assistant\",\"error\":\"authentication_failed\",\"message\":{\"content\":[{\"type\":\"text\",\"text\":\"TEST:"
+                  + " zaloguj Claude\"}]}}");
+          event(
+              claude[0],
+              "{\"type\":\"result\",\"is_error\":true,\"result\":\"TEST: zaloguj Claude\"}");
+          event(claude[0], "{\"type\":\"buddy_done\"}");
+          check(find("TEST: brak uprawnienia") != null, "CLI errors array discarded");
+          long authErrors =
+              claude[0].messages.stream()
+                  .filter(m -> m.kind == Bubble.Kind.ERROR && m.text.equals("TEST: zaloguj Claude"))
+                  .count();
+          check(authErrors == 1, "Authentication failure hidden or duplicated");
+        });
+    test(
+        "Claude protocol fixture: stop preserves partial text and ends run",
+        () -> {
+          event(claude[0], "{\"type\":\"system\",\"subtype\":\"init\"}");
+          delta(claude[0], "TEST: przerwana odpowiedź");
+          event(claude[0], "{\"type\":\"buddy_stopped\"}");
+          event(claude[0], "{\"type\":\"buddy_done\"}");
+          check(!claude[0].running && claude[0].streamText.isEmpty(), "Stop leaves live run");
+          check(
+              new Sessions(app)
+                  .find(claude[0].id).messages.stream()
+                      .anyMatch(m -> m.text.equals("TEST: przerwana odpowiedź")),
+              "Partial reply lost on stop");
+          main(
+              () -> {
+                ChatHub.get(app).delete(claude[0]);
+                Prefs.setBackend(app, "codex");
+              });
+        });
+    main(() -> Prefs.setBackend(app, "codex"));
   }
 }
