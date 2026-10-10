@@ -51,6 +51,8 @@ Docker używa własnego jądra w VM: QEMU TCG, Alpine Linux 3.23, Docker Engine 
 
 ## Najbliższe etapy
 
+Obsługa UART/ESP, drugiego Androida przez ADB i nośników USB jest opisana w [planie USB](USB_PLAN.md). Dostęp podstawowy ma działać bezpośrednio w aplikacji, bez wymagania Dockera; most do kontenerów jest osobnym, opcjonalnym etapem. Wersja 0.3.0 nie obsługuje jeszcze podłączonych urządzeń USB.
+
 1. Pełny test rozmowy z prawdziwym modelem po zalogowaniu właściciela konta oraz test telefonu ARM64. Emulator nie rozstrzyga zgodności różnych producentów.
 2. Przejście z `codex exec` do app-server: przyrostowe tokeny, edycja kolejki, bogatsze zatwierdzanie operacji i obsługa zmian plików. Obecny most przekazuje zdarzenia, a tekst odpowiedzi po zakończeniu elementu.
 3. Opcjonalny Shizuku UserService z osobnym uprawnieniem i widocznym trybem „Android shell”. Nigdy nie przedstawiać dostępu UID aplikacji jako dostępu shell lub root.

@@ -26,6 +26,8 @@ Termux jest potrzebny do uruchamiania Codex CLI i Claude Code. Nie jest potrzebn
 
 ## Granice dostępu
 
+Podłączone urządzenia USB nie są jeszcze obsługiwane. [Plan USB](docs/USB_PLAN.md) obejmuje bezpośredni UART/ESP, ADB do drugiego telefonu i nośniki danych; Docker będzie opcjonalny.
+
 | Warstwa | Dostęp |
 | --- | --- |
 | androidagent / lokalny terminal | UID aplikacji, własny katalog `files/workspace`; bez roota i bez automatycznego dostępu do prywatnych danych innych aplikacji |
