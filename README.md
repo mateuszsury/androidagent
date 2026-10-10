@@ -58,7 +58,7 @@ adb install -r artifacts/androidagent-0.1.0.apk
 ./tools/test-android.sh
 ```
 
-Testy mają osobne APK, podpisane tym samym kluczem co aplikacja. Uruchamiaj wyłącznie na przeznaczonym do testów emulatorze: włączają Accessibility, tworzą pliki i rozmowy testowe oraz otwierają Ustawienia. Wyniki i zrzuty trafiają do `artifacts/emulator/`. Szczegóły oraz granice weryfikacji opisuje [raport testów](docs/TESTING.md).
+Testy mają osobne APK, podpisane tym samym kluczem co aplikacja. Uruchamiaj wyłącznie na przeznaczonym do testów emulatorze: włączają Accessibility, tworzą pliki i rozmowy testowe oraz otwierają Ustawienia. Testowy APK eksportuje raport i zrzuty przez MediaStore do `Download/androidagent-tests/`; skrypt kopiuje je do `artifacts/emulator/`. Raport musi mieć identyfikator bieżącego przebiegu, aby starszy wynik nie został uznany za nowy. Potwierdzono **41/41** testów aplikacji na API 30, **4/4** integracji Termux i **11/11** kontraktu protokołu. Oficjalny Codex **0.162.1** uruchomiono w Termux na emulatorze. Szczegóły oraz granice weryfikacji opisuje [raport testów](docs/TESTING.md). Bez KVM można uruchomić istniejący AVD przez `./tools/start-software-emulator.sh nazwa-avd`; emulowany zegar jest wolniejszy od zegara gospodarza, więc wyniki nie są pomiarem wydajności telefonu.
 
 ## Pochodzenie i kierunek
 

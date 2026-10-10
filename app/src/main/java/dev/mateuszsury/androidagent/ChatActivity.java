@@ -235,6 +235,7 @@ public class ChatActivity extends Screen implements ChatHub.Listener {
         hub.addListener(this);
         hub.setViewing(ses, true);
         hub.select(ses);
+        hub.setForegroundChat(ses, true);
         refresh();
         scrollToEnd();
     }
@@ -244,6 +245,7 @@ public class ChatActivity extends Screen implements ChatHub.Listener {
         if (Voice.listening()) Voice.stopListening();
         if (ses != null) {
             hub.setViewing(ses, false);
+            hub.setForegroundChat(ses, false);
             hub.removeListener(this);
         }
         super.onPause();

@@ -94,7 +94,14 @@ final class LocalShell {
     Process p = process;
     if (p != null) {
       try (BufferedReader r = new BufferedReader(new FileReader(pidFile))) {
-        killChildren(Integer.parseInt(r.readLine()));
+        int parent = Integer.parseInt(r.readLine());
+        // Stop the shell before killing children: otherwise `wait` could return
+        // and let the shell execute its next instruction during cancellation.
+        android.os.Process.sendSignal(parent, 19);
+        killChildren(parent);
+        // Android's Process implementation may map destroyForcibly to SIGTERM.
+        // A stopped shell needs SIGKILL, which also handles TERM traps.
+        android.os.Process.sendSignal(parent, 9);
       } catch (Exception ignored) {
       }
       p.destroyForcibly();

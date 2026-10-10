@@ -60,7 +60,8 @@ public class BuddyService extends AccessibilityService implements McpServer.Hand
         f.addAction(Intent.ACTION_USER_PRESENT);
         registerReceiver(lockReceiver, f);
         bubble.setLocked(getSystemService(KeyguardManager.class).isKeyguardLocked());
-        if (!Prefs.onboarded(this)) main.postDelayed(this::showGuide, 600);
+        // Reconnecting Accessibility should preserve the user's current screen.
+        if (System.currentTimeMillis() < Prefs.setupWatchUntil(this)) watchSetup();
     }
 
     private final BroadcastReceiver lockReceiver = new BroadcastReceiver() {

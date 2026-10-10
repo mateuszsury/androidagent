@@ -278,7 +278,7 @@ final class Bubble implements ChatHub.Listener {
         confirmCard.setPadding(dp(12), dp(10), dp(12), dp(10));
         confirmCard.setBackground(rounded(Ui.CARD, 18, Theme.withAlpha(Ui.ACCENT, 0x73), 1));
         TextView ct = new TextView(svc);
-        ct.setText("NEEDS YOUR OK");
+        ct.setText("WYMAGA TWOJEJ ZGODY");
         ct.setLetterSpacing(0.06f);
         ct.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
         ct.setTextColor(Ui.ACCENT_TEXT);
@@ -293,10 +293,11 @@ final class Bubble implements ChatHub.Listener {
         confirmCard.addView(cs, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
         LinearLayout row = new LinearLayout(svc);
         row.setGravity(Gravity.END);
-        Button deny = actionButton("Deny", Ui.ERR_SOFT);
+        Button deny = actionButton("Odrzuć", Ui.ERR_SOFT);
         deny.setTextColor(Ui.ERR);
         deny.setOnClickListener(v -> answerConfirm(false));
-        Button approve = actionButton("Approve", Ui.ACCENT);
+        Button approve = actionButton("Zatwierdź", Ui.ACCENT);
+        approve.setTextColor(Ui.ON_ACCENT);
         approve.setOnClickListener(v -> answerConfirm(true));
         row.addView(deny);
         LinearLayout.LayoutParams alp = new LinearLayout.LayoutParams(
@@ -456,7 +457,8 @@ final class Bubble implements ChatHub.Listener {
     /** The bubble can be turned off in the app; it then only appears for approval cards. */
     void applyEnabled() {
         if (locked && expanded && pendingConfirm == null) collapse();
-        boolean show = !locked && (Prefs.bubbleEnabled(svc) || expanded || pendingConfirm != null || controlling);
+        boolean inlineApproval = pendingConfirm != null && hub.inForegroundChat();
+        boolean show = !locked && !inlineApproval && (Prefs.bubbleEnabled(svc) || expanded || pendingConfirm != null || controlling);
         boolean wasHidden = root.getVisibility() != View.VISIBLE;
         root.setVisibility(show ? View.VISIBLE : View.GONE);
         if (show && wasHidden && !expanded) popIn();
@@ -935,11 +937,16 @@ final class Bubble implements ChatHub.Listener {
 
     @Override
     public void onChatsChanged() {
+        if (pendingConfirm != null) {
+            if (hub.inForegroundChat()) collapse();
+            else if (!expanded) expand();
+        }
         if (renderedFor != sessions.current && !showingList) {
             renderCurrent();
             return;
         }
         refreshStatus();
+        applyEnabled();
         if (showingList) renderSessionList();
     }
 
@@ -952,6 +959,10 @@ final class Bubble implements ChatHub.Listener {
     /** The approval being asked right now (shown inline in the chat screen too), or null. */
     String pendingConfirmText() {
         return pendingConfirm == null ? null : confirmText.getText().toString();
+    }
+
+    boolean approvalOverlayVisible() {
+        return pendingConfirm != null && root.getVisibility() == View.VISIBLE;
     }
 
     /** Answer from the chat screen's inline approval card. */
@@ -967,7 +978,9 @@ final class Bubble implements ChatHub.Listener {
         confirmCard.setVisibility(View.VISIBLE);
         refreshStatus();
         vibrate(60);
-        expand();
+        if (hub.inForegroundChat()) collapse();
+        else expand();
+        applyEnabled();
         hub.changed();
     }
 

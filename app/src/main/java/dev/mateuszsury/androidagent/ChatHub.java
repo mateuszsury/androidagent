@@ -28,6 +28,7 @@ final class ChatHub {
     private final Handler main = new Handler(Looper.getMainLooper());
     private final List<Listener> listeners = new ArrayList<>();
     private final List<Sessions.Session> viewing = new ArrayList<>();
+    private Sessions.Session foregroundChat;
     private String flash;
     /** Receives buddy_procs / buddy_recent / buddy_transcript replies for the monitor screens. */
     interface MonitorListener {
@@ -80,6 +81,16 @@ final class ChatHub {
             viewing.remove(ses);
         }
         changed();
+    }
+
+    void setForegroundChat(Sessions.Session ses, boolean on) {
+        if (on) foregroundChat = ses;
+        else if (foregroundChat == ses) foregroundChat = null;
+        changed();
+    }
+
+    boolean inForegroundChat() {
+        return foregroundChat != null && foregroundChat == sessions.current;
     }
 
     Sessions.Session create(String backend) {

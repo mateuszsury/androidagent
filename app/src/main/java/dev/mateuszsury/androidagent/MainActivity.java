@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.*;
 
 /** Conversation-first home. The device features work before agent sign-in. */
@@ -18,8 +19,14 @@ public class MainActivity extends Screen implements ChatHub.Listener {
   @Override
   protected void onCreate(Bundle state) {
     super.onCreate(state);
+    getWindow()
+        .setSoftInputMode(
+            WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN
+                | WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
     hub = ChatHub.get(this);
     LinearLayout root = column(this);
+    root.setFocusableInTouchMode(true);
+    root.requestFocus();
     root.setBackgroundColor(BG);
     root.setFitsSystemWindows(true);
     LinearLayout bar = row(this);

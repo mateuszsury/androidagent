@@ -55,7 +55,7 @@ final class TermuxSetup {
     static String installCodex(Context c) throws IOException {
         String script = "set -e\n"
                 + "echo 'Installing Codex…'\n"
-                + "pkg install -y nodejs-lts proot\n"
+                + "pkg install -y nodejs-lts npm proot\n"
                 + "npm install -g --os=linux @openai/codex@0.162.1\n"
                 + "mkdir -p \"$HOME/bin\"\n"
                 + "echo '" + b64(asset(c, "termux/codex")) + "' | base64 -d > \"$HOME/bin/codex\"\n"

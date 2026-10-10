@@ -1,0 +1,254 @@
+{
+  "tests": [
+    {
+      "name": "home: conversation-first UI",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 1623
+    },
+    {
+      "name": "defaults: Codex, no fabricated ready state",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 1
+    },
+    {
+      "name": "device: live battery, RAM, storage",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 1
+    },
+    {
+      "name": "terminal: real Android application UID",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 102
+    },
+    {
+      "name": "terminal: persistent working files and Unicode",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 209
+    },
+    {
+      "name": "terminal: nonzero exit reported",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 102
+    },
+    {
+      "name": "terminal: invalid command",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 105
+    },
+    {
+      "name": "terminal: output truncation",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 305
+    },
+    {
+      "name": "terminal: timeout and process cleanup",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 10018
+    },
+    {
+      "name": "terminal: explicit cancellation",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 710
+    },
+    {
+      "name": "device UI: metrics and command controls",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 1338
+    },
+    {
+      "name": "device UI: execute button returns real output",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 1218
+    },
+    {
+      "name": "chat: local \/status through composer",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 1549
+    },
+    {
+      "name": "chat: session persists to disk",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 1
+    },
+    {
+      "name": "chat: draft survives activity recreation",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 127
+    },
+    {
+      "name": "chat: real model picker opens",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 856
+    },
+    {
+      "name": "chat: attachments sheet opens",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 1644
+    },
+    {
+      "name": "chat renderer: copy preserves code indentation",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 139
+    },
+    {
+      "name": "appearance: dark theme",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 1707
+    },
+    {
+      "name": "setup: accessible onboarding",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 1315
+    },
+    {
+      "name": "accessibility: service starts with explicit test grant",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 666
+    },
+    {
+      "name": "MCP: unauthenticated requests rejected",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 7
+    },
+    {
+      "name": "MCP: authenticated initialize",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 3
+    },
+    {
+      "name": "MCP: tool discovery includes phone and shell",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 12
+    },
+    {
+      "name": "MCP: device status matches Android",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 17
+    },
+    {
+      "name": "MCP: read actual screen",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 651
+    },
+    {
+      "name": "MCP: actual tap focuses command field",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 1974
+    },
+    {
+      "name": "MCP: writes Unicode to real native field",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 51
+    },
+    {
+      "name": "MCP: scroll moves native content",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 1561
+    },
+    {
+      "name": "MCP: installed apps",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 30
+    },
+    {
+      "name": "MCP: open Settings and read its screen",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 1558
+    },
+    {
+      "name": "MCP: screenshot returns real JPEG",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 449
+    },
+    {
+      "name": "MCP: system navigation",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 648
+    },
+    {
+      "name": "MCP: unknown tool errors",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 3
+    },
+    {
+      "name": "MCP: shell blocked when developer mode off",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 2
+    },
+    {
+      "name": "MCP: shell approval denied means no execution",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 590
+    },
+    {
+      "name": "MCP: approved command executes in app sandbox",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 1365
+    },
+    {
+      "name": "MCP: stop revokes further phone actions",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 222
+    },
+    {
+      "name": "attachments: provider rejects traversal",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 1
+    },
+    {
+      "name": "sessions: delete removes persisted conversation",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 56
+    },
+    {
+      "name": "final: clean home",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 1268
+    }
+  ],
+  "failures": 0,
+  "api": 30,
+  "model": "Android SDK built for x86_64",
+  "run_id": "b5d8cc8e-d447-4749-b57c-799a86cc8b50"
+}

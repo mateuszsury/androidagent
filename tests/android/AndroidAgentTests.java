@@ -24,21 +24,42 @@ public class AndroidAgentTests extends Instrumentation {
   private File evidence;
   private Activity current;
   private int failures;
+  private boolean exportOnly;
+  private boolean termuxOnly;
+  private String runId;
 
   @Override
   public void onCreate(Bundle arguments) {
     super.onCreate(arguments);
+    exportOnly = arguments != null && "true".equals(arguments.getString("export_only"));
+    termuxOnly = arguments != null && "true".equals(arguments.getString("termux_only"));
+    runId = arguments == null ? null : arguments.getString("run_id");
+    if (runId == null) runId = java.util.UUID.randomUUID().toString();
     start();
   }
 
   @Override
   public void onStart() {
     app = getTargetContext();
-    ui = getUiAutomation(UiAutomation.FLAG_DONT_SUPPRESS_ACCESSIBILITY_SERVICES);
-    evidence = new File(app.getExternalFilesDir(null), "evidence");
+    evidence =
+        new File(app.getExternalFilesDir(null), termuxOnly ? "runtime-evidence" : "evidence");
     evidence.mkdirs();
+    if (exportOnly) {
+      Bundle result = new Bundle();
+      try {
+        exportEvidence();
+        result.putString("stream", "Exported device evidence to Download/androidagent-tests\n");
+        finish(Activity.RESULT_OK, result);
+      } catch (Exception e) {
+        result.putString("stream", "Evidence export failed: " + e + "\n");
+        finish(Activity.RESULT_CANCELED, result);
+      }
+      return;
+    }
+    ui = getUiAutomation(UiAutomation.FLAG_DONT_SUPPRESS_ACCESSIBILITY_SERVICES);
     try {
-      suite();
+      if (termuxOnly) termuxSuite();
+      else suite();
     } catch (Throwable e) {
       failures++;
       record("suite", false, e.toString(), 0);
@@ -50,15 +71,116 @@ public class AndroidAgentTests extends Instrumentation {
               .put("failures", failures)
               .put("api", Build.VERSION.SDK_INT)
               .put("model", Build.MODEL)
+              .put("run_id", runId)
               .toString(2)
               .getBytes(StandardCharsets.UTF_8));
     } catch (Exception ignored) {
+    }
+    try {
+      exportEvidence();
+    } catch (Exception e) {
+      failures++;
+      record("evidence export", false, e.toString(), 0);
     }
     Bundle b = new Bundle();
     b.putString(
         "stream", "\nandroidagent: " + results.length() + " checks, " + failures + " failures\n");
     b.putInt("failures", failures);
     finish(failures == 0 ? Activity.RESULT_OK : Activity.RESULT_CANCELED, b);
+  }
+
+  /** Export fixtures through MediaStore: adb cannot read Android/data on modern Android. */
+  private void exportEvidence() throws Exception {
+    android.net.Uri downloads =
+        android.provider.MediaStore.Downloads.getContentUri(
+            android.provider.MediaStore.VOLUME_EXTERNAL_PRIMARY);
+    ContentResolver resolver = app.getContentResolver();
+    File[] files = evidence.listFiles();
+    if (files == null) throw new IOException("No evidence directory");
+    for (File file : files) {
+      String name = file.getName();
+      if (!name.matches("results\\.json|[0-9]{2}-[a-z0-9-]+\\.png")) continue;
+      String relative =
+          "Download/" + (termuxOnly ? "androidagent-runtime-tests/" : "androidagent-tests/");
+      resolver.delete(
+          downloads, "_display_name = ? AND relative_path = ?", new String[] {name, relative});
+      ContentValues values = new ContentValues();
+      values.put(android.provider.MediaStore.MediaColumns.DISPLAY_NAME, name);
+      values.put(
+          android.provider.MediaStore.MediaColumns.MIME_TYPE,
+          name.endsWith(".png") ? "image/png" : "application/json");
+      values.put(android.provider.MediaStore.MediaColumns.RELATIVE_PATH, relative);
+      values.put(android.provider.MediaStore.MediaColumns.IS_PENDING, 1);
+      android.net.Uri uri = resolver.insert(downloads, values);
+      if (uri == null) throw new IOException("Cannot export " + name);
+      try (InputStream in = new FileInputStream(file);
+          OutputStream out = resolver.openOutputStream(uri)) {
+        if (out == null) throw new IOException("Cannot open " + name);
+        byte[] buffer = new byte[8192];
+        int count;
+        while ((count = in.read(buffer)) != -1) out.write(buffer, 0, count);
+      }
+      values.clear();
+      values.put(android.provider.MediaStore.MediaColumns.IS_PENDING, 0);
+      resolver.update(uri, values, null, null);
+    }
+  }
+
+  /** Real cross-UID integration, after the official Termux APK and helper are installed. */
+  private void termuxSuite() {
+    test(
+        "Termux: installed and RUN_COMMAND granted",
+        () -> {
+          check(Termux.installed(app), "Install official Termux first");
+          shell("pm grant dev.mateuszsury.androidagent com.termux.permission.RUN_COMMAND");
+          check(Termux.permitted(app), "RUN_COMMAND not granted");
+        });
+    test(
+        "Termux: accessibility callback server bound",
+        () -> {
+          shell("settings put secure enabled_accessibility_services ''");
+          shell("settings put secure accessibility_enabled 0");
+          shell(
+              "settings put secure enabled_accessibility_services"
+                  + " dev.mateuszsury.androidagent/dev.mateuszsury.androidagent.BuddyService");
+          shell("settings put secure accessibility_enabled 1");
+          long until = SystemClock.elapsedRealtime() + 30000;
+          while (BuddyService.get() == null && SystemClock.elapsedRealtime() < until)
+            SystemClock.sleep(250);
+          check(BuddyService.get() != null, "Callback server did not bind");
+          launch(MainActivity.class);
+        });
+    test(
+        "Termux: bundled helper setup starts through RUN_COMMAND",
+        () -> {
+          Intent install = new Intent("com.termux.RUN_COMMAND");
+          install.setClassName("com.termux", "com.termux.app.RunCommandService");
+          install.putExtra(
+              "com.termux.RUN_COMMAND_PATH", "/data/data/com.termux/files/usr/bin/bash");
+          install.putExtra(
+              "com.termux.RUN_COMMAND_ARGUMENTS", new String[] {"-c", TermuxSetup.command(app)});
+          install.putExtra("com.termux.RUN_COMMAND_WORKDIR", Termux.HOME);
+          install.putExtra("com.termux.RUN_COMMAND_BACKGROUND", true);
+          app.startService(install);
+          SystemClock.sleep(3000);
+        });
+    test(
+        "Termux: real helper sends authenticated callback",
+        () -> {
+          long before = Prefs.helperCheckedAt(app);
+          Termux.run(app, "ping");
+          long until = SystemClock.elapsedRealtime() + 30000;
+          while (Prefs.helperCheckedAt(app) <= before && SystemClock.elapsedRealtime() < until)
+            SystemClock.sleep(250);
+          check(Prefs.helperCheckedAt(app) > before, "No callback from Termux helper");
+          check(SetupState.helperCurrent(app), "Outdated helper version");
+          check(SetupState.agentInstalled(app, "codex"), "Helper cannot find Codex");
+          check(Prefs.signedAgents(app) != null, "Missing real login status");
+          check(
+              new SetupState(app).canRun() == SetupState.agentReady(app, "codex"),
+              "App readiness does not match actual login state");
+          shot("01-runtime-setup");
+        });
   }
 
   private void test(String name, Check fn) {
@@ -104,8 +226,18 @@ public class AndroidAgentTests extends Instrumentation {
   }
 
   private void main(Runnable action) {
-    runOnMainSync(action);
+    final java.util.concurrent.atomic.AtomicReference<Throwable> error =
+        new java.util.concurrent.atomic.AtomicReference<>();
+    runOnMainSync(
+        () -> {
+          try {
+            action.run();
+          } catch (Throwable e) {
+            error.set(e);
+          }
+        });
     waitForIdleSync();
+    if (error.get() != null) throw new AssertionError("UI action failed", error.get());
   }
 
   private View find(View v, String label) {
@@ -370,9 +502,22 @@ public class AndroidAgentTests extends Instrumentation {
         "chat: draft survives activity recreation",
         () -> {
           main(() -> edit(current.getWindow().getDecorView()).setText("Zachowaj mój szkic"));
-          Bundle saved = new Bundle();
-          main(() -> callActivityOnSaveInstanceState(current, saved));
-          check("Zachowaj mój szkic".equals(saved.getString("draft_text")), "Draft lost");
+          ActivityMonitor monitor = addMonitor(ChatActivity.class.getName(), null, false);
+          try {
+            main(() -> current.recreate());
+            Activity recreated = waitForMonitorWithTimeout(monitor, 15000);
+            check(recreated != null, "Activity did not recreate");
+            current = recreated;
+            waitForIdleSync();
+            main(
+                () ->
+                    check(
+                        "Zachowaj mój szkic"
+                            .contentEquals(edit(current.getWindow().getDecorView()).getText()),
+                        "Draft lost on recreated screen"));
+          } finally {
+            removeMonitor(monitor);
+          }
         });
     test(
         "chat: real model picker opens",
@@ -398,6 +543,26 @@ public class AndroidAgentTests extends Instrumentation {
           shot("05-attachments");
           ui.performGlobalAction(
               android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_BACK);
+        });
+    test(
+        "chat renderer: copy preserves code indentation",
+        () -> {
+          main(
+              () ->
+                  ChatHub.get(app)
+                      .note(
+                          session[0],
+                          Bubble.Kind.BUDDY,
+                          "Test renderera kodu:\n```python\n    return 42\n```"));
+          click("Kopiuj kod");
+          main(
+              () -> {
+                android.content.ClipData clip =
+                    app.getSystemService(android.content.ClipboardManager.class).getPrimaryClip();
+                check(
+                    clip != null && "    return 42".contentEquals(clip.getItemAt(0).getText()),
+                    "Code copy changed indentation");
+              });
         });
     test(
         "appearance: dark theme",
@@ -429,6 +594,10 @@ public class AndroidAgentTests extends Instrumentation {
     test(
         "accessibility: service starts with explicit test grant",
         () -> {
+          // Instrumentation/app updates stop existing services. Reset the grant
+          // so each run exercises a fresh Android binding, rather than a stale value.
+          shell("settings put secure enabled_accessibility_services ''");
+          shell("settings put secure accessibility_enabled 0");
           shell(
               "settings put secure enabled_accessibility_services"
                   + " dev.mateuszsury.androidagent/dev.mateuszsury.androidagent.BuddyService");
@@ -481,10 +650,18 @@ public class AndroidAgentTests extends Instrumentation {
         "MCP: read actual screen",
         () -> {
           launch(MainActivity.class);
-          SystemClock.sleep(400);
-          check(
-              toolText(tool("read_screen", new JSONObject())).contains("Co dziś zrobimy?"),
-              "Screen tree missing native UI");
+          main(
+              () ->
+                  app.getSystemService(android.view.inputmethod.InputMethodManager.class)
+                      .hideSoftInputFromWindow(
+                          current.getWindow().getDecorView().getWindowToken(), 0));
+          String screen = "";
+          long until = SystemClock.elapsedRealtime() + 5000;
+          do {
+            SystemClock.sleep(250);
+            screen = toolText(tool("read_screen", new JSONObject()));
+          } while (!screen.contains("Co dziś zrobimy?") && SystemClock.elapsedRealtime() < until);
+          check(screen.contains("Co dziś zrobimy?"), "Screen tree missing native UI: " + screen);
         });
     test(
         "MCP: actual tap focuses command field",
@@ -596,6 +773,7 @@ public class AndroidAgentTests extends Instrumentation {
         "MCP: shell approval denied means no execution",
         () -> {
           Prefs.setDevMode(app, true);
+          launch(new Intent(app, ChatActivity.class).putExtra("id", session[0].id));
           ExecutorService ex = Executors.newSingleThreadExecutor();
           try {
             Future<JSONObject> f =
@@ -608,7 +786,13 @@ public class AndroidAgentTests extends Instrumentation {
             while (BuddyService.get().bubble().pendingConfirmText() == null
                 && SystemClock.elapsedRealtime() < until) SystemClock.sleep(100);
             check(BuddyService.get().bubble().pendingConfirmText() != null, "Approval missing");
-            main(() -> BuddyService.get().bubble().answerFromApp(false));
+            check(
+                BuddyService.get()
+                    .bubble()
+                    .pendingConfirmText()
+                    .contains("touch should-not-exist.txt"),
+                "Approval does not identify exact command");
+            click("Odrzuć");
             check(toolText(f.get(5, TimeUnit.SECONDS)).contains("DENIED"), "Denial not returned");
             check(
                 !new File(LocalShell.workspace(app), "should-not-exist.txt").exists(),
@@ -631,7 +815,13 @@ public class AndroidAgentTests extends Instrumentation {
             while (BuddyService.get().bubble().pendingConfirmText() == null
                 && SystemClock.elapsedRealtime() < until) SystemClock.sleep(100);
             check(BuddyService.get().bubble().pendingConfirmText() != null, "Approval missing");
-            main(() -> BuddyService.get().bubble().answerFromApp(true));
+            main(
+                () ->
+                    check(
+                        !BuddyService.get().bubble().approvalOverlayVisible(),
+                        "Overlay obscures native chat approval"));
+            shot("09-command-approval");
+            click("Zatwierdź");
             check(
                 toolText(f.get(10, TimeUnit.SECONDS)).contains("MCP_APPROVED"),
                 "Approved command missing output");

@@ -25,12 +25,14 @@ if [ "${1:-}" = --build-only ]; then
   exit 0
 fi
 "$ADB" install --no-incremental -r "$OUT/tests.apk"
-"$ADB" shell am instrument -w dev.mateuszsury.androidagent.tests/dev.mateuszsury.androidagent.AndroidAgentTests
+export ANDROIDAGENT_TEST_RUN_ID="$(python3 -c 'import uuid; print(uuid.uuid4())')"
+"$ADB" shell am instrument -w -e run_id "$ANDROIDAGENT_TEST_RUN_ID" dev.mateuszsury.androidagent.tests/dev.mateuszsury.androidagent.AndroidAgentTests
 mkdir -p artifacts/emulator
-"$ADB" pull /sdcard/Android/data/dev.mateuszsury.androidagent/files/evidence/. artifacts/emulator/
+"$ADB" pull /sdcard/Download/androidagent-tests/. artifacts/emulator/
 python3 - <<'PY'
-import json
+import json,os
 r=json.load(open('artifacts/emulator/results.json'))
+assert r.get('run_id') == os.environ['ANDROIDAGENT_TEST_RUN_ID'], 'Stale or missing test report'
 print(f"{len(r['tests'])} tests, {r['failures']} failures")
 raise SystemExit(1 if r['failures'] else 0)
 PY
