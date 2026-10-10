@@ -1,0 +1,7 @@
+Android 11 / API 30, x86_64, official Termux 0.118.3 debug APK
+Official packages checked against Termux Packages SHA256 metadata; injected test dependencies via run-as (no root).
+Executed under UID com.termux:
+  node --version -> v24.18.0
+  codex --version -> codex-cli 0.162.1
+Codex is the official @openai/codex@0.162.1 Linux x64 binary, executed through the bundled proot wrapper.
+No model account configured. Package download / interactive login are not end-to-end tested.

@@ -34,7 +34,11 @@ final class MessageContent {
           code = code.substring(nl + 1);
         }
         if (language.isEmpty()) language = "code";
-        final String copied = code.trim();
+        // Fence separators aren't part of the code; indentation and blank lines are.
+        final String copied =
+            code.endsWith("\r\n")
+                ? code.substring(0, code.length() - 2)
+                : code.endsWith("\n") ? code.substring(0, code.length() - 1) : code;
         LinearLayout panel = column(c);
         panel.setPadding(dp(c, 14), dp(c, 10), dp(c, 14), dp(c, 14));
         panel.setBackground(rounded(c, CODE, 14));

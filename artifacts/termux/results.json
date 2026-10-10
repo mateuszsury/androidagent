@@ -1,0 +1,32 @@
+{
+  "tests": [
+    {
+      "name": "Termux: installed and RUN_COMMAND granted",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 44
+    },
+    {
+      "name": "Termux: accessibility callback server bound",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 829
+    },
+    {
+      "name": "Termux: bundled helper setup starts through RUN_COMMAND",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 3009
+    },
+    {
+      "name": "Termux: real helper sends authenticated callback",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 1452
+    }
+  ],
+  "failures": 0,
+  "api": 30,
+  "model": "Android SDK built for x86_64",
+  "run_id": "c1cd7292-4d97-4962-841a-b58a5d34696c"
+}

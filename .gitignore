@@ -22,4 +22,5 @@ design/
 artifacts/*.apk
 artifacts/*.png
 artifacts/emulator/*.png
+artifacts/termux/*.png
 __pycache__/
