@@ -69,6 +69,7 @@ public class ChatActivity extends Screen implements ChatHub.Listener {
         titles.addView(title);
         LinearLayout chip = chip(this, "");
         chipText = (TextView) chip.getChildAt(0);
+        chip.setContentDescription("Wybierz model");
         chip.setOnClickListener(v -> chooseModel());
         LinearLayout.LayoutParams cp = wrap();
         cp.topMargin = dp(this, 3);
@@ -217,6 +218,9 @@ public class ChatActivity extends Screen implements ChatHub.Listener {
             input.setText(draft);
             input.setSelection(draft.length());
         }
+        if (state == null && getIntent().getBooleanExtra("show_attachments", false)) {
+            input.post(this::attachSheet);
+        }
     }
 
     @Override
@@ -322,9 +326,9 @@ public class ChatActivity extends Screen implements ChatHub.Listener {
     private void chooseModel() {
         final String[][] options = Models.forBackend(ses.backend);
         LinearLayout c = column(this);
-        TextView h = title(this, ses.brainName() + " model", 18);
+        TextView h = title(this, "Model " + ses.brainName(), 18);
         c.addView(h);
-        TextView sub = text(this, "For this chat. The conversation continues with the new model.", 13, MUTED);
+        TextView sub = text(this, "Wybór dla tej rozmowy. Dostępność modeli zależy od Twojego konta.", 13, MUTED);
         sub.setPadding(0, dp(this, 2), 0, dp(this, 10));
         c.addView(sub);
         final Dialog[] d = new Dialog[1];
@@ -350,7 +354,7 @@ public class ChatActivity extends Screen implements ChatHub.Listener {
         LinearLayout other = row(this);
         other.setPadding(0, dp(this, 10), 0, 0);
         final EditText et = new EditText(this);
-        et.setHint("other… e.g. " + ("claude".equals(ses.backend) ? "claude-opus-5-5" : "gpt-6.1-sol"));
+        et.setHint("Inny model z Twojego konta…");
         et.setHintTextColor(MUTED);
         et.setTextColor(TEXT);
         et.setTextSize(14);
@@ -360,7 +364,7 @@ public class ChatActivity extends Screen implements ChatHub.Listener {
         et.setPadding(dp(this, 12), dp(this, 10), dp(this, 12), dp(this, 10));
         et.setBackground(outlined(this, BG, 12, OUTLINE, 1));
         other.addView(et, weight1());
-        Button use = button(this, "Use", true);
+        Button use = button(this, "Wybierz", true);
         LinearLayout.LayoutParams up = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, dp(this, 44));
         up.leftMargin = dp(this, 8);
         other.addView(use, up);
@@ -458,7 +462,7 @@ public class ChatActivity extends Screen implements ChatHub.Listener {
         chipText.setText(ses.brainName() + " · " + Models.label(ses.backend, ses.model)
                 + (Prefs.devMode(this) ? " · dev" : ""));
         strip.setVisibility(ses.running ? View.VISIBLE : View.GONE);
-        stripText.setText(ses.status.isEmpty() ? "Working…" : ses.status);
+        stripText.setText(ses.status.isEmpty() ? "Pracuję…" : ses.status);
         if (log != null) {
             if (ses.running) log.setLive(true);
             else log.finish();
@@ -480,7 +484,7 @@ public class ChatActivity extends Screen implements ChatHub.Listener {
         card.setBackground(outlined(this, CARD, 18, Theme.withAlpha(ACCENT, 0x73), 1));
         LinearLayout hr = row(this);
         hr.addView(icon(this, R.drawable.ms_shield_person, ACCENT_TEXT, 18));
-        TextView lab = text(this, "NEEDS YOUR OK", 12, ACCENT_TEXT);
+        TextView lab = text(this, "WYMAGA TWOJEJ ZGODY", 12, ACCENT_TEXT);
         lab.setTypeface(sans(this, 600));
         lab.setLetterSpacing(0.06f);
         lab.setPadding(dp(this, 8), 0, 0, 0);
@@ -495,10 +499,10 @@ public class ChatActivity extends Screen implements ChatHub.Listener {
         wp.bottomMargin = dp(this, 12);
         card.addView(well, wp);
         LinearLayout btns = row(this);
-        Button deny = button(this, "Deny", false);
+        Button deny = button(this, "Odrzuć", false);
         deny.setTextColor(ERR);
         deny.setBackground(rounded(this, ERR_SOFT, 12));
-        Button ok = button(this, "Approve", true);
+        Button ok = button(this, "Zatwierdź", true);
         btns.addView(deny, new LinearLayout.LayoutParams(0, dp(this, 44), 1));
         LinearLayout.LayoutParams op = new LinearLayout.LayoutParams(0, dp(this, 44), 1);
         op.leftMargin = dp(this, 10);
@@ -551,14 +555,14 @@ public class ChatActivity extends Screen implements ChatHub.Listener {
 
     private void attachSheet() {
         LinearLayout c = column(this);
-        TextView h = title(this, "Attach", 18);
+        TextView h = title(this, "Dodaj załącznik", 18);
         h.setPadding(0, 0, 0, dp(this, 8));
         c.addView(h);
         final Dialog[] d = new Dialog[1];
         Object[][] opts = {
-                {R.drawable.ms_photo_camera, "Take a photo", "Use the camera"},
-                {R.drawable.ms_image, "Photos", "Pick from your gallery"},
-                {R.drawable.ms_description, "Files", "PDFs, documents, anything up to 25 MB"},
+                {R.drawable.ms_photo_camera, "Zrób zdjęcie", "Otwórz aparat"},
+                {R.drawable.ms_image, "Zdjęcia", "Wybierz z galerii"},
+                {R.drawable.ms_description, "Pliki", "Dokumenty i inne pliki do 25 MB"},
         };
         for (int i = 0; i < opts.length; i++) {
             final int which = i;

@@ -237,8 +237,8 @@ public class SetupActivity extends Screen {
                 }), full());
         ex.addView(divider(), lineParams());
         final boolean dev = Prefs.devMode(this);
-        ex.addView(switchRow(this, "Tryb programisty", "The bubble's agent may run Termux commands and edit files in "
-                + "~/.buddy/work, so it can build and install apps.", dev, on -> {
+        ex.addView(switchRow(this, "Tryb programisty", "Codex może wykonywać komendy i zmieniać pliki dostępne dla Termux. "
+                + "Katalog startowy: ~/.buddy/work. Dostęp obejmuje także inne pliki i uprawnienia Termux.", dev, on -> {
             Prefs.setDevMode(this, on);
             render();
         }), full());
@@ -248,9 +248,9 @@ public class SetupActivity extends Screen {
             warn.setPadding(dp(this, 12), dp(this, 10), dp(this, 12), dp(this, 10));
             warn.setBackground(rounded(this, ERR_SOFT, 12));
             warn.addView(icon(this, R.drawable.ms_warning, ERR, 18));
-            TextView wt = text(this, "Leave it off for everyday use: with it on, a malicious message or web page on screen "
-                    + "could try to trick the agent into running commands. Approval cards still guard sending, posting, "
-                    + "buying and deleting.", 13, ERR);
+            TextView wt = text(this, "Komendy Codexa w Termux wykonują się bez osobnego potwierdzenia. "
+                    + "Android ogranicza je do uprawnień Termux; nie są ograniczone do katalogu projektu. "
+                    + "Komendy narzędzia telefonu run_command wymagają zatwierdzenia dokładnej treści.", 13, ERR);
             wt.setPadding(dp(this, 10), 0, 0, 0);
             warn.addView(wt, weight1());
             LinearLayout.LayoutParams wp = full();

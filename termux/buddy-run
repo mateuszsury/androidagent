@@ -271,14 +271,16 @@ stream_claude() {
 
 # ---------------------------------------------------------------------- Codex
 # The phone server is passed with -c (no config file needed). Only the phone tools are
-# pre-approved. Normal mode keeps Codex's shell read-only; developer mode lets it write in $W.
+# pre-approved. Normal mode disables Codex's shell. Termux already runs under an
+# Android app UID; Linux bubblewrap/Landlock cannot provide a desktop sandbox there.
+# Developer mode therefore allows commands within Termux's Android permissions.
 run_codex() {
   local prompt=$MSG
   local cfg=(-c 'mcp_servers.phone.url="'"$URL"'/mcp"'
     -c 'mcp_servers.phone.bearer_token_env_var="BUDDY_TOKEN"'
     -c 'mcp_servers.phone.default_tools_approval_mode="approve"')
-  local sandbox=(--sandbox read-only)
-  [ "$DEV" = 1 ] && sandbox=(--sandbox workspace-write -c 'sandbox_workspace_write.network_access=true')
+  local sandbox=(--sandbox read-only -c 'features.shell_tool=false')
+  [ "$DEV" = 1 ] && sandbox=(--sandbox danger-full-access -c 'approval_policy="never"')
   [ -n "${MODEL:-}" ] && cfg+=(-m "$MODEL")
   local img=() f
   for f in "${IMGS[@]}"; do img+=("--image=$f"); done

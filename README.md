@@ -28,11 +28,13 @@ Termux jest potrzebny do uruchamiania Codex CLI. Nie jest potrzebny do podstawow
 | --- | --- |
 | androidagent / lokalny terminal | UID aplikacji, własny katalog `files/workspace`; bez roota i bez automatycznego dostępu do prywatnych danych innych aplikacji |
 | Accessibility | Ekran i gesty po świadomym włączeniu usługi przez właściciela telefonu |
-| Termux / Codex | Narzędzia i projekty w Termux, katalog `~/.buddy/work`; to osobny katalog od terminala androidagent |
+| Termux / Codex | Zwykły tryb: powłoka Codexa wyłączona. Tryb programisty: komendy i pliki dostępne dla UID Termux, z katalogiem startowym `~/.buddy/work` |
 | Shizuku | Opcja następnego etapu, nieimplementowana w 0.1.0 |
 | Model | Usługa zewnętrzna; lokalnie działa klient Codex i narzędzia, nie wagi modelu |
 
 Nowe narzędzie MCP `run_command` wymaga trybu programisty i zatwierdzenia dokładnej komendy. Terminal otwierany przez użytkownika wykonuje komendę po naciśnięciu przycisku. Odziedziczone narzędzia gestów opierają zgodę na instrukcjach agenta; nie jest to twarda blokada wszystkich możliwych operacji w innych aplikacjach. Ekrany chronione, ekran blokady i ograniczenia Androida nie są obchodzone.
+
+Codex w trybie programisty używa `--sandbox danger-full-access` wewnątrz Termux: linuksowy sandbox desktopowy nie jest wspierany przez tę integrację na Androidzie. Komendy Codexa mają dostęp do całego środowiska Termux i wykonują się bez osobnych kart zgody. Android nadal ogranicza je do UID i nadanych uprawnień Termux. Ten dostęp jest osobny od terminala androidagent i jego narzędzia MCP `run_command`.
 
 MCP słucha wyłącznie na `127.0.0.1:8766` i wymaga losowego tokenu instalacji. Upstream Buddy używa innego portu. Token nie jest zapisywany w repozytorium ani raportach testów. Wyłączenie Accessibility zatrzymuje serwer.
 
