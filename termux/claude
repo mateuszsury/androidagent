@@ -1,0 +1,22 @@
+#!/data/data/com.termux/files/usr/bin/bash
+# Official Claude Code musl binary under Termux's Android UID; no root or glibc patching.
+set -eu
+P=/data/data/com.termux/files/usr
+case "$(uname -m)" in
+  aarch64|arm64) PLATFORM=arm64; LIB=ld-musl-aarch64.so.1 ;;
+  x86_64) PLATFORM=x64; LIB=ld-musl-x86_64.so.1 ;;
+  *) echo 'androidagent supports 64-bit ARM and x86 Android only.' >&2; exit 1 ;;
+esac
+ROOT=$(npm root -g)
+BIN=$ROOT/@anthropic-ai/claude-code-linux-$PLATFORM-musl/claude
+R=$P/opt/androidagent/musl
+if [ ! -x "$BIN" ] || [ ! -x "$R/lib/$LIB" ]; then
+  echo 'Claude Code runtime is missing. Run the Claude Code setup in androidagent.' >&2
+  exit 1
+fi
+# Updates must use the Android setup; the desktop updater installs an incompatible binary.
+export DISABLE_AUTOUPDATER=1
+export SHELL="$P/bin/bash"
+export SSL_CERT_FILE="$P/etc/tls/cert.pem"
+exec proot -b "$R/lib:/lib" -b "$P/bin:/bin" \
+  -b "$P/etc/resolv.conf:/etc/resolv.conf" -b "$P/etc/tls:/etc/ssl" "$BIN" "$@"

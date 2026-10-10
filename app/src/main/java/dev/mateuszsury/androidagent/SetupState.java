@@ -13,7 +13,7 @@ final class SetupState {
             "Allow background running", "Try it",
     };
     /** Must match HELPER_VERSION in termux/buddy-run. */
-    static final int HELPER_VERSION = 10;
+    static final int HELPER_VERSION = 11;
 
     final boolean[] done = new boolean[5];
 

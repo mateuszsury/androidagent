@@ -129,7 +129,9 @@ final class ChatHub {
             changed();
             return null;
         }
-        if (BuddyService.get() == null) return "Włącz sterowanie ekranem w konfiguracji androidagent, aby połączyć Codexa. /status działa lokalnie.";
+        if (BuddyService.get() == null) return "Włącz sterowanie ekranem w konfiguracji androidagent. /status działa lokalnie.";
+        if (!SetupState.helperCurrent(app) || !SetupState.agentReady(app, ses.backend))
+            return "Skonfiguruj i zaloguj " + ses.brainName() + " w Termux. /status działa bez logowania.";
         boolean hasFiles = files != null && !files.isEmpty();
         if (text.isEmpty() && !hasFiles) return null;
         String forAgent = text.isEmpty() && hasFiles ? "Have a look at what I attached." : text;
@@ -198,10 +200,46 @@ final class ChatHub {
         String type = ev.optString("type");
         if (!ses.running && ("system".equals(type) || "assistant".equals(type))) startRun(ses);
         switch (type) {
+            case "stream_event": {
+                if (!ev.isNull("parent_tool_use_id")) break;
+                JSONObject part = ev.optJSONObject("event");
+                if (part == null) break;
+                String eventType = part.optString("type");
+                if ("message_start".equals(eventType)) ses.streamText = "";
+                else if ("content_block_start".equals(eventType)) {
+                    JSONObject block = part.optJSONObject("content_block");
+                    if (block != null && "text".equals(block.optString("type")))
+                        ses.streamText += block.optString("text");
+                } else if ("content_block_delta".equals(eventType)) {
+                    JSONObject delta = part.optJSONObject("delta");
+                    if (delta != null && "text_delta".equals(delta.optString("type")) && ses.streamText.length() < 262144)
+                        ses.streamText += delta.optString("text");
+                }
+                break;
+            }
             case "system":
-                if ("init".equals(ev.optString("subtype"))) ses.status = "Thinking…";
+                if ("init".equals(ev.optString("subtype"))) {
+                    ses.status = "Thinking…";
+                    ses.agentSessionId = ev.optString("session_id");
+                    JSONArray servers = ev.optJSONArray("mcp_servers");
+                    ses.phoneConnected = false;
+                    if (servers != null) for (int i = 0; i < servers.length(); i++) {
+                        JSONObject server = servers.optJSONObject(i);
+                        if (server != null && "phone".equals(server.optString("name")))
+                            ses.phoneConnected = "connected".equals(server.optString("status"));
+                    }
+                    ses.phoneToolCount = 0;
+                    JSONArray tools = ev.optJSONArray("tools");
+                    ses.agentTools.clear();
+                    if (tools != null) for (int i = 0; i < tools.length(); i++) {
+                        String tool = tools.optString(i);
+                        ses.agentTools.add(tool);
+                        if (tool.startsWith(TOOL_PREFIX)) ses.phoneToolCount++;
+                    }
+                }
                 break;
             case "assistant": {
+                ses.streamText = "";
                 JSONObject msg = ev.optJSONObject("message");
                 JSONArray content = msg == null ? null : msg.optJSONArray("content");
                 if (content == null) break;
@@ -211,9 +249,8 @@ final class ChatHub {
                     if ("text".equals(c.optString("type"))) {
                         String t = c.optString("text").trim();
                         if (!t.isEmpty()) {
-                            add(ses, Bubble.Kind.BUDDY, t);
-                            ses.lastReply = t;
-                            ses.gotText = true;
+                            if (!ev.optString("error").isEmpty()) add(ses, Bubble.Kind.ERROR, t);
+                            else reply(ses, t);
                         }
                     } else if ("tool_use".equals(c.optString("type"))) {
                         String step = describeTool(c.optString("name"), c.optJSONObject("input"));
@@ -228,20 +265,38 @@ final class ChatHub {
             case "result": {
                 boolean error = ev.optBoolean("is_error") || !"success".equals(ev.optString("subtype", "success"));
                 String r = ev.optString("result", "").trim();
+                if (r.isEmpty() && ev.optJSONArray("errors") != null) {
+                    JSONArray errors = ev.optJSONArray("errors");
+                    StringBuilder text = new StringBuilder();
+                    for (int i = 0; i < errors.length(); i++) {
+                        if (i > 0) text.append('\n');
+                        text.append(errors.optString(i));
+                    }
+                    r = text.toString();
+                }
+                if (!ses.streamText.isEmpty()) {
+                    String pending = !error && !r.isEmpty() ? r : ses.streamText;
+                    ses.streamText = "";
+                    reply(ses, pending);
+                }
                 if (error) add(ses, Bubble.Kind.ERROR, r.isEmpty() ? ses.brainName() + " stopped." : r);
                 else if (!ses.gotText && !r.isEmpty()) {
-                    add(ses, Bubble.Kind.BUDDY, r);
-                    ses.lastReply = r;
+                    reply(ses, r);
                 }
                 break;
             }
             case "buddy_error":
+                flushStream(ses);
                 add(ses, Bubble.Kind.ERROR, ev.optString("text", "Something went wrong."));
                 break;
             case "buddy_stopped":
+                flushStream(ses);
+                ses.running = false;
+                ses.status = "";
                 add(ses, Bubble.Kind.STEP, "Stopped.");
                 break;
             case "buddy_done":
+                flushStream(ses);
                 if (ses.running) {
                     ses.running = false;
                     ses.status = "";
@@ -258,6 +313,19 @@ final class ChatHub {
     }
 
     // ---------------------------------------------------------------- state
+
+    private void reply(Sessions.Session ses, String text) {
+        add(ses, Bubble.Kind.BUDDY, text);
+        ses.lastReply = text;
+        ses.gotText = true;
+    }
+
+    private void flushStream(Sessions.Session ses) {
+        if (ses.streamText.isEmpty()) return;
+        String text = ses.streamText;
+        ses.streamText = "";
+        reply(ses, text);
+    }
 
     int runningCount() {
         return sessions.runningCount();
@@ -296,12 +364,18 @@ final class ChatHub {
         ses.running = true;
         ses.gotText = false;
         ses.lastReply = "";
+        ses.lastError = "";
+        ses.streamText = "";
         ses.lastEventAt = SystemClock.elapsedRealtime();
         ses.runId++;
     }
 
     private void add(Sessions.Session ses, Bubble.Kind kind, String text) {
         if (text == null) return;
+        if (kind == Bubble.Kind.ERROR) {
+            if (ses.lastError.equals(text)) return;
+            ses.lastError = text;
+        }
         sessions.add(ses, kind, text);
         if (kind == Bubble.Kind.BUDDY && !viewing.contains(ses)) ses.unread = true;
         if (kind == Bubble.Kind.BUDDY && Prefs.speakReplies(app)) Voice.speak(app, text);

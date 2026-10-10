@@ -46,6 +46,7 @@ import org.json.JSONObject;
 
 /** The floating Buddy bubble and its mini chat panel, drawn as an accessibility overlay. */
 final class Bubble implements ChatHub.Listener {
+    private TextView streamingText;
     interface ConfirmCallback {
         void onAnswer(boolean approved);
     }
@@ -903,6 +904,7 @@ final class Bubble implements ChatHub.Listener {
         listScroll.setVisibility(showingList ? View.VISIBLE : View.GONE);
         scroll.setVisibility(showingList ? View.GONE : View.VISIBLE);
         messages.removeAllViews();
+        streamingText = null;
         renderedFor = sessions.current;
         Sessions.Session ses = sessions.current;
         if (ses.messages.isEmpty()) {
@@ -947,11 +949,16 @@ final class Bubble implements ChatHub.Listener {
         }
         refreshStatus();
         applyEnabled();
+        renderStreaming();
         if (showingList) renderSessionList();
     }
 
     @Override
     public void onMessage(Sessions.Session ses, Sessions.Msg msg) {
+        if (ses == sessions.current && streamingText != null) {
+            messages.removeView(streamingText);
+            streamingText = null;
+        }
         if (ses == sessions.current && renderedFor == ses) showMessage(msg.kind, msg.label());
         if (msg.kind == Kind.BUDDY && !(expanded && ses == sessions.current && !showingList)) vibrate(30);
     }
@@ -959,6 +966,22 @@ final class Bubble implements ChatHub.Listener {
     /** The approval being asked right now (shown inline in the chat screen too), or null. */
     String pendingConfirmText() {
         return pendingConfirm == null ? null : confirmText.getText().toString();
+    }
+
+    private void renderStreaming() {
+        String text = sessions.current.streamText;
+        if (text.isEmpty() || showingList || renderedFor != sessions.current) {
+            if (streamingText != null) messages.removeView(streamingText);
+            streamingText = null;
+            return;
+        }
+        if (streamingText == null) {
+            streamingText = Ui.text(svc, "", 14, Ui.TEXT);
+            streamingText.setPadding(dp(12), dp(10), dp(12), dp(10));
+            messages.addView(streamingText);
+        }
+        streamingText.setText(text);
+        scrollToEnd();
     }
 
     boolean approvalOverlayVisible() {

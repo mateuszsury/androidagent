@@ -47,7 +47,8 @@ public class MainActivity extends Screen implements ChatHub.Listener {
     connection = text(this, "", 12, MUTED);
     connection.setPadding(dp(this, 14), dp(this, 9), dp(this, 14), dp(this, 9));
     connection.setBackground(rounded(this, CARD, 20));
-    connection.setOnClickListener(v -> startActivity(new Intent(this, OnboardingActivity.class)));
+    connection.setContentDescription("Wybierz agenta");
+    connection.setOnClickListener(v -> chooseAgent());
     status.addView(connection);
     root.addView(status, full());
 
@@ -66,7 +67,7 @@ public class MainActivity extends Screen implements ChatHub.Listener {
     heading.setGravity(Gravity.CENTER);
     heading.setPadding(0, dp(this, 24), 0, dp(this, 8));
     center.addView(heading, full());
-    TextView sub = text(this, "Twój Codex. Twój telefon.\nOd pomysłu do wykonania.", 15, MUTED);
+    TextView sub = text(this, "Twój agent. Twój telefon.\nOd pomysłu do wykonania.", 15, MUTED);
     sub.setGravity(Gravity.CENTER);
     sub.setLineSpacing(dp(this, 4), 1);
     center.addView(sub, full());
@@ -90,7 +91,7 @@ public class MainActivity extends Screen implements ChatHub.Listener {
     cards.addView(
         suggestion(
             R.drawable.ms_chat_bubble,
-            "Zleć zadanie Codexowi",
+            "Zleć zadanie agentowi",
             "Czytaj ekran, działaj w aplikacjach",
             () -> openChat("Sprawdź, co jest na ekranie telefonu, i opisz dostępne działania.")),
         full());
@@ -105,7 +106,7 @@ public class MainActivity extends Screen implements ChatHub.Listener {
     plus.setOnClickListener(v -> openChat("", true));
     composer.addView(plus, new LinearLayout.LayoutParams(dp(this, 40), dp(this, 44)));
     prompt = new EditText(this);
-    prompt.setHint("Napisz do Codexa");
+    prompt.setHint("Napisz do agenta");
     prompt.setHintTextColor(MUTED);
     prompt.setTextColor(TEXT);
     prompt.setTextSize(16);
@@ -150,7 +151,7 @@ public class MainActivity extends Screen implements ChatHub.Listener {
   }
 
   private void openChat(String draft, boolean attachments) {
-    Sessions.Session s = hub.create("codex");
+    Sessions.Session s = hub.create(Prefs.backend(this));
     hub.select(s);
     startActivity(
         new Intent(this, ChatActivity.class)
@@ -175,7 +176,7 @@ public class MainActivity extends Screen implements ChatHub.Listener {
     LinearLayout items = column(this);
     for (Sessions.Session s : hub.sessions.all) {
       if (s.messages.isEmpty()) continue;
-      TextView item = title(this, s.label(), 15);
+      TextView item = title(this, s.label() + "\n" + s.brainName(), 15);
       item.setPadding(dp(this, 8), dp(this, 18), dp(this, 8), dp(this, 18));
       item.setOnClickListener(
           v -> {
@@ -218,8 +219,45 @@ public class MainActivity extends Screen implements ChatHub.Listener {
 
   private void refresh() {
     boolean ready = new SetupState(this).canRun();
+    String agent = "claude".equals(Prefs.backend(this)) ? "Claude Code" : "Codex";
     connection.setText(
-        ready ? "●  Codex gotowy  ·  na tym telefonie" : "◌  Połącz Codexa  ·  konfiguracja");
+        (ready ? "●  " : "◌  ") + agent + (ready ? " · gotowy" : " · konfiguracja") + "  ▾");
+    prompt.setHint("Napisz do " + agent);
+  }
+
+  private void chooseAgent() {
+    LinearLayout content = column(this);
+    content.addView(title(this, "Wybierz agenta", 23));
+    TextView detail =
+        text(
+            this,
+            "Nowe rozmowy użyją wybranego agenta. Historia każdej rozmowy pozostaje przy swoim"
+                + " agencie.",
+            13,
+            MUTED);
+    detail.setPadding(0, dp(this, 8), 0, dp(this, 12));
+    content.addView(detail, full());
+    final Dialog[] sheet = {null};
+    for (String[] option : new String[][] {{"codex", "Codex"}, {"claude", "Claude Code"}}) {
+      Button choice = button(this, option[1], option[0].equals(Prefs.backend(this)));
+      choice.setOnClickListener(
+          v -> {
+            Prefs.setBackend(this, option[0]);
+            if (!"both".equals(Prefs.agents(this))) Prefs.setAgents(this, option[0]);
+            sheet[0].dismiss();
+            refresh();
+          });
+      content.addView(choice, full());
+    }
+    Button setup = button(this, "Konfiguruj agentów", false);
+    setup.setOnClickListener(
+        v -> {
+          sheet[0].dismiss();
+          startActivity(new Intent(this, OnboardingActivity.class));
+        });
+    content.addView(setup, full());
+    sheet[0] = bottomSheet(this, content);
+    sheet[0].show();
   }
 
   @Override

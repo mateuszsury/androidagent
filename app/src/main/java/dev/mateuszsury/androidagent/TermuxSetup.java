@@ -39,16 +39,21 @@ final class TermuxSetup {
         return "echo '" + b64(script.getBytes(StandardCharsets.UTF_8)) + "' | base64 -d | bash";
     }
 
-    /** Community installer for Claude Code on Termux (glibc-patched official binary), then sign in. */
-    static final String CLAUDE_INSTALLER =
-            "https://raw.githubusercontent.com/ferrumclaudepilgrim/claude-code-android/main/install.sh";
-
-    static String installClaude() {
-        return "curl -fsSL " + CLAUDE_INSTALLER + " -o ~/claude-install.sh && bash ~/claude-install.sh && claude";
+    /** Official ARM64/x86_64 musl runtime, then the CLI's own account login. */
+    static String installClaude(Context c) throws IOException {
+        String script = "set -e\n"
+                + "echo '" + b64(asset(c, "termux/install-claude")) + "' | base64 -d | bash\n"
+                + "mkdir -p \"$HOME/bin\"\n"
+                + "echo '" + b64(asset(c, "termux/claude")) + "' | base64 -d > \"$HOME/bin/claude\"\n"
+                + "chmod 700 \"$HOME/bin/claude\"\n"
+                + "grep -q 'HOME/bin' \"$HOME/.bashrc\" 2>/dev/null || echo 'export PATH=$HOME/bin:$PATH' >> \"$HOME/.bashrc\"\n"
+                + "~/bin/claude --version\n";
+        return "echo '" + b64(script.getBytes(StandardCharsets.UTF_8))
+                + "' | base64 -d | bash && " + signInClaude();
     }
 
     static String signInClaude() {
-        return "claude";
+        return "~/bin/claude auth login";
     }
 
     /** Codex from npm, plus Buddy's wrapper (DNS/TLS paths via proot), then sign in with ChatGPT. */

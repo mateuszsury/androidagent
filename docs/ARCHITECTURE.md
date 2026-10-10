@@ -1,4 +1,4 @@
-# Architektura androidagent 0.1
+# Architektura androidagent 0.2
 
 ## Wybór bazy
 
@@ -22,6 +22,10 @@ flowchart TD
   HUB --> INTENT[Termux RUN_COMMAND]
   INTENT --> HELPER[buddy-run]
   HELPER --> CODEX[Codex CLI na telefonie]
+  HELPER --> CLAUDE[Claude Code: oficjalny musl runtime]
+  CLAUDE --> MODEL
+  CLAUDE --> MCP
+  CLAUDE --> EVENTS
   CODEX --> MODEL[Usługa modelu po zalogowaniu]
   CODEX --> MCP[Lokalny MCP + token]
   MCP --> ACCESS[Accessibility: ekran i gesty]
@@ -34,7 +38,7 @@ flowchart TD
   PANEL --> SHELL
 ```
 
-Aplikacja `dev.mateuszsury.androidagent` wymaga Androida 11+, kompilowana jest przeciw API 36. Kod Java i fonty są zawarte w APK; model ani konto nie są wbudowane. Instalacja helpera kopiuje zasoby APK do Termux. Wrapper Codexa wykrywa ARM64 lub x86_64 i mapuje ścieżki DNS/TLS przez proot.
+Aplikacja `dev.mateuszsury.androidagent` wymaga Androida 11+, kompilowana jest przeciw API 36. Kod Java i fonty są zawarte w APK; model ani konto nie są wbudowane. Instalacja helpera kopiuje zasoby APK do Termux. Wrappery obu agentów wykrywają ARM64 lub x86_64 i mapują ścieżki DNS/TLS przez proot. Claude używa oficjalnego pakietu npm musl i biblioteki musl z Alpine, ze sprawdzeniem SHA256. Żadne binaria modelu ani klienta nie są wbudowane w APK. Stary instalator społecznościowy działający tylko na ARM64 zastąpiono skryptem zawartym w aplikacji. Claude przekazuje przyrostowe zdarzenia tekstu, narzędzia i błędy; końcowa odpowiedź jest zapisywana raz. Backend rozmowy pozostaje stały po zmianie domyślnego agenta.
 
 ## Najbliższe etapy
 

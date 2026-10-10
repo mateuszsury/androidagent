@@ -1,4 +1,4 @@
-androidagent 0.1.0
+androidagent 0.2.0
 
 This is a modified version of Buddy by ghorbelhamdi and contributors.
 Upstream: https://github.com/ghorbelhamdi/buddy-android
@@ -9,6 +9,10 @@ Modifications (2026-10-09): separate application identity and MCP port;
 conversation-first androidagent UI; Codex defaults; device metrics; bounded local
 shell with per-command approvals; rich message rendering; draft preservation;
 ARM64/x86_64 Codex launcher; device instrumentation tests and build scripts.
+Additional modifications (2026-10-10): Claude Code ARM64/x86_64 musl runtime
+setup, backend selection, streamed responses, isolated sessions, CLI auth status,
+model aliases, Remote Control MCP policy and integration coverage. Runtime downloads
+are separate: official Anthropic npm packages and Alpine musl (MIT), not bundled.
 Java package paths were moved from app.buddy.assistant to dev.mateuszsury.androidagent.
 
 Geist and Geist Mono fonts: SIL Open Font License, bundled in

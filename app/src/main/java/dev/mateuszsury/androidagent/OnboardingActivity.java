@@ -210,7 +210,7 @@ public class OnboardingActivity extends Screen {
                                 + "only when you ask it to do something.", ok);
                 if (!ok) {
                     note("Nothing leaves the phone except what " + agentNames() + " sends to "
-                            + ("codex".equals(Prefs.agents(this)) ? "OpenAI" : "Anthropic")
+                            + ("both".equals(Prefs.agents(this)) ? "OpenAI lub Anthropic" : "codex".equals(Prefs.agents(this)) ? "OpenAI" : "Anthropic")
                             + " to answer you. Sending, posting, buying and deleting always ask for your OK first.");
                     if (accessTries > 0 && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) restrictedHelp();
                     note("In the list: Downloaded apps → androidagent · sterowanie telefonem → turn it on.");
@@ -295,14 +295,14 @@ public class OnboardingActivity extends Screen {
         t.setGravity(Gravity.CENTER);
         t.setPadding(0, dp(this, 20), 0, dp(this, 6));
         c.addView(t);
-        TextView s = text(this, "Codex, który działa na Twoim telefonie.", 16, MUTED);
+        TextView s = text(this, "Codex i Claude Code na Twoim telefonie.", 16, MUTED);
         s.setGravity(Gravity.CENTER);
         c.addView(s);
         body.addView(c, full());
         LinearLayout list = column(this);
         list.setPadding(0, dp(this, 28), 0, 0);
         bullet(list, R.drawable.ms_chat_bubble, "Ask in plain words", "\"Reply to Sam that I'm late\", \"add milk to my basket\".");
-        bullet(list, R.drawable.ms_shield_person, "Your own plan, no API key", "Uruchamia Codexa w Termux z Twoim kontem ChatGPT. Model wymaga połączenia z internetem.");
+        bullet(list, R.drawable.ms_shield_person, "Twoje konto", "Uruchamia Codexa lub Claude Code w Termux z Twoim kontem. Modele wymagają połączenia z internetem.");
         bullet(list, R.drawable.ms_check, "You stay in control", "Agent ma instrukcję pytania o zgodę przed wysłaniem, zakupem lub usunięciem. Możesz zatrzymać jego pracę.");
         body.addView(list, full());
         TextView time = monoText(this, "setup takes about 5 minutes", 12, MUTED);
@@ -316,7 +316,7 @@ public class OnboardingActivity extends Screen {
         header(R.drawable.ms_forum, "Wybierz agenta", "Who answers your chats. You can add the other one later.", false);
         String cur = Prefs.agents(this);
         String[][] opts = {
-                {"claude", "Claude Code", "Uses your Claude subscription (Pro or Max)."},
+                {"claude", "Claude Code", "Oficjalny klient z Twoim kontem Claude lub Anthropic."},
                 {"codex", "Codex", "Uses your ChatGPT plan."},
                 {"both", "Both", "Instalacja obu agentów. Codex pozostaje domyślny."},
         };
@@ -390,22 +390,32 @@ public class OnboardingActivity extends Screen {
             card.addView(r, full());
             if (!ready) {
                 TextView how = text(this, installed
-                        ? (claude ? "Run claude in Termux and log in with your Claude account (it opens your browser)."
+                        ? (claude ? "Uruchom ~/bin/claude auth login w Termux i zaloguj się przez oficjalną stronę Claude."
                         : "Run codex login in Termux and sign in with your ChatGPT account.")
-                        : (claude ? "The installer asks two yes/no questions and downloads about 230 MB. "
-                        + "When it's done, Claude Code starts: log in with your Claude account."
+                        : (claude ? "Instaluje oficjalny Claude Code 2.1.296 i runtime musl dla ARM64 lub x86_64 bez roota. "
+                        + "Następnie otwiera logowanie konta Claude."
                         : "Installs Codex with npm, then opens sign-in with your ChatGPT account."), 14, MUTED);
                 how.setPadding(0, dp(this, 10), 0, dp(this, 10));
                 card.addView(how);
                 Button b = button(this, installed ? "Copy sign-in command" : "Copy install command", first);
                 b.setOnClickListener(v -> {
                     copy(() -> installed ? (claude ? TermuxSetup.signInClaude() : TermuxSetup.signInCodex())
-                            : (claude ? TermuxSetup.installClaude() : TermuxSetup.installCodex(this)),
+                            : (claude ? TermuxSetup.installClaude(this) : TermuxSetup.installCodex(this)),
                             "Copied. Long-press in Termux → Paste, then Enter.");
                     watchTermux();
                     openTermux();
                 });
                 card.addView(b, wrap());
+                if (installed) {
+                    Button repair = button(this, "Napraw lub zaktualizuj instalację", false);
+                    repair.setOnClickListener(v -> {
+                        copy(() -> claude ? TermuxSetup.installClaude(this) : TermuxSetup.installCodex(this),
+                                "Skopiowano. Wklej polecenie w Termux i naciśnij Enter.");
+                        watchTermux();
+                        openTermux();
+                    });
+                    card.addView(repair, full());
+                }
                 first = false;
             }
             LinearLayout.LayoutParams p = full();

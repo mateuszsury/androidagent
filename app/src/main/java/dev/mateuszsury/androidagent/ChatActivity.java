@@ -26,6 +26,7 @@ import static dev.mateuszsury.androidagent.Ui.*;
 
 /** One chat, full screen. */
 public class ChatActivity extends Screen implements ChatHub.Listener {
+    private TextView streamingText;
     private ChatHub hub;
     private Sessions.Session ses;
     private LinearLayout messages, strip, approval;
@@ -294,6 +295,7 @@ public class ChatActivity extends Screen implements ChatHub.Listener {
     @Override
     public void onMessage(Sessions.Session s, Sessions.Msg msg) {
         if (s == ses) {
+            removeStreaming();
             if (ses.messages.size() == 1) messages.removeAllViews(); // drop the empty-chat hint
             show(msg);
             scrollToEnd();
@@ -316,7 +318,7 @@ public class ChatActivity extends Screen implements ChatHub.Listener {
                     if (t != null) startActivity(t);
                     messages.postDelayed(() -> {
                         try {
-                            Termux.runInTerminal(this, "handoff", ses.id);
+                            Termux.runInTerminal(this, "handoff", ses.id, Prefs.devMode(this) ? "1" : "0", ses.model);
                         } catch (Exception e) {
                             Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
                         }
@@ -470,6 +472,29 @@ public class ChatActivity extends Screen implements ChatHub.Listener {
             else log.finish();
         }
         renderApproval();
+        renderStreaming();
+    }
+
+    private void removeStreaming() {
+        if (streamingText == null) return;
+        messages.removeView(streamingText);
+        streamingText = null;
+    }
+
+    private void renderStreaming() {
+        if (ses.streamText.isEmpty()) {
+            removeStreaming();
+            return;
+        }
+        if (streamingText == null) {
+            if (ses.messages.isEmpty()) messages.removeAllViews();
+            streamingText = text(this, "", 15, TEXT);
+            streamingText.setContentDescription("Odpowiedź na żywo");
+            streamingText.setPadding(0, dp(this, 20), 0, 0);
+            messages.addView(streamingText, full());
+        }
+        streamingText.setText(ses.streamText);
+        scrollToEnd();
     }
 
     private String shownApproval;

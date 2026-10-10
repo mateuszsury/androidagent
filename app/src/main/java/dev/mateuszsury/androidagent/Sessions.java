@@ -42,7 +42,7 @@ final class Sessions {
         final String id;
         final String backend;
         String title = "";
-        /** Model for this chat ("" = the agent's default), e.g. claude-opus-5-5. */
+        /** Model for this chat ("" = the agent's default), e.g. sonnet. */
         String model = "";
         long updated = System.currentTimeMillis();
         final List<Msg> messages = new ArrayList<>();
@@ -50,6 +50,14 @@ final class Sessions {
         boolean running, gotText, unread;
         String status = "";
         String lastReply = "";
+        String lastError = "";
+        /** Ephemeral Claude text deltas; persisted only when the assistant message completes. */
+        String streamText = "";
+        /** Last CLI initialization, useful for capability state without saving credentials. */
+        boolean phoneConnected;
+        int phoneToolCount;
+        String agentSessionId = "";
+        final List<String> agentTools = new ArrayList<>();
         long lastEventAt;
         int runId;
 

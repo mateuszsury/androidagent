@@ -9,4 +9,5 @@ export SDK_JAR="$ANDROID_SDK_ROOT/platforms/android-36/android.jar"
 export KEYSTORE="${KEYSTORE:-$HOME/.androidagent-keys/development.jks}"
 bash build.sh
 mkdir -p artifacts
-cp build/buddy-release.apk artifacts/androidagent-0.1.0.apk
+APP_VERSION=$(python3 -c 'import re,pathlib; print(re.search(r"VERSION = \"([^\"]+)\"", pathlib.Path("app/src/main/java/dev/mateuszsury/androidagent/BuildInfo.java").read_text())[1])')
+cp build/buddy-release.apk "artifacts/androidagent-$APP_VERSION.apk"

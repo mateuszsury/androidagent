@@ -12,7 +12,7 @@
 #   buddy-run <token> adopt <session> <claude|codex> <agent-session-id>  continue that session as a Buddy chat
 #   buddy-run <token> handoff <session>    (run in a Termux tab) reopen a Buddy chat with remote control (that session only)
 # Every event sent to the bubble carries "buddy_session" so the app can route it.
-HELPER_VERSION=10
+HELPER_VERSION=11
 set -u
 export PATH=$HOME/bin:/data/data/com.termux/files/usr/bin:$PATH
 # The claude launcher sets BUN_OPTIONS with a path relative to its folder; never inherit a stale one.
@@ -34,8 +34,9 @@ valid_sid() { [[ "$1" =~ ^[A-Za-z0-9_-]{1,64}$ ]]; }
 # Kill a process and everything it started (claude/codex run a few levels below buddy-run).
 kill_tree() {
   local p=$1 c
+  kill -STOP "$p" 2>/dev/null || return 0
   for c in $(pgrep -P "$p" 2>/dev/null); do kill_tree "$c"; done
-  kill -TERM "$p" 2>/dev/null
+  kill -KILL "$p" 2>/dev/null || true
 }
 
 descendants() { # print a pid and all its descendants
@@ -44,24 +45,12 @@ descendants() { # print a pid and all its descendants
   for c in $(pgrep -P "$p" 2>/dev/null); do descendants "$c"; done
 }
 
-# Claude Code updates itself, and on Termux each new binary needs its ELF interpreter pointed at
-# Termux's glibc. If the launcher missed that, every `claude` start fails ("cannot execute").
-ensure_claude() {
-  local G=/data/data/com.termux/files/usr/glibc/lib/ld-linux-aarch64.so.1
-  local PE=/data/data/com.termux/files/usr/glibc/bin/patchelf
-  local V=$HOME/.local/share/claude/versions f
-  [ -x "$PE" ] && [ -f "$G" ] || return 0
-  for f in $(ls -1 "$V" 2>/dev/null | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$'); do
-    [ "$(LD_PRELOAD= "$PE" --print-interpreter "$V/$f" 2>/dev/null)" = "$G" ] || LD_PRELOAD= "$PE" --set-interpreter "$G" "$V/$f" 2>/dev/null
-  done
-}
-
 # Is this pid an agent process (the real claude / codex program)?
 agent_of() {
   local cmd
   cmd=$(tr '\0' ' ' < "/proc/$1/cmdline" 2>/dev/null) || return 1
   case "${cmd%% *}" in
-    */claude/versions/*) echo claude ;;
+    */claude/versions/*|*/@anthropic-ai/claude-code-linux-*/claude) echo claude ;;
     */bin/codex) echo codex ;;
     *) return 1 ;;
   esac
@@ -70,8 +59,8 @@ agent_of() {
 case "$CMD" in
   ping) # setup check: proves RUN_COMMAND, the helper and the callback all work
     agents=$({ have claude && echo claude; have codex && echo codex; } | paste -sd, -)
-    # signed in = the agent's saved login exists
-    signed=$({ [ -s "$HOME/.claude/.credentials.json" ] && echo claude; [ -s "$HOME/.codex/auth.json" ] && echo codex; } | paste -sd, -)
+    # Claude's CLI validates its actual account state without returning credentials.
+    signed=$({ have claude && claude auth status 2>/dev/null | jq -er 'select(.loggedIn == true) | "claude"'; [ -s "$HOME/.codex/auth.json" ] && echo codex; } | paste -sd, -)
     cm=$(jq -c '[.models[] | select(.visibility == "list") | [.slug, .display_name]]' "$HOME/.codex/models_cache.json" 2>/dev/null)
     jq -cn --arg s "${agents:-none}" --arg g "${signed:-none}" --argjson v "$HELPER_VERSION" --argjson cm "${cm:-[]}" \
       '{type:"buddy_pong",text:$s,signed:$g,helper:$v,codex_models:$cm}' | post
@@ -85,7 +74,7 @@ case "$CMD" in
       for q in $(descendants "$(cat "$f")"); do owner[$q]=$sid; done
     done
     {
-      for p in $(pgrep -f 'claude/versions/|/bin/codex' 2>/dev/null); do
+      for p in $(pgrep -f 'claude/versions/|@anthropic-ai/claude-code-linux-.*/claude|/bin/codex' 2>/dev/null); do
         a=$(agent_of "$p") || continue
         [ "$p" = "$$" ] && continue
         cwd=$(readlink "/proc/$p/cwd" 2>/dev/null)
@@ -164,6 +153,7 @@ case "$CMD" in
     exit 0 ;;
   handoff)
     SID=${3:-}; valid_sid "$SID" || exit 2
+    DEV=${4:-0}; MODEL=${5:-}
     CS=$(cat "$D/sessions/$SID/claude-session" 2>/dev/null)
     if [ -z "$CS" ]; then echo "This chat has no Claude Code conversation yet. Send it a message first."; read -r -t 15 _; exit 1; fi
     if [ -f "$D/sessions/$SID/pid" ] && kill -0 "$(cat "$D/sessions/$SID/pid")" 2>/dev/null; then
@@ -172,8 +162,18 @@ case "$CMD" in
     echo "Opening this Buddy chat with Remote Control for this session only."
     echo "It appears in the Claude app (Code). Type /exit when done; this tab then closes."
     echo "Exit with /exit when you're done; you can keep using the chat in Buddy afterwards."
-    ensure_claude
-    cd "$W" && claude --resume "$CS" --remote-control "Buddy chat $SID"
+    mcp=$(jq -cn --arg url "$URL/mcp" --arg auth "Bearer $TOKEN" \
+      '{mcpServers:{phone:{type:"http",url:$url,headers:{Authorization:$auth}}}}')
+    args=(--resume "$CS" --remote-control "androidagent chat $SID"
+      --mcp-config "$mcp" --strict-mcp-config
+      --append-system-prompt "$(cat "$D/system-prompt.md" 2>/dev/null)")
+    if [ "$DEV" = 1 ]; then
+      args+=(--allowedTools mcp__phone WebSearch WebFetch Bash Read Write Edit Glob Grep Skill Agent NotebookEdit TodoWrite)
+    else
+      args+=(--allowedTools mcp__phone WebSearch WebFetch --tools WebSearch WebFetch Read)
+    fi
+    [ -n "$MODEL" ] && args+=(--model "$MODEL")
+    cd "$W" && claude "${args[@]}"
     exit 0 ;; # a clean exit makes Termux close this tab
   adopt)
     SID=${3:-}; A=${4:-}; AID=${5:-}
@@ -250,22 +250,27 @@ run_claude() {
   mcp=$(jq -cn --arg url "$URL/mcp" --arg auth "Bearer $TOKEN" \
     '{mcpServers:{phone:{type:"http",url:$url,headers:{Authorization:$auth}}}}')
   tools=("mcp__phone" "WebSearch" "WebFetch" "Read(/$S/files/**)")
-  [ "$DEV" = 1 ] && tools+=("Bash" "Read" "Write" "Edit" "Glob" "Grep" "Skill")
-  local args=(-p "$MSG" --output-format stream-json --verbose
+  [ "$DEV" = 1 ] && tools+=("Bash" "Read" "Write" "Edit" "Glob" "Grep" "Skill" "Agent" "NotebookEdit" "TodoWrite")
+  local args=(-p "$MSG" --output-format stream-json --verbose --include-partial-messages
+    --permission-mode default --permission-prompts none
     --mcp-config "$mcp" --strict-mcp-config
     --allowedTools "${tools[@]}"
     --append-system-prompt "$SYSTEM")
+  if [ "$DEV" != 1 ]; then
+    # An allow-list approves calls; --tools actually removes shell/file mutation tools.
+    args+=(--tools WebSearch WebFetch Read)
+  fi
   [ -s "$S/claude-session" ] && args+=(--resume "$(cat "$S/claude-session")")
   [ -n "${MODEL:-}" ] && args+=(--model "$MODEL")
-  cd "$W" && claude "${args[@]}" 2>"$S/last-error.log"
+  cd "$W" && claude "${args[@]}" </dev/null 2>"$S/last-error.log"
 }
 
 stream_claude() {
-  while IFS= read -r line; do
+  while IFS= read -r line || [ -n "$line" ]; do
     [ -z "$line" ] && continue
     printf '%s' "$line" | tag | post
     sid=$(printf '%s' "$line" | jq -r 'select(.session_id != null) | .session_id' 2>/dev/null)
-    [ -n "$sid" ] && printf '%s' "$sid" > "$S/claude-session"
+    if [[ "$sid" =~ ^[A-Za-z0-9-]{8,64}$ ]]; then printf '%s' "$sid" > "$S/claude-session"; fi
   done
 }
 
@@ -338,7 +343,6 @@ stream_codex() {
     name=Codex
   else
     if ! have claude; then event buddy_error "Claude Code isn't installed in Termux."; exit 0; fi
-    ensure_claude
     run_claude | stream_claude
     status=${PIPESTATUS[0]}
     if [ "$status" -ne 0 ] && grep -q -i 'no conversation found' "$S/last-error.log" 2>/dev/null; then
