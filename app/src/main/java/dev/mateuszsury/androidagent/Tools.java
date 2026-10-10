@@ -38,6 +38,7 @@ final class Tools {
     private final java.util.Set<LocalShell> commands = new java.util.HashSet<>();
     void cancelCommands() {
         synchronized (commands) { for (LocalShell command : commands) command.stop(); }
+        DockerVm.get(svc).emergencyStop();
     }
     private final Object lock = new Object();
     private final List<AccessibilityNodeInfo> lastNodes = new ArrayList<>();
@@ -50,6 +51,8 @@ final class Tools {
 
     JSONArray list() throws JSONException {
         JSONArray t = new JSONArray();
+        JSONArray docker = DockerTools.list();
+        for (int i = 0; i < docker.length(); i++) t.put(docker.get(i));
         t.put(tool("device_status", "Read live Android version, battery, RAM, storage, connectivity and granted capabilities.", props()));
         t.put(tool("run_command", "Run an Android shell command under the androidagent app UID (not root, not Termux). Requires developer mode and an explicit user approval for this exact command. Timeout 10 seconds; output 32 KB. Working directory is the app workspace.", props().put("command", strProp("Exact shell command")), "command"));
         t.put(tool("read_screen",
@@ -155,6 +158,7 @@ final class Tools {
         String revoked = svc.controlRevoked();
         if (revoked != null && !"notify".equals(name)) return text(revoked);
         svc.onToolActivity(name);
+        if (name.startsWith("docker_")) return DockerTools.call(svc, name, a);
         switch (name) {
             case "device_status": return text(DeviceState.read(svc).toString(2));
             case "run_command": {

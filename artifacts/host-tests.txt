@@ -20,8 +20,17 @@ test_protocol_error_visible (test_codex_stream.CodexStreamTests.test_protocol_er
 test_thread_resume_identifier (test_codex_stream.CodexStreamTests.test_thread_resume_identifier) ... ok
 test_unicode_response_is_routed_to_correct_chat (test_codex_stream.CodexStreamTests.test_unicode_response_is_routed_to_correct_chat) ... ok
 test_unrecognized_event_is_ignored (test_codex_stream.CodexStreamTests.test_unrecognized_event_is_ignored) ... ok
+test_fifo_and_directory_are_not_artifacts (test_docker_guest.GuestBoundaryTests.test_fifo_and_directory_are_not_artifacts) ... ok
+test_job_output_is_bounded_with_real_process (test_docker_guest.GuestBoundaryTests.test_job_output_is_bounded_with_real_process) ... ok
+test_parent_symlink_cannot_escape (test_docker_guest.GuestBoundaryTests.test_parent_symlink_cannot_escape) ... ok
+test_real_build_archive_keeps_sources_and_rejects_external_links (test_docker_guest.GuestBoundaryTests.test_real_build_archive_keeps_sources_and_rejects_external_links) ... ok
+test_real_unicode_file_round_trip (test_docker_guest.GuestBoundaryTests.test_real_unicode_file_round_trip) ... ok
+test_symlink_cannot_read_or_replace_other_files (test_docker_guest.GuestBoundaryTests.test_symlink_cannot_read_or_replace_other_files) ... ok
+test_text_upload_limit_is_enforced (test_docker_guest.GuestBoundaryTests.test_text_upload_limit_is_enforced) ... ok
+test_traversal_cannot_overwrite_neighbor (test_docker_guest.GuestBoundaryTests.test_traversal_cannot_overwrite_neighbor) ... ok
+test_unknown_task_and_job_are_rejected (test_docker_guest.GuestBoundaryTests.test_unknown_task_and_job_are_rejected) ... ok
 
 ----------------------------------------------------------------------
-Ran 22 tests in 0.217s
+Ran 31 tests in 0.366s
 
 OK

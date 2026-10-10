@@ -24,3 +24,13 @@ artifacts/*.png
 artifacts/emulator/*.png
 artifacts/termux/*.png
 __pycache__/
+build-runtime/
+app/src/main/jniLibs/
+app/src/main/assets/docker/*/base.qcow2.gz
+app/src/main/assets/docker/*/vmlinuz-virt
+app/src/main/assets/docker/*/initramfs-virt
+app/src/main/assets/docker/*/qemu/
+app/src/main/assets/docker/licenses/
+app/src/main/assets/docker/SOURCES.txt
+artifacts/docker/*.png
+artifacts/docker-ui/*.png

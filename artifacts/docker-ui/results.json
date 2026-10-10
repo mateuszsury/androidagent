@@ -1,0 +1,29 @@
+{
+  "run_id": "f874ee49-6f77-4db8-ba35-9c1ccc372741",
+  "tests": [
+    {
+      "name": "UI: readable memory selector in light theme",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "UI: memory selection survives rotation",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "UI: readable memory selector in dark theme",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "QEMU: final APK clock arguments and stop during boot",
+      "pass": true,
+      "detail": ""
+    }
+  ],
+  "failures": 0,
+  "api": 30,
+  "abi": "x86_64",
+  "cache_reused": false
+}

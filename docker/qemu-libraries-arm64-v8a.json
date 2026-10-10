@@ -1,0 +1,286 @@
+{
+  "libFLAC.so": {
+    "source": "lib/libFLAC.so",
+    "sha256": "34a42707a45e7a17fa48717ff8397403b98934ed9102f843dc05934ef8d8c97b"
+  },
+  "libandroid-execinfo.so": {
+    "source": "lib/libandroid-execinfo.so",
+    "sha256": "a53ab92bfbf12621c56a183e0b6fd994d8ffa6ee282a4f01137dbd676a15f2c6"
+  },
+  "libandroid-shmem.so": {
+    "source": "lib/libandroid-shmem.so",
+    "sha256": "428f148ee25677823bc01d0e49c49934fa9189dd34034d1b96ad73b6da08b5a5"
+  },
+  "libandroid-support.so": {
+    "source": "lib/libandroid-support.so",
+    "sha256": "b85cf4366fa2f2babbba65919aaaeaddd9d06c8f760e94d926e1de473f975b76"
+  },
+  "libandroid-sysv-semaphore.so": {
+    "source": "lib/libandroid-sysv-semaphore.so",
+    "sha256": "a26074d7040fae72d02a23c47f0aa5c80531179fbce540b5cee66f7dc426eeb6"
+  },
+  "libargp.so": {
+    "source": "lib/libargp.so",
+    "sha256": "6a503cc9aa8e5a6b9ee73f1f3c408be33813e630bb933ed3bcbcbbe15cee8ae3"
+  },
+  "libasound.so": {
+    "source": "lib/libasound.so",
+    "sha256": "b46d52f166d9095be8ab22c36e0123f6105350ea1fd79354d5ee7bead0e94867"
+  },
+  "libbz2.so": {
+    "source": "lib/libbz2.so.1.0.8",
+    "sha256": "3f8b6176c447e5bdca731be4c36684a2fad99f971235b0b28e093052730befef"
+  },
+  "libc++_shared.so": {
+    "source": "lib/libc++_shared.so",
+    "sha256": "3b2bdf09919088cea822b9c512331e78d302e31b8db7091f6bb484925b50b0a8"
+  },
+  "libcrypto.so": {
+    "source": "lib/libcrypto.so.3",
+    "sha256": "c465500c92be71da642da4722b5cc68b96115c1d320e2bd5f6db0d7899a519e5"
+  },
+  "libcurl.so": {
+    "source": "lib/libcurl.so",
+    "sha256": "ddcb2284d4375e57aa3f147b2fe90e5e11901a1bf6135f0ab323fbd7711cddde"
+  },
+  "libdb-18.1.so": {
+    "source": "lib/libdb-18.1.so",
+    "sha256": "b8a4ee0be8c1a5661f0995b598c60365aa7b874e2dd97afa2db9ab7cd7f5c0b4"
+  },
+  "libdbus-1.so": {
+    "source": "lib/libdbus-1.so",
+    "sha256": "618bb6f16bf169454ad3e6343b5efd6854ffee473081e3b2d9d8b65b61d78133"
+  },
+  "libdw.so": {
+    "source": "lib/libdw-0.196.so",
+    "sha256": "3c68f6fad8e11ee1a05b77e4ab041ab0f6cab56ed287385293f78d0c03b541ff"
+  },
+  "libelf.so": {
+    "source": "lib/libelf-0.196.so",
+    "sha256": "cc4ff88cd7a531596fc063f2311f82df1ae67d72f7cf5998ddad32fcda06ee7c"
+  },
+  "libfdt.so": {
+    "source": "lib/libfdt.so",
+    "sha256": "0beb726c1a1cde3e430a0d91d0ec4e55f48984c4a2ee09cc7a629905532d9aeb"
+  },
+  "libffi.so": {
+    "source": "lib/libffi.so",
+    "sha256": "d6bb882aa233dd947e50f5584a793219d4120e170bc47261a06e736977641236"
+  },
+  "libgio-2.0.so": {
+    "source": "lib/libgio-2.0.so.0.9000.1",
+    "sha256": "e2b057f508df60dd0926724e0405a6dd465e147bcea6f62e33199633f4d78b46"
+  },
+  "libglib-2.0.so": {
+    "source": "lib/libglib-2.0.so.0.9000.1",
+    "sha256": "001bec912c210f70e26f5e13bf33e0c5d67aab28b47f512ff575e8d3603dab8b"
+  },
+  "libgmodule-2.0.so": {
+    "source": "lib/libgmodule-2.0.so.0.9000.1",
+    "sha256": "e580a515abc26382ab13c8f98256bf3ecd70159c9089289d0059bed2ba71b022"
+  },
+  "libgmp.so": {
+    "source": "lib/libgmp.so",
+    "sha256": "ed71692b5aea16578f5fe52ba4c0fa81ef32d17fca5cc6735fef26ede635bd9f"
+  },
+  "libgnutls.so": {
+    "source": "lib/libgnutls.so",
+    "sha256": "22edfe39c7504e40f0af8d62dbe0583ba5597eaa5cf09782d1ffe0ae514a0528"
+  },
+  "libgobject-2.0.so": {
+    "source": "lib/libgobject-2.0.so.0.9000.1",
+    "sha256": "9930a12dc69bef46bf7e56c4a381f3ab61be5aa0fd5166d60fcca7b4743f0368"
+  },
+  "libgstallocators-1.0.so": {
+    "source": "lib/libgstallocators-1.0.so",
+    "sha256": "1f86def935bc172feac3092ea5c71b1f758dbb071d155c43c4d0f18e700dd815"
+  },
+  "libgstapp-1.0.so": {
+    "source": "lib/libgstapp-1.0.so",
+    "sha256": "9d09e549f5df3645529780d59ce1ef5c9dc9148677e31453f8665cca1f02f260"
+  },
+  "libgstbase-1.0.so": {
+    "source": "lib/libgstbase-1.0.so",
+    "sha256": "9c5153781ed8dbf7c86dbd9f3f1966a92d48e91d957d8091a95596de7760105b"
+  },
+  "libgstreamer-1.0.so": {
+    "source": "lib/libgstreamer-1.0.so",
+    "sha256": "14990f70326a546332577e6ea9d6e6ff25228113abe9cd5b9609af433d525340"
+  },
+  "libgstvideo-1.0.so": {
+    "source": "lib/libgstvideo-1.0.so",
+    "sha256": "3521baa65db024374629927f66018d15d4af9b3bd98951dbc942eef381f8cba0"
+  },
+  "libhogweed.so": {
+    "source": "lib/libhogweed.so.6.11",
+    "sha256": "5abbdc4d1b8630a775fca3fead38e9cbb5a203d29268909cba7924aa298c685b"
+  },
+  "libiconv.so": {
+    "source": "lib/libiconv.so",
+    "sha256": "d519e9a35dd3e329621ff9545c577b1d29dd8d876365548e300a6d0493b5ad31"
+  },
+  "libidn2.so": {
+    "source": "lib/libidn2.so",
+    "sha256": "2fe8d1728da6115a11ed7ab60fb937ee54d00fd01e06af0f890a46e9ae34feab"
+  },
+  "libjack.so": {
+    "source": "lib/libjack.so.0.1.0",
+    "sha256": "98a01e5798cfb2f2fd2702ece0999bb26f7b855897b44542f075df396a03f4c1"
+  },
+  "libjpeg.so": {
+    "source": "lib/libjpeg.so.8.3.2",
+    "sha256": "783b3bb7ee22213c6e5e9d638856cefb50660066869da483039c91343005e7f2"
+  },
+  "liblz4.so": {
+    "source": "lib/liblz4.so",
+    "sha256": "9e572855b0b66972d889d8d78843ea2c975032ac149ac2b2f9624e4dd1a7d3e3"
+  },
+  "liblzma.so": {
+    "source": "lib/liblzma.so.5.8.4",
+    "sha256": "fd4825929d1372529db0f678e91433ad8ea4f11f33af0333b497fbbe7d70803a"
+  },
+  "liblzo2.so": {
+    "source": "lib/liblzo2.so",
+    "sha256": "14d968420449c107bba15e72133f476c7f1554455451ce987cf9ee00a26c4a90"
+  },
+  "libmp3lame.so": {
+    "source": "lib/libmp3lame.so",
+    "sha256": "edf0c89a0d6e2cffccdd8424a27c563e582b9a1e9447b94347b691d898e48d22"
+  },
+  "libmpg123.so": {
+    "source": "lib/libmpg123.so",
+    "sha256": "04d461d30ee287fde03dc764af95c63ec6bb827020cac78743810ced18785941"
+  },
+  "libncursesw.so": {
+    "source": "lib/libncursesw.so.6.5",
+    "sha256": "7731373f6fe5b9978ffb05b4f73cf320a5b2fa1249a32635f853f37912d1df6e"
+  },
+  "libnettle.so": {
+    "source": "lib/libnettle.so.8.11",
+    "sha256": "719711fe0dd5bd4a1f130c2d3836e60c31257e6f340c8d1d273f5aac2e5718c5"
+  },
+  "libnghttp2.so": {
+    "source": "lib/libnghttp2.so",
+    "sha256": "3cebea4a2b9a6d93d63d10a2e529dd1d4afe286765314dcb5f19e9cbdbbee406"
+  },
+  "libnghttp3.so": {
+    "source": "lib/libnghttp3.so",
+    "sha256": "031fd44d52a7a6c6b9dc40c68899e26347f00b31b04df09c6ea0853495de67d2"
+  },
+  "libngtcp2.so": {
+    "source": "lib/libngtcp2.so",
+    "sha256": "360e2ec6f6f55e7e73b549d15592c9941798ed85e57676487fde41895f508eab"
+  },
+  "libngtcp2_crypto_ossl.so": {
+    "source": "lib/libngtcp2_crypto_ossl.so",
+    "sha256": "5117dee53c6cdfd47058103dd50f6e6c06ca07cabcb817196bf0f07fa50e5156"
+  },
+  "libogg.so": {
+    "source": "lib/libogg.so",
+    "sha256": "ad2e0f5d984b18e99ec519762aadac51c210bfc93dc1d5b8c8e71f0d477e0838"
+  },
+  "libopus.so": {
+    "source": "lib/libopus.so",
+    "sha256": "09868c030354ccd0e86862b46fa48855592d2325bfd2823f2bddfef5701be532"
+  },
+  "liborc-0.4.so": {
+    "source": "lib/liborc-0.4.so",
+    "sha256": "e2b7aeeee75d79fc0a42ab6dee57ed7f1743e550e08a26cd0bdb67a3a6361dcd"
+  },
+  "libp11-kit.so": {
+    "source": "lib/libp11-kit.so",
+    "sha256": "a1a6c06266a80a345d887da3313cacdeb0793c7c6dd51ffd5a47e84e93741ee0"
+  },
+  "libpcre2-8.so": {
+    "source": "lib/libpcre2-8.so",
+    "sha256": "c377920ae65a2459379855f436d0fa794840e87f04102696998336b7134727b7"
+  },
+  "libpixman-1.so": {
+    "source": "lib/libpixman-1.so",
+    "sha256": "9255dc3246c20d3c70451f5cf1e1dec98ec28551642add6a9899c4594eba02d4"
+  },
+  "libpng16.so": {
+    "source": "lib/libpng16.so",
+    "sha256": "8a97aebd0ab5fb3ec3d78b4a2a024b9b3accdea92b90cb6290a3559726f3a6cd"
+  },
+  "libpulse.so": {
+    "source": "lib/libpulse.so",
+    "sha256": "3bd5ae398886ddb58ba6ba96d2174db2dadf11d72c2ff171cab06bb26d990e12"
+  },
+  "libpulsecommon-17.0.so": {
+    "source": "lib/pulseaudio/libpulsecommon-17.0.so",
+    "sha256": "e8f698459e33f0431b13c66de26dd1efe4312b7b0a58554c303861ba9c1b324d"
+  },
+  "libqemu.so": {
+    "source": "bin/qemu-system-aarch64",
+    "sha256": "6461f3ac894c5bfae007ebe8f820ab15672af0063b7d82a5a9f05a1bbed74760"
+  },
+  "libqemu_img.so": {
+    "source": "bin/qemu-img",
+    "sha256": "b6496aa579541656f944ae978535ba93cdfeb3c9c5cbef1df8156c73007e8121"
+  },
+  "libsamplerate.so": {
+    "source": "lib/libsamplerate.so",
+    "sha256": "bf0a823e29dd937092a77e7db2f05155fd891929e468594a7ebcebd6f72cd6b7"
+  },
+  "libsasl2.so": {
+    "source": "lib/libsasl2.so",
+    "sha256": "eec5f785affbb28fce82927ffaafd4359f30dd861933b92fa833172c552a7e43"
+  },
+  "libslirp.so": {
+    "source": "lib/libslirp.so",
+    "sha256": "b31b7d29b7218cfe2d5c124ad594d30120eccc31636ccf94d0746c330a90187d"
+  },
+  "libsndfile.so": {
+    "source": "lib/libsndfile.so",
+    "sha256": "20199573caa10674ae452433af40e0bd6993c685d22a54435aac10498276e679"
+  },
+  "libspice-server.so": {
+    "source": "lib/libspice-server.so",
+    "sha256": "009c36bf6e3d8902a9574059d0b7fcaf990e91c8de1e3f077c9d00a43d9cd1db"
+  },
+  "libssh.so": {
+    "source": "lib/libssh.so",
+    "sha256": "89c32c07ab4a465f5c8c5a5d4fd8307631619e89495c894124fc16f418e4ca7e"
+  },
+  "libssh2.so": {
+    "source": "lib/libssh2.so",
+    "sha256": "d1fef33e649611fdac58718f5d1bf1e7f283f7cab38e609d5bb7748a27f33040"
+  },
+  "libssl.so": {
+    "source": "lib/libssl.so.3",
+    "sha256": "9850deb0e616ba88f90547c6fdbe96e9a6e57974712f6e6f01b626d2292e7250"
+  },
+  "libtasn1.so": {
+    "source": "lib/libtasn1.so",
+    "sha256": "74cd3fc16836f9977f642c21d850c42e3bad46d87f7d523fd0d3d900457bea49"
+  },
+  "libunistring.so": {
+    "source": "lib/libunistring.so",
+    "sha256": "b982b55e1fda2a23bf88458757f4dd3ca9f1f3bf3798b85ec9b4c98ed1b1926f"
+  },
+  "libusb-1.0.so": {
+    "source": "lib/libusb-1.0.so",
+    "sha256": "2cca2e001699edc96adea79440b62ba414f81a7c2d0141d4402b255cd8734f3f"
+  },
+  "libusbredirparser.so": {
+    "source": "lib/libusbredirparser.so",
+    "sha256": "497869f8f71ddd74a4b1746cf953d19ce05cb6068f74521cd2e967d20e6d9918"
+  },
+  "libvorbis.so": {
+    "source": "lib/libvorbis.so",
+    "sha256": "5f4c2216541149b2a5d1d64baea49686c4f7eb26445b9bbba5560b3e380b3c76"
+  },
+  "libvorbisenc.so": {
+    "source": "lib/libvorbisenc.so",
+    "sha256": "a6ed197c100048dadc0c3b5b4846e370442caca50af1090054c33544bf15dc18"
+  },
+  "libz.so": {
+    "source": "lib/libz.so.1.3.2",
+    "sha256": "5b7fc48f16e0d74433fcb271d79941afd5bddb6468496e8fd25cc7d1190cc89a"
+  },
+  "libzstd.so": {
+    "source": "lib/libzstd.so.1.5.7",
+    "sha256": "748d6ed3323c954108d226d9a6facda324a10bdab436ba32ac186e45c39a3042"
+  }
+}

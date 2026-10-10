@@ -9,7 +9,7 @@ permissions:
 jobs:
   android:
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
@@ -28,6 +28,13 @@ jobs:
           echo "KEYSTORE=$RUNNER_TEMP/androidagent-keys/development.jks" >> "$GITHUB_ENV"
           sudo chmod 666 /dev/kvm
           sdkmanager 'platforms;android-36' 'build-tools;35.0.0' 'platform-tools' 'emulator' 'system-images;android-${{ matrix.api }};google_apis;x86_64'
+      - name: Prepare bundled Docker runtimes
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y patchelf python3-pyelftools
+          python3 tools/prepare-qemu.py
+          bash tools/build-docker-guest.sh x86_64
+          bash tools/build-docker-guest.sh aarch64
       - name: Build signed development APK
         run: ./tools/build-local.sh
       - name: Test Codex event adapter
@@ -44,9 +51,11 @@ jobs:
           adb shell settings put global transition_animation_scale 0
           adb shell settings put global animator_duration_scale 0
           adb shell input keyevent 82
-          adb install -r artifacts/androidagent-0.2.0.apk
+          adb install -r artifacts/androidagent-0.3.0.apk
       - name: Device tests
         run: ./tools/test-android.sh
+      - name: Real local Docker tests
+        run: ./tools/test-docker.sh
       - name: Device logs
         if: always()
         run: |

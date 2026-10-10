@@ -1,0 +1,9 @@
+{
+  "repository": "https://github.com/termux/termux-packages",
+  "recipe_path": "packages/qemu-system-x86-64-headless/build.sh",
+  "recipe_commit": "7a30684d56d4624fd15e31b3d16d8b9045f25606",
+  "qemu_version": "11.0.3",
+  "recipe_url": "https://github.com/termux/termux-packages/tree/7a30684d56d4624fd15e31b3d16d8b9045f25606/packages/qemu-system-x86-64-headless",
+  "recipes_snapshot_commit": "07732410042d53ac42225c45753e8ce610e387fa",
+  "upstream_source_sha256": "da5fcffc32762820568b828ed430a728864d34d50b6d2f30358597760cbb0523"
+}

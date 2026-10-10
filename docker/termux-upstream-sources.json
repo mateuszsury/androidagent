@@ -1,0 +1,730 @@
+{
+  "recipe_snapshot": "07732410042d53ac42225c45753e8ce610e387fa",
+  "packages": [
+    {
+      "package": "alsa-lib",
+      "binary_version": "1.2.16.1",
+      "recipe": "packages/alsa-lib/build.sh",
+      "license": "LGPL-2.1",
+      "sources": [
+        {
+          "url": "https://github.com/alsa-project/alsa-lib/archive/refs/tags/v1.2.16.1.tar.gz",
+          "sha256": "8df8253c6349cf309903c1dd7752efe783c1f456913c9d722bdb5731271c0988"
+        }
+      ]
+    },
+    {
+      "package": "argp",
+      "binary_version": "1.5.0-1",
+      "recipe": "packages/argp/build.sh",
+      "license": "LGPL-2.1",
+      "sources": [
+        {
+          "url": "https://github.com/argp-standalone/argp-standalone/archive/refs/tags/1.5.0.tar.gz",
+          "sha256": "c29eae929dfebd575c38174f2c8c315766092cec99a8f987569d0cad3c6d64f6"
+        }
+      ]
+    },
+    {
+      "package": "dbus",
+      "binary_version": "1.16.2-3",
+      "recipe": "packages/dbus/build.sh",
+      "license": "GPL-2.0",
+      "sources": [
+        {
+          "url": "https://dbus.freedesktop.org/releases/dbus/dbus-1.16.2.tar.xz",
+          "sha256": "0ba2a1a4b16afe7bceb2c07e9ce99a8c2c3508e5dec290dbb643384bd6beb7e2"
+        }
+      ]
+    },
+    {
+      "package": "dtc",
+      "binary_version": "1.8.1",
+      "recipe": "packages/dtc/build.sh",
+      "license": "GPL-2.0",
+      "sources": [
+        {
+          "url": "https://git.kernel.org/pub/scm/utils/dtc/dtc.git/snapshot/dtc-1.8.1.tar.gz",
+          "sha256": "74b50bb19134f6562490afea53e59953dd6c4afb17e5ccb60be32221262d3390"
+        }
+      ]
+    },
+    {
+      "package": "glib",
+      "binary_version": "2.90.1",
+      "recipe": "packages/glib/build.sh",
+      "license": "LGPL-2.1",
+      "sources": [
+        {
+          "url": "https://download.gnome.org/sources/glib/2.90/glib-2.90.1.tar.xz",
+          "sha256": "93c941aa17d5eb1d53fe838365f29a8b4e539c222a256d974ec8f30fc413e396"
+        }
+      ]
+    },
+    {
+      "package": "gst-plugins-base",
+      "binary_version": "1.28.8",
+      "recipe": "packages/gst-plugins-base/build.sh",
+      "license": "LGPL-2.1",
+      "sources": [
+        {
+          "url": "https://gstreamer.freedesktop.org/src/gst-plugins-base/gst-plugins-base-1.28.8.tar.xz",
+          "sha256": "ade70e3381fcbb024f1f20aa9ede9b5654aeed39d5bd70b1a98f53015e501117"
+        }
+      ]
+    },
+    {
+      "package": "gstreamer",
+      "binary_version": "1.28.8",
+      "recipe": "packages/gstreamer/build.sh",
+      "license": "LGPL-2.1",
+      "sources": [
+        {
+          "url": "https://gstreamer.freedesktop.org/src/gstreamer/gstreamer-1.28.8.tar.xz",
+          "sha256": "baa8e86985ad6417cc0ad6e7b79ff2884c6779c8b1c7a6240e7121822c86e524"
+        }
+      ]
+    },
+    {
+      "package": "jack2",
+      "binary_version": "1.9.22-2",
+      "recipe": "packages/jack2/build.sh",
+      "license": "GPL-2.0",
+      "sources": [
+        {
+          "url": "https://github.com/jackaudio/jack2/archive/refs/tags/v1.9.22.tar.gz",
+          "sha256": "1e42b9fc4ad7db7befd414d45ab2f8a159c0b30fcd6eee452be662298766a849"
+        }
+      ]
+    },
+    {
+      "package": "libandroid-execinfo",
+      "binary_version": "0.1-3",
+      "recipe": "packages/libandroid-execinfo/build.sh",
+      "license": "BSD 2-Clause",
+      "sources": []
+    },
+    {
+      "package": "libandroid-shmem",
+      "binary_version": "0.7",
+      "recipe": "packages/libandroid-shmem/build.sh",
+      "license": "BSD 3-Clause",
+      "sources": [
+        {
+          "url": "https://github.com/termux/libandroid-shmem/archive/refs/tags/v0.7.tar.gz",
+          "sha256": "1e5ff8459bc0a8c229dd8a94b27d119987e09ef3414331c2b5ebfff20b98e867"
+        }
+      ]
+    },
+    {
+      "package": "libandroid-support",
+      "binary_version": "29-1",
+      "recipe": "packages/libandroid-support/build.sh",
+      "license": "Apache-2.0, MIT",
+      "sources": [
+        {
+          "url": "https://github.com/termux/libandroid-support/archive/refs/tags/v29.tar.gz",
+          "sha256": "8f74ce0f9cf70ec29f548696c248cac0ba560a2d8916a0fe1cf9316d5f167a80"
+        },
+        {
+          "url": "https://github.com/termux/wcwidth/archive/refs/tags/v4.tar.gz",
+          "sha256": "08489e00f797ffb3b71f9c1894c83e5ebe12c90a2ee0e1f9dc7c6eb29a2ff1a8"
+        }
+      ]
+    },
+    {
+      "package": "libandroid-sysv-semaphore",
+      "binary_version": "0.1-1",
+      "recipe": "packages/libandroid-sysv-semaphore/build.sh",
+      "license": "BSD 2-Clause",
+      "sources": []
+    },
+    {
+      "package": "libbz2",
+      "binary_version": "1.0.8-8",
+      "recipe": "packages/libbz2/build.sh",
+      "license": "BSD",
+      "sources": [
+        {
+          "url": "https://fossies.org/linux/misc/bzip2-1.0.8.tar.xz",
+          "sha256": "47fd74b2ff83effad0ddf62074e6fad1f6b4a77a96e121ab421c20a216371a1f"
+        }
+      ]
+    },
+    {
+      "package": "libc++",
+      "binary_version": "30",
+      "recipe": "packages/libc++/build.sh",
+      "license": "NCSA",
+      "sources": [
+        {
+          "url": "https://dl.google.com/android/repository/android-ndk-r30-linux.zip",
+          "sha256": "753611f410d002cfcd3f3dc2ef49aad532089d3180b436c060a90bf0fcb64df2"
+        }
+      ]
+    },
+    {
+      "package": "libcurl",
+      "binary_version": "8.22.0",
+      "recipe": "packages/libcurl/build.sh",
+      "license": "MIT",
+      "sources": [
+        {
+          "url": "https://github.com/curl/curl/releases/download/curl-8_22_0/curl-8.22.0.tar.xz",
+          "sha256": "f7ef3ae8a22e521f289803fe93543eb64c329b58aa73a9e224dfd915a2a5f4f7"
+        }
+      ]
+    },
+    {
+      "package": "libdb",
+      "binary_version": "18.1.40-6",
+      "recipe": "packages/libdb/build.sh",
+      "license": "AGPL-3.0-only",
+      "sources": [
+        {
+          "url": "https://fossies.org/linux/misc/db-18.1.40.tar.gz",
+          "sha256": "0cecb2ef0c67b166de93732769abdeba0555086d51de1090df325e18ee8da9c8"
+        }
+      ]
+    },
+    {
+      "package": "libdw",
+      "binary_version": "0.196",
+      "recipe": "packages/libelf/build.sh",
+      "license": "GPL-2.0",
+      "sources": [
+        {
+          "url": "https://sourceware.org/elfutils/ftp/0.196/elfutils-0.196.tar.bz2",
+          "sha256": "fd5cc6b77ad6773cac93cb3f415f9318ac3b3455eecf801f6b4a742c4f6c7209"
+        }
+      ]
+    },
+    {
+      "package": "libelf",
+      "binary_version": "0.196",
+      "recipe": "packages/libelf/build.sh",
+      "license": "GPL-2.0",
+      "sources": [
+        {
+          "url": "https://sourceware.org/elfutils/ftp/0.196/elfutils-0.196.tar.bz2",
+          "sha256": "fd5cc6b77ad6773cac93cb3f415f9318ac3b3455eecf801f6b4a742c4f6c7209"
+        }
+      ]
+    },
+    {
+      "package": "libffi",
+      "binary_version": "3.8.0",
+      "recipe": "packages/libffi/build.sh",
+      "license": "MIT",
+      "sources": [
+        {
+          "url": "https://github.com/libffi/libffi/releases/download/v3.8.0/libffi-3.8.0.tar.gz",
+          "sha256": "7da3e2d9a171eb0a038f592ecad3ff2bb2550f3496d87b3b29ad0cf4430c0db4"
+        }
+      ]
+    },
+    {
+      "package": "libflac",
+      "binary_version": "1.5.0-1",
+      "recipe": "packages/libflac/build.sh",
+      "license": "GPL-2.0, LGPL-2.1, BSD 3-Clause",
+      "sources": [
+        {
+          "url": "https://downloads.xiph.org/releases/flac/flac-1.5.0.tar.xz",
+          "sha256": "f2c1c76592a82ffff8413ba3c4a1299b6c7ab06c734dee03fd88630485c2b920"
+        }
+      ]
+    },
+    {
+      "package": "libgmp",
+      "binary_version": "6.3.0-2",
+      "recipe": "packages/libgmp/build.sh",
+      "license": "LGPL-3.0",
+      "sources": [
+        {
+          "url": "https://mirrors.kernel.org/gnu/gmp/gmp-6.3.0.tar.xz",
+          "sha256": "a3c2b80201b89e68616f4ad30bc66aee4927c3ce50e33929ca819d5c43538898"
+        }
+      ]
+    },
+    {
+      "package": "libgnutls",
+      "binary_version": "3.8.13-1",
+      "recipe": "packages/libgnutls/build.sh",
+      "license": "LGPL-2.1, GPL-3.0",
+      "sources": [
+        {
+          "url": "https://www.gnupg.org/ftp/gcrypt/gnutls/v3.8/gnutls-3.8.13.tar.xz",
+          "sha256": "ffed8ec1bf09c2426d4f14aae377de4753b53e537d685e604e99a8b16ca9c97e"
+        }
+      ]
+    },
+    {
+      "package": "libiconv",
+      "binary_version": "1.19",
+      "recipe": "packages/libiconv/build.sh",
+      "license": "LGPL-2.1, GPL-3.0",
+      "sources": [
+        {
+          "url": "https://mirrors.kernel.org/gnu/libiconv/libiconv-1.19.tar.gz",
+          "sha256": "88dd96a8c0464eca144fc791ae60cd31cd8ee78321e67397e25fc095c4a19aa6"
+        }
+      ]
+    },
+    {
+      "package": "libidn2",
+      "binary_version": "2.3.8-1",
+      "recipe": "packages/libidn2/build.sh",
+      "license": "LGPL-3.0, GPL-2.0, GPL-3.0",
+      "sources": [
+        {
+          "url": "https://mirrors.kernel.org/gnu/libidn/libidn2-2.3.8.tar.gz",
+          "sha256": "f557911bf6171621e1f72ff35f5b1825bb35b52ed45325dcdee931e5d3c0787a"
+        }
+      ]
+    },
+    {
+      "package": "libjpeg-turbo",
+      "binary_version": "3.2.0",
+      "recipe": "packages/libjpeg-turbo/build.sh",
+      "license": "IJG, BSD 3-Clause, ZLIB",
+      "sources": [
+        {
+          "url": "https://github.com/libjpeg-turbo/libjpeg-turbo/releases/download/3.2.0/libjpeg-turbo-3.2.0.tar.gz",
+          "sha256": "6f30092cef9fb839779646608f4ee14ae3cbac989c47fa05e841b0841f09878e"
+        }
+      ]
+    },
+    {
+      "package": "liblz4",
+      "binary_version": "1.10.0-1",
+      "recipe": "packages/liblz4/build.sh",
+      "license": "GPL-2.0",
+      "sources": [
+        {
+          "url": "https://github.com/lz4/lz4/archive/refs/tags/v1.10.0.tar.gz",
+          "sha256": "537512904744b35e232912055ccf8ec66d768639ff3abe5788d90d792ec5f48b"
+        }
+      ]
+    },
+    {
+      "package": "liblzma",
+      "binary_version": "5.8.4",
+      "recipe": "packages/liblzma/build.sh",
+      "license": "LGPL-2.1, GPL-2.0, GPL-3.0",
+      "sources": [
+        {
+          "url": "https://github.com/tukaani-project/xz/releases/download/v5.8.4/xz-5.8.4.tar.xz",
+          "sha256": "4ce24038fd4221e0d13bc1a2de7a4db56e90b92b3bf75321f6c14be73f65de4b"
+        }
+      ]
+    },
+    {
+      "package": "liblzo",
+      "binary_version": "2.10-5",
+      "recipe": "packages/liblzo/build.sh",
+      "license": "GPL-2.0",
+      "sources": [
+        {
+          "url": "https://www.oberhumer.com/opensource/lzo/download/lzo-2.10.tar.gz",
+          "sha256": "c0f892943208266f9b6543b3ae308fab6284c5c90e627931446fb49b4221a072"
+        }
+      ]
+    },
+    {
+      "package": "libmp3lame",
+      "binary_version": "4.0-1",
+      "recipe": "packages/libmp3lame/build.sh",
+      "license": "LGPL-2.0",
+      "sources": [
+        {
+          "url": "https://downloads.sourceforge.net/project/lame/lame/4.0/lame-4.0.tar.gz",
+          "sha256": "3df5124d5ad3a98312ffd7ba6a9b36230e4f8a3e66d3ce0f425e336c32d216eb"
+        }
+      ]
+    },
+    {
+      "package": "libmpg123",
+      "binary_version": "1.33.7",
+      "recipe": "packages/libmpg123/build.sh",
+      "license": "LGPL-2.1",
+      "sources": [
+        {
+          "url": "https://downloads.sourceforge.net/sourceforge/mpg123/mpg123-1.33.7.tar.bz2",
+          "sha256": "31d0e35a4ca567ec9b5ebda6c3062bb4435d6d3eacd6ef0d95cadd7854dc03ee"
+        }
+      ]
+    },
+    {
+      "package": "libnettle",
+      "binary_version": "4.0+really3.10.2",
+      "recipe": "packages/libnettle/build.sh",
+      "license": "GPL-2.0, LGPL-3.0",
+      "sources": [
+        {
+          "url": "https://mirrors.kernel.org/gnu/nettle/nettle-3.10.2.tar.gz",
+          "sha256": "fe9ff51cb1f2abb5e65a6b8c10a92da0ab5ab6eaf26e7fc2b675c45f1fb519b5"
+        }
+      ]
+    },
+    {
+      "package": "libnghttp2",
+      "binary_version": "1.70.0",
+      "recipe": "packages/libnghttp2/build.sh",
+      "license": "MIT",
+      "sources": [
+        {
+          "url": "https://github.com/nghttp2/nghttp2/releases/download/v1.70.0/nghttp2-1.70.0.tar.xz",
+          "sha256": "e05cb1388eaca3830aded4ccf20044b6e1ac1a61411dcca11b0437c4285c8bc2"
+        }
+      ]
+    },
+    {
+      "package": "libnghttp3",
+      "binary_version": "1.18.0",
+      "recipe": "packages/libnghttp3/build.sh",
+      "license": "MIT",
+      "sources": [
+        {
+          "url": "https://github.com/ngtcp2/nghttp3/releases/download/v1.18.0/nghttp3-1.18.0.tar.xz",
+          "sha256": "aad782c23d3f01bd4bb52c8bac7a553b631ef8115fd1612703df6183449fef19"
+        }
+      ]
+    },
+    {
+      "package": "libngtcp2",
+      "binary_version": "1.25.0",
+      "recipe": "packages/libngtcp2/build.sh",
+      "license": "MIT",
+      "sources": [
+        {
+          "url": "https://github.com/ngtcp2/ngtcp2/releases/download/v1.25.0/ngtcp2-1.25.0.tar.gz",
+          "sha256": "1c0843076528a87b65e9a9d455100941f4cb65d44f96c5da6ae56df146043955"
+        }
+      ]
+    },
+    {
+      "package": "libogg",
+      "binary_version": "1.3.6-1",
+      "recipe": "packages/libogg/build.sh",
+      "license": "BSD 3-Clause",
+      "sources": [
+        {
+          "url": "https://github.com/xiph/ogg/releases/download/v1.3.6/libogg-1.3.6.tar.xz",
+          "sha256": "5c8253428e181840cd20d41f3ca16557a9cc04bad4a3d04cce84808677fa1061"
+        }
+      ]
+    },
+    {
+      "package": "libopus",
+      "binary_version": "1.6.1",
+      "recipe": "packages/libopus/build.sh",
+      "license": "BSD 3-Clause",
+      "sources": [
+        {
+          "url": "https://downloads.xiph.org/releases/opus/opus-1.6.1.tar.gz",
+          "sha256": "6ffcb593207be92584df15b32466ed64bbec99109f007c82205f0194572411a1"
+        }
+      ]
+    },
+    {
+      "package": "liborc",
+      "binary_version": "0.4.44",
+      "recipe": "packages/liborc/build.sh",
+      "license": "BSD 2-Clause, BSD 3-Clause",
+      "sources": [
+        {
+          "url": "https://gitlab.freedesktop.org/gstreamer/orc/-/archive/0.4.44/orc-0.4.44.tar.gz",
+          "sha256": "f497abd377b0784913a1052b3d6ca324821564ae7b9aa5d55cede5705a177c15"
+        }
+      ]
+    },
+    {
+      "package": "libpixman",
+      "binary_version": "0.46.4-1",
+      "recipe": "packages/libpixman/build.sh",
+      "license": "MIT",
+      "sources": [
+        {
+          "url": "https://cairographics.org/releases/pixman-0.46.4.tar.gz",
+          "sha256": "d09c44ebc3bd5bee7021c79f922fe8fb2fb57f7320f55e97ff9914d2346a591c"
+        }
+      ]
+    },
+    {
+      "package": "libpng",
+      "binary_version": "1.6.59",
+      "recipe": "packages/libpng/build.sh",
+      "license": "Libpng",
+      "sources": [
+        {
+          "url": "https://github.com/pnggroup/libpng/archive/refs/tags/v1.6.59.tar.gz",
+          "sha256": "2540302a1844ad2b2b501977abecfa850f265f97b78f065a712ab4074a89f5b5"
+        }
+      ]
+    },
+    {
+      "package": "libsamplerate",
+      "binary_version": "0.2.2-4",
+      "recipe": "packages/libsamplerate/build.sh",
+      "license": "BSD 2-Clause",
+      "sources": [
+        {
+          "url": "https://github.com/libsndfile/libsamplerate/archive/refs/tags/0.2.2.tar.gz",
+          "sha256": "16e881487f184250deb4fcb60432d7556ab12cb58caea71ef23960aec6c0405a"
+        }
+      ]
+    },
+    {
+      "package": "libsasl",
+      "binary_version": "2.1.28-3",
+      "recipe": "packages/libsasl/build.sh",
+      "license": "BSD",
+      "sources": [
+        {
+          "url": "https://fossies.org/linux/misc/cyrus-sasl-2.1.28.tar.xz",
+          "sha256": "67f1945057d679414533a30fe860aeb2714f5167a8c03041e023a65f629a9351"
+        }
+      ]
+    },
+    {
+      "package": "libslirp",
+      "binary_version": "4.9.5",
+      "recipe": "packages/libslirp/build.sh",
+      "license": "BSD 3-Clause, MIT",
+      "sources": [
+        {
+          "url": "https://gitlab.freedesktop.org/slirp/libslirp/-/archive/v4.9.5/libslirp-v4.9.5.tar.gz",
+          "sha256": "f43e68b60b580647574ec4a0e2b6c600a56281e6c39f79426510832dc810f483"
+        }
+      ]
+    },
+    {
+      "package": "libsndfile",
+      "binary_version": "1.2.2-3",
+      "recipe": "packages/libsndfile/build.sh",
+      "license": "LGPL-2.1",
+      "sources": [
+        {
+          "url": "https://github.com/libsndfile/libsndfile/archive/refs/tags/1.2.2.tar.gz",
+          "sha256": "ffe12ef8add3eaca876f04087734e6e8e029350082f3251f565fa9da55b52121"
+        }
+      ]
+    },
+    {
+      "package": "libspice-server",
+      "binary_version": "0.16.0-1",
+      "recipe": "packages/libspice-server/build.sh",
+      "license": "LGPL-2.1",
+      "sources": [
+        {
+          "url": "https://www.spice-space.org/download/releases/spice-server/spice-0.16.0.tar.bz2",
+          "sha256": "0a6ec9528f05371261bbb2d46ff35e7b5c45ff89bb975a99af95a5f20ff4717d"
+        }
+      ]
+    },
+    {
+      "package": "libssh",
+      "binary_version": "0.12.2",
+      "recipe": "packages/libssh/build.sh",
+      "license": "LGPL-2.1, BSD 2-Clause",
+      "sources": [
+        {
+          "url": "https://www.libssh.org/files/0.12/libssh-0.12.2.tar.xz",
+          "sha256": "49560f677d96e3706a904ac2de1116e25f3680937d51e5c92198fcba4a1c1e9f"
+        }
+      ]
+    },
+    {
+      "package": "libssh2",
+      "binary_version": "1.11.1-2",
+      "recipe": "packages/libssh2/build.sh",
+      "license": "BSD 3-Clause",
+      "sources": [
+        {
+          "url": "https://www.libssh2.org/download/libssh2-1.11.1.tar.gz",
+          "sha256": "d9ec76cbe34db98eec3539fe2c899d26b0c837cb3eb466a56b0f109cabf658f7"
+        }
+      ]
+    },
+    {
+      "package": "libtasn1",
+      "binary_version": "4.21.0",
+      "recipe": "packages/libtasn1/build.sh",
+      "license": "LGPL-2.1",
+      "sources": [
+        {
+          "url": "https://mirrors.kernel.org/gnu/libtasn1/libtasn1-4.21.0.tar.gz",
+          "sha256": "1d8a444a223cc5464240777346e125de51d8e6abf0b8bac742ac84609167dc87"
+        }
+      ]
+    },
+    {
+      "package": "libunistring",
+      "binary_version": "1.4.2",
+      "recipe": "packages/libunistring/build.sh",
+      "license": "LGPL-3.0, GPL-2.0",
+      "sources": [
+        {
+          "url": "https://mirrors.kernel.org/gnu/libunistring/libunistring-1.4.2.tar.xz",
+          "sha256": "5b46e74377ed7409c5b75e7a96f95377b095623b689d8522620927964a41499c"
+        }
+      ]
+    },
+    {
+      "package": "libusb",
+      "binary_version": "1.0.30",
+      "recipe": "packages/libusb/build.sh",
+      "license": "LGPL-2.1",
+      "sources": [
+        {
+          "url": "https://github.com/libusb/libusb/releases/download/v1.0.30/libusb-1.0.30.tar.bz2",
+          "sha256": "fea36f34f9156400209595e300840767ab1a385ede1dc7ee893015aea9c6dbaf"
+        }
+      ]
+    },
+    {
+      "package": "libusbredir",
+      "binary_version": "0.15.0",
+      "recipe": "packages/libusbredir/build.sh",
+      "license": "GPL-2.0, LGPL-2.1",
+      "sources": [
+        {
+          "url": "https://www.spice-space.org/download/usbredir/usbredir-0.15.0.tar.xz",
+          "sha256": "6dc2a380277688a068191245dac2ab7063a552999d8ac3ad8e841c10ff050961"
+        }
+      ]
+    },
+    {
+      "package": "libvorbis",
+      "binary_version": "1.3.7-4",
+      "recipe": "packages/libvorbis/build.sh",
+      "license": "BSD 3-Clause",
+      "sources": [
+        {
+          "url": "http://downloads.xiph.org/releases/vorbis/libvorbis-1.3.7.tar.xz",
+          "sha256": "b33cc4934322bcbf6efcbacf49e3ca01aadbea4114ec9589d1b1e9d20f72954b"
+        }
+      ]
+    },
+    {
+      "package": "ncurses",
+      "binary_version": "6.6.20260307+really6.5.20250830",
+      "recipe": "packages/ncurses/build.sh",
+      "license": "MIT",
+      "sources": [
+        {
+          "url": "https://github.com/ThomasDickey/ncurses-snapshots/archive/5f58399b2de47ed14bdfe3a0cb149293b27893d5.tar.gz",
+          "sha256": "28cd102efe6a2610e830cc79cf270da6ff0427b2022900a9a36d2761522f9576"
+        },
+        {
+          "url": "https://dist.schmorp.de/rxvt-unicode/Attic/rxvt-unicode-9.31.tar.bz2",
+          "sha256": "aaa13fcbc149fe0f3f391f933279580f74a96fd312d6ed06b8ff03c2d46672e8"
+        },
+        {
+          "url": "https://github.com/kovidgoyal/kitty/releases/download/v0.49.2/kitty-0.49.2.tar.xz",
+          "sha256": "aee888a42f6086f9cc5ee009c73f8191d2a3ea119dcaf737fdb37d7f176a54fc"
+        },
+        {
+          "url": "https://github.com/alacritty/alacritty/archive/refs/tags/v0.17.0.tar.gz",
+          "sha256": "38d6527d346cda5c6049332a1f3338a89ea66cd7981b54d4c3ce801b392496f8"
+        },
+        {
+          "url": "https://codeberg.org/dnkl/foot/archive/1.28.0.tar.gz",
+          "sha256": "4296be402b5684d049534598e69db92b918f92beac9dab76b585207045f0b037"
+        }
+      ]
+    },
+    {
+      "package": "openssl",
+      "binary_version": "1:3.6.5",
+      "recipe": "packages/openssl/build.sh",
+      "license": "Apache-2.0",
+      "sources": [
+        {
+          "url": "https://github.com/openssl/openssl/releases/download/openssl-3.6.5/openssl-3.6.5.tar.gz",
+          "sha256": "a2157c2830efdec3788939b00c9b0638306d3f0bbb76dc4832ee503bb397df98"
+        }
+      ]
+    },
+    {
+      "package": "p11-kit",
+      "binary_version": "0.26.5",
+      "recipe": "packages/p11-kit/build.sh",
+      "license": "BSD 3-Clause",
+      "sources": [
+        {
+          "url": "https://github.com/p11-glue/p11-kit/releases/download/0.26.5/p11-kit-0.26.5.tar.xz",
+          "sha256": "f2cc09111e44bf3fea58f023180b33acea90aa82d042d6fbb623fbc5ba033bb7"
+        }
+      ]
+    },
+    {
+      "package": "pcre2",
+      "binary_version": "10.49",
+      "recipe": "packages/pcre2/build.sh",
+      "license": "BSD 3-Clause",
+      "sources": [
+        {
+          "url": "https://github.com/PCRE2Project/pcre2/releases/download/pcre2-10.49/pcre2-10.49.tar.bz2",
+          "sha256": "53c156e1ba416a20da8e65395daa132da0d80e76910424caca3fcdae7831d384"
+        }
+      ]
+    },
+    {
+      "package": "pulseaudio",
+      "binary_version": "17.0-4",
+      "recipe": "packages/pulseaudio/build.sh",
+      "license": "GPL-2.0",
+      "sources": []
+    },
+    {
+      "package": "qemu-system-x86-64-headless",
+      "binary_version": "1:11.0.3",
+      "recipe": "packages/qemu-system-x86-64-headless/build.sh",
+      "license": "GPL-2.0",
+      "sources": [
+        {
+          "url": "https://download.qemu.org/qemu-11.0.3.tar.xz",
+          "sha256": "da5fcffc32762820568b828ed430a728864d34d50b6d2f30358597760cbb0523"
+        }
+      ]
+    },
+    {
+      "package": "qemu-utils",
+      "binary_version": "1:11.0.3",
+      "recipe": "packages/qemu-system-x86-64-headless/build.sh",
+      "license": "GPL-2.0",
+      "sources": [
+        {
+          "url": "https://download.qemu.org/qemu-11.0.3.tar.xz",
+          "sha256": "da5fcffc32762820568b828ed430a728864d34d50b6d2f30358597760cbb0523"
+        }
+      ]
+    },
+    {
+      "package": "zlib",
+      "binary_version": "1.3.2",
+      "recipe": "packages/zlib/build.sh",
+      "license": "ZLIB",
+      "sources": [
+        {
+          "url": "https://github.com/madler/zlib/releases/download/v1.3.2/zlib-1.3.2.tar.xz",
+          "sha256": "d7a0654783a4da529d1bb793b7ad9c3318020af77667bcae35f95d0e42a792f3"
+        }
+      ]
+    },
+    {
+      "package": "zstd",
+      "binary_version": "1.5.7-1",
+      "recipe": "packages/zstd/build.sh",
+      "license": "GPL-2.0",
+      "sources": [
+        {
+          "url": "https://github.com/facebook/zstd/archive/refs/tags/v1.5.7.tar.gz",
+          "sha256": "37d7284556b20954e56e1ca85b80226768902e2edabd3b649e9e72c0c9012ee3"
+        }
+      ]
+    }
+  ]
+}

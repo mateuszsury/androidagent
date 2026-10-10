@@ -1,4 +1,4 @@
-# Architektura androidagent 0.2
+# Architektura androidagent 0.3
 
 ## Wybór bazy
 
@@ -28,6 +28,11 @@ flowchart TD
   CLAUDE --> EVENTS
   CODEX --> MODEL[Usługa modelu po zalogowaniu]
   CODEX --> MCP[Lokalny MCP + token]
+  MCP --> DOCKER[DockerTools: projekty i operacje]
+  DOCKER --> VM[DockerService / QEMU: UID aplikacji]
+  VM --> LINUX[Oddzielny Linux / Docker Engine]
+  LINUX --> CONTAINERS[Kontener i pliki własnego zadania]
+  CONTAINERS --> EXPORT[Zachowane wyniki w Androidzie]
   MCP --> ACCESS[Accessibility: ekran i gesty]
   MCP --> STATE[DeviceState: metryki Android]
   MCP --> APPROVAL[Zgoda na dokładną komendę]
@@ -39,6 +44,10 @@ flowchart TD
 ```
 
 Aplikacja `dev.mateuszsury.androidagent` wymaga Androida 11+, kompilowana jest przeciw API 36. Kod Java i fonty są zawarte w APK; model ani konto nie są wbudowane. Instalacja helpera kopiuje zasoby APK do Termux. Wrappery obu agentów wykrywają ARM64 lub x86_64 i mapują ścieżki DNS/TLS przez proot. Claude używa oficjalnego pakietu npm musl i biblioteki musl z Alpine, ze sprawdzeniem SHA256. Żadne binaria modelu ani klienta nie są wbudowane w APK. Stary instalator społecznościowy działający tylko na ARM64 zastąpiono skryptem zawartym w aplikacji. Claude przekazuje przyrostowe zdarzenia tekstu, narzędzia i błędy; końcowa odpowiedź jest zapisywana raz. Backend rozmowy pozostaje stały po zmianie domyślnego agenta.
+
+## Docker
+
+Docker używa własnego jądra w VM: QEMU TCG, Alpine Linux 3.23, Docker Engine 29.5.2, QCOW2 z osobnym dyskiem użytkownika. Nie wymaga Androidowych namespace/cgroups, roota ani Termux. Narzędzia MCP i panel natywny korzystają z jednego uwierzytelnionego kontrolera zadaniowego. Aplikacja nie udostępnia socketu Dockera ani powłoki całego gościa. [Pełny opis](DOCKER.md).
 
 ## Najbliższe etapy
 

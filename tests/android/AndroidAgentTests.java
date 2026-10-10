@@ -197,7 +197,7 @@ public class AndroidAgentTests extends Instrumentation {
         () -> {
           runUnsignedClaude(claude[0], false);
           check(
-              claude[0].phoneConnected && claude[0].phoneToolCount == 17,
+              claude[0].phoneConnected && claude[0].phoneToolCount == new Tools(BuddyService.get()).list().length(),
               "Native Claude MCP handshake failed: connected="
                   + claude[0].phoneConnected
                   + ", tools="
@@ -217,7 +217,7 @@ public class AndroidAgentTests extends Instrumentation {
         "Termux Claude: native resume and developer code tools work without logging in",
         () -> {
           runUnsignedClaude(claude[0], true);
-          check(claude[0].phoneConnected && claude[0].phoneToolCount == 17, "Resume lost MCP");
+          check(claude[0].phoneConnected && claude[0].phoneToolCount == new Tools(BuddyService.get()).list().length(), "Resume lost MCP");
           check(
               claude[0].agentTools.contains("Bash") && claude[0].agentTools.contains("Edit"),
               "Developer mode lacks real code tools");
@@ -742,7 +742,7 @@ public class AndroidAgentTests extends Instrumentation {
           check(j.getInt("http_status") == 200 && j.has("result"), "Handshake");
         });
     test(
-        "MCP: tool discovery includes phone and shell",
+        "MCP: tool discovery includes phone, shell and Docker",
         () -> {
           JSONArray tools =
               request("tools/list", new JSONObject(), true)
@@ -750,10 +750,13 @@ public class AndroidAgentTests extends Instrumentation {
                   .getJSONArray("tools");
           String text = tools.toString();
           check(
-              tools.length() >= 17
+              tools.length() >= 29
                   && text.contains("device_status")
                   && text.contains("run_command")
-                  && text.contains("read_screen"),
+                  && text.contains("read_screen")
+                  && text.contains("docker_build")
+                  && text.contains("docker_export")
+                  && text.contains("docker_cleanup"),
               "Missing tools");
         });
     test(

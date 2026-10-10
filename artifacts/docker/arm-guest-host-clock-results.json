@@ -1,0 +1,53 @@
+{
+  "architecture": "aarch64",
+  "environment": "Linux guest under native host QEMU; not Android ARM",
+  "tests": [
+    {
+      "name": "Actual aarch64 Linux guest and Docker 29",
+      "pass": true
+    },
+    {
+      "name": "Actual overlay2 storage driver",
+      "pass": true
+    },
+    {
+      "name": "Real ARM Dockerfile build",
+      "pass": true
+    },
+    {
+      "name": "Real ARM container",
+      "pass": true
+    },
+    {
+      "name": "Actual forwarded non-root ARM web application",
+      "pass": true
+    },
+    {
+      "name": "ARM non-root execution, image WORKDIR, memory cap and build artifact",
+      "pass": true
+    },
+    {
+      "name": "Actual exported ARM build output",
+      "pass": true
+    },
+    {
+      "name": "Scoped ARM cleanup",
+      "pass": true
+    },
+    {
+      "name": "ARM shutdown",
+      "pass": true
+    }
+  ],
+  "failures": 0,
+  "clock_mode": "host",
+  "guest_manifest": {
+    "version": 1,
+    "disk_gb": 8,
+    "files": {
+      "base.qcow2.gz": "e57843f288b23032d02d55d9bbf111787b7a48e0c0d1584fcf98b68bbf083448",
+      "vmlinuz-virt": "0431ad6e5e0296080add279573c773287b55427bf3ec94fbc2c9f985d0b79966",
+      "initramfs-virt": "896b92b0b158a5c4738b6657cf42b7476c2db5760b8b15273f7f87e4c673657c"
+    }
+  }
+}

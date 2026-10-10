@@ -1,9 +1,10 @@
-androidagent 0.2.0
+androidagent 0.3.0
 
 This is a modified version of Buddy by ghorbelhamdi and contributors.
 Upstream: https://github.com/ghorbelhamdi/buddy-android
 Base commit: 8c69699b1338f3b3c177979bbd0a69140bbdb9ce (Buddy 1.0.0)
-Upstream and these modifications are distributed under Apache License 2.0.
+Upstream and the application integration modifications are distributed under
+Apache License 2.0. Separately bundled runtime components retain their licenses.
 
 Modifications (2026-10-09): separate application identity and MCP port;
 conversation-first androidagent UI; Codex defaults; device metrics; bounded local
@@ -22,3 +23,8 @@ Material Symbols icons: Apache License 2.0 (upstream).
 androidagent is an independent community application. It is not an official
 OpenAI or Anthropic application. Codex, ChatGPT and Claude belong to their
 respective owners. No provider credentials or model binaries are bundled.
+
+Additional modifications (2026-10-10): own local Linux VM lifecycle, Docker
+task controller, native project UI, shared Codex/Claude MCP tools, artifact
+export and task cleanup. QEMU/SeaBIOS, Linux and Alpine packages are separately
+licensed runtime components; see docker/SOURCES.md and docker/licenses.

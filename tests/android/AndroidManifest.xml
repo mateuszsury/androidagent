@@ -2,4 +2,5 @@
 <uses-sdk android:minSdkVersion="30" android:targetSdkVersion="36" />
 <application android:label="androidagent device tests" android:usesCleartextTraffic="true" />
 <instrumentation android:name="dev.mateuszsury.androidagent.AndroidAgentTests" android:targetPackage="dev.mateuszsury.androidagent" android:functionalTest="true" />
+<instrumentation android:name="dev.mateuszsury.androidagent.DockerRuntimeTests" android:targetPackage="dev.mateuszsury.androidagent" android:functionalTest="true" />
 </manifest>
