@@ -7,6 +7,11 @@ cd "$(dirname "$0")/.."
 ADB="$ANDROID_SDK_ROOT/platform-tools/adb"
 MODE="${1:---existing}"
 case "$MODE" in --existing|--clean|--upgrade) ;; *) echo 'Usage: test-embedded-runtime.sh --existing | --clean NEW.apk | --upgrade OLD.apk NEW.apk' >&2; exit 2 ;; esac
+export ANDROIDAGENT_EMBEDDED_INSTALL_MODE="$MODE"
+TARGET_APK_INPUT="${2:-}"
+SEED_APK_INPUT="${2:-}"
+if [[ "$MODE" == --upgrade ]]; then TARGET_APK_INPUT="${3:?Specify new APK}"; fi
+if [[ "$MODE" == --existing ]]; then TARGET_APK_INPUT="${ANDROIDAGENT_EMBEDDED_TARGET_APK:?Specify the exact installed APK path for evidence}"; fi
 if [[ "$MODE" != --existing ]]; then
   [[ "$("$ADB" shell getprop ro.kernel.qemu | tr -d '\r')" == 1 ]] || { echo 'Clean/upgrade orchestration requires a disposable emulator.' >&2; exit 2; }
 fi
@@ -70,18 +75,26 @@ DEST="${ANDROIDAGENT_EMBEDDED_EVIDENCE_DIR:-artifacts/api$API/embedded-runtime}"
 mkdir -p "$DEST"
 run_phase() {
   local phase="$1" migration="$2" report_dir="$3"
-  local run_id host_started
+  local run_id host_started phase_apk
+  phase_apk="$TARGET_APK_INPUT"
+  if [[ "$phase" == seed ]]; then phase_apk="$SEED_APK_INPUT"; fi
   run_id=$(python3 -c 'import uuid; print(uuid.uuid4())')
   host_started=$(python3 -c 'import datetime,time,json; print(json.dumps({"epoch_ms":time.time_ns()//1000000,"monotonic_ms":time.monotonic_ns()//1000000,"utc":datetime.datetime.now(datetime.timezone.utc).isoformat()}))')
   "$ADB" shell rm -rf /sdcard/Download/androidagent-embedded-tests
   "$ADB" shell am instrument -w -e run_id "$run_id" -e phase "$phase" -e migration "$migration" -e archive_origin http://127.0.0.1:18787 dev.mateuszsury.androidagent.tests/dev.mateuszsury.androidagent.EmbeddedRuntimeTests
   mkdir -p "$report_dir"
   "$ADB" pull /sdcard/Download/androidagent-embedded-tests/. "$report_dir/"
-  python3 - "$run_id" "$report_dir" "$API" "$phase" "$host_started" <<'PY'
-import datetime,json,pathlib,sys,time
+  python3 - "$run_id" "$report_dir" "$API" "$phase" "$host_started" "$phase_apk" <<'PY'
+import datetime,hashlib,json,os,pathlib,sys,time
 r=json.load(open(sys.argv[2]+'/results.json'))
 began=json.loads(sys.argv[5])
 r['host_observation']={'started_utc':began['utc'],'completed_utc':datetime.datetime.now(datetime.timezone.utc).isoformat(),'elapsed_ms':time.monotonic_ns()//1000000-began['monotonic_ms'],'guest_clock_delta_at_start_ms':r['started_epoch_ms']-began['epoch_ms'],'scope':'Software Android emulator guest clocks can drift; host timing does not represent physical ARM Android performance'}
+def artifact(path,commit):
+    p=pathlib.Path(path)
+    return {'name':p.name,'bytes':p.stat().st_size,'sha256':hashlib.file_digest(p.open('rb'),'sha256').hexdigest(),'source_commit':commit}
+r['tested_apk']=artifact(sys.argv[6],None if r['phase']=='seed' else os.environ.get('ANDROIDAGENT_EMBEDDED_APK_COMMIT'))
+r['tested_instrumentation']=artifact('build/device-tests/tests.apk',os.environ.get('ANDROIDAGENT_EMBEDDED_INSTRUMENTATION_COMMIT'))
+r['install_mode']=os.environ.get('ANDROIDAGENT_EMBEDDED_INSTALL_MODE',r['phase'])
 pathlib.Path(sys.argv[2]+'/results.json').write_text(json.dumps(r,indent=2)+'\n')
 assert r['run_id']==sys.argv[1], 'Stale embedded-runtime report'
 assert r['api']==int(sys.argv[3]) and r['phase']==sys.argv[4], 'Wrong device/phase'
