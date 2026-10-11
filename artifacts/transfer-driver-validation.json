@@ -1,0 +1,89 @@
+{
+  "kind": "offline-transfer-driver-validation",
+  "checked_at_utc": "2026-10-11T22:30:22.828458+00:00",
+  "driver": "tools/transfer-apk-git-blobs.py",
+  "driver_sha256": "cf69f2120702f3db48bc6aafac200e6270f756f9700f81b1c30a25819ebfdb7d",
+  "checks": [
+    {
+      "name": "Git blob identity agrees with git hash-object --stdin",
+      "pass": true,
+      "input_utf8": "hello\n",
+      "bytes": 6,
+      "expected_shaGit": "ce013625030ba8dba906f756967f9e9ca394464a",
+      "actual_shaGit": "ce013625030ba8dba906f756967f9e9ca394464a",
+      "git_object_written": false
+    },
+    {
+      "name": "Incorrect expected APK length fails before API or journal creation",
+      "pass": true,
+      "process_exit": 1,
+      "github_requests": 0,
+      "journal_created": false
+    },
+    {
+      "name": "Incorrect expected APK SHA256 fails before API or journal creation",
+      "pass": true,
+      "process_exit": 1,
+      "github_requests": 0,
+      "journal_created": false
+    },
+    {
+      "name": "Two sequential boundary chunks, UTF-8 report and compatible manifest",
+      "pass": true,
+      "transport": "in-memory fixture, no gh invocation",
+      "synthetic_file_bytes": 16777247,
+      "part_bytes": [
+        16777216,
+        31
+      ],
+      "synthetic_file_sha256": "4f7baa1dd4a0a04adcc5bb2beb512d7cc45b2691bbf322f6092b404bcdd1cbbf",
+      "report_metadata_round_trip": true,
+      "receiver_keys": [
+        "version",
+        "repository",
+        "name",
+        "bytes",
+        "sha256",
+        "chunk_bytes",
+        "parts"
+      ],
+      "parts_number_key": "part"
+    },
+    {
+      "name": "Completed journal resume issues no additional POST",
+      "pass": true,
+      "additional_fixture_posts": 0
+    },
+    {
+      "name": "Lost response after accepted first POST resumes with GET of its deterministic SHA",
+      "pass": true,
+      "accepted_first_part_reposted": false,
+      "subsequent_fixture_posts": 3
+    },
+    {
+      "name": "Unavailable pending blob returns GET error without automatic POST retry",
+      "pass": true,
+      "fixture_http_status": 404,
+      "additional_fixture_posts": 0,
+      "pending_preserved": true
+    },
+    {
+      "name": "All temporary large request JSON files removed after success and failure",
+      "pass": true,
+      "temporary_request_json_remaining": 0
+    }
+  ],
+  "passed": 8,
+  "failed": 0,
+  "python_compilation": "passed",
+  "cli_help": "passed",
+  "github_requests_performed": 0,
+  "github_mutations_performed": 0,
+  "real_apk_transferred": false,
+  "synthetic_fixture_is_android_apk": false,
+  "limitations": [
+    "Validates local integrity and journal/resume behavior only.",
+    "Does not verify real GitHub authentication, API availability or APK delivery."
+  ],
+  "temporary_fixture_directories_removed": true
+}

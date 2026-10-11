@@ -1,0 +1,51 @@
+{
+  "run_id": "0ae0d1da-30d7-4706-87e4-663ec8949552",
+  "phase": "seed",
+  "version": "0.4.2",
+  "version_code": 402,
+  "api": 30,
+  "model": "Android SDK built for x86_64",
+  "supported_abis": [
+    "x86_64",
+    "x86"
+  ],
+  "process_uid": 10132,
+  "page_size_bytes": 4096,
+  "target_sdk": 36,
+  "debuggable": false,
+  "native_library_dir": "/data/app/~~XFCxy37Ko8StehouyQDU0w==/dev.mateuszsury.androidagent-WyScg1gCHrxr7NBx5fuAKw==/lib/x86_64",
+  "started_epoch_ms": 1791759026750,
+  "completed_epoch_ms": 1791759026784,
+  "elapsed_ms": 35,
+  "migration_from_0_4_2": false,
+  "versions": {},
+  "client_installation_source": "SHA256-verified official archives transferred through local adb reverse fixture; Android HTTPS download is not exercised",
+  "fixture": "Production embedded runtime under app UID; no external Termux, no account login, no model conversation",
+  "failures": 0,
+  "tests": [
+    {
+      "name": "Upgrade fixture is created in actual 0.4.2 data",
+      "pass": true,
+      "error": "",
+      "elapsed_ms": 22
+    }
+  ],
+  "host_observation": {
+    "started_utc": "2026-10-11T22:50:37.979100+00:00",
+    "completed_utc": "2026-10-11T22:50:50.373682+00:00",
+    "elapsed_ms": 12395,
+    "scope": "Software x86_64 Android emulator with TCG guest clock drift; not physical ARM Android performance",
+    "guest_clock_delta_at_start_ms": -11229
+  },
+  "tested_apk": {
+    "name": "androidagent-0.4.2.apk",
+    "bytes": 460925925,
+    "sha256": "5300a530810554f5f693e5757e34e4683734b92c647b192f247c7f747aad80a0"
+  },
+  "tested_instrumentation": {
+    "bytes": 156187,
+    "sha256": "c47ee18c26fc28ef495637988907cd5e1e731efca50f11efb7097ed7aad5bb4c",
+    "test_only": true,
+    "bundled_in_product": false
+  }
+}

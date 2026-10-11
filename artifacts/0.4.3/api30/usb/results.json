@@ -1,0 +1,228 @@
+{
+  "version": "0.4.3",
+  "run_id": "37dc4a08-8056-4d60-a524-111e92aa83f6",
+  "api": 30,
+  "environment": "Android emulator; synthetic UART/SAF fixtures and real local adbd; physical OTG unavailable",
+  "tests": [
+    {
+      "name": "UI: USB panel without Accessibility or Docker",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "UI: dark theme and rotation",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "MCP: standalone foreground service, one listener and both agent tools",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "USB: empty bus, agent cannot mint leases or request permission",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "USB broadcasts: blocked hardware cleanup does not block the main thread",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "USB service: destruction preserves a newer session whose start is still queued",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "JNI: real x86 library loads, invalid physical descriptor fails cleanly",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "UART bridge: occupied port fails cleanly and listener can reopen",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "UART: binary loopback, shared cursors and exclusive protocol",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "UART: bounded log overflow and malformed inputs",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "UART: full 64 KiB hex decoding and bounded encoded inputs",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "UART: failed initialization closes the port and preserves cause",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "UART: bridge and flash reservations exclude direct writes",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "UI: light UART terminal has code contrast and preserves unchanged text",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "ESP: cancelled operation restores the complete UART configuration",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "ESP: segment validation before any target write",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "SAF: selected tree, binary read/write and opaque handles",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "SAF: ownership, read-only grant, restore write and import SHA256",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "SAF: revoked streams cannot revive when the same owner is reassigned",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "SAF: stalled provider does not block revocation or publish stale handles",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "UI: SAF browser reaches files after 200 and navigates back",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "SAF: one-shot run grant expires, open streams and owned jobs revoked",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "SAF: provider read-only capability and unavailable-media status",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "SAF: unknown length import and partial provider write never succeeds",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "SAF: explicit document deletion and revoked tree",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "ADB AUTH: signature and Android RSA public-key encoding",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "ADB: corrupted legacy CNXN checksum is rejected",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "ADB legacy: transport disconnect cannot masquerade as command completion",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "ADB legacy: explicit CLSE completes normally even if transport then closes",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "ADB: buffered data and ready writes still honor deadlines and cancellation",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "ADB: real emulator adbd shell_v2, stderr and nonzero exit",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "ADB: multiple logcat tag filters are separate arguments",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "ADB: real sync push/pull binary SHA256 and shell isolation",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "ADB: actual APK install and target package verification",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "ADB: cancelled APK staging removes the partial target file",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Jobs: other owner refused, cancellation is final",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "MCP: distinct run credentials and revoked authentication",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Leases: one-shot next-run grant activates and expires (session fixture)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Docker MCP: another run cannot operate a task with assigned USB",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Stop: blocks USB and Docker without Accessibility",
+      "pass": true,
+      "detail": ""
+    }
+  ],
+  "failures": 0,
+  "host_observation": {
+    "started_utc": "2026-10-11T23:51:13.905758+00:00",
+    "completed_utc": "2026-10-11T23:54:02.766689+00:00",
+    "elapsed_ms": 168861,
+    "scope": "Software x86_64 Android emulator with TCG guest clock drift; not physical ARM Android performance"
+  },
+  "tested_apk": {
+    "name": "androidagent-0.4.3.apk",
+    "bytes": 653533571,
+    "sha256": "92edfd2974159fd523cfa6a7d0a6bd3235deb0cdfe62ab5df42a3c3567ae7537",
+    "source_commit": "db41298e352a28f0b4e2a4b6a4ccdc504777e10b"
+  },
+  "tested_instrumentation": {
+    "bytes": 156187,
+    "sha256": "c252d5ef081f919467cb6ef1e9b3648f95f4f3f69b32d792fce8c6d705b2de19",
+    "source_commit": "5dfb3bf68e783af9820711b40794b182b2faf95b",
+    "test_only": true,
+    "bundled_in_product": false
+  }
+}

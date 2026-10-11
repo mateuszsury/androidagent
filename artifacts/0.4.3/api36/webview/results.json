@@ -1,0 +1,94 @@
+{
+  "version": "0.4.3",
+  "api": 36,
+  "run_id": "5875e0c3-f75a-4a69-80de-3fe6660f6b83",
+  "failures": 0,
+  "native_toolbar_frame_verified": true,
+  "native_toolbar_bounds": {
+    "back": [
+      0,
+      45,
+      90,
+      135
+    ],
+    "refresh": [
+      552,
+      52,
+      720,
+      127
+    ],
+    "title": [
+      90,
+      64,
+      552,
+      115
+    ]
+  },
+  "fixture": "Local HTTP server; production DockerPreviewActivity; no model or Docker engine",
+  "tests": [
+    {
+      "name": "WebView: production preview loads a local page",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "WebView: JavaScript handles a DOM button",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "WebView: PNG decoding and canvas pixels",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "WebView: refresh retains origin storage",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "WebView: activity recreation preserves a working preview",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "WebView: unavailable server shows the error page",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "WebView: refresh recovers after the server returns",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "WebView: close and reopen preserve usable state",
+      "pass": true,
+      "detail": ""
+    }
+  ],
+  "provider": {
+    "package": "com.android.webview",
+    "version": "133.0.6943.137",
+    "version_code": 694313707
+  },
+  "host_observation": {
+    "started_utc": "2026-10-11T23:55:25.532688+00:00",
+    "completed_utc": "2026-10-11T23:56:15.657617+00:00",
+    "elapsed_ms": 50125,
+    "scope": "Software x86_64 Android emulator with TCG guest clock drift; not physical ARM Android performance"
+  },
+  "tested_apk": {
+    "name": "androidagent-0.4.3.apk",
+    "bytes": 653533571,
+    "sha256": "92edfd2974159fd523cfa6a7d0a6bd3235deb0cdfe62ab5df42a3c3567ae7537",
+    "source_commit": "db41298e352a28f0b4e2a4b6a4ccdc504777e10b"
+  },
+  "tested_instrumentation": {
+    "bytes": 156187,
+    "sha256": "c252d5ef081f919467cb6ef1e9b3648f95f4f3f69b32d792fce8c6d705b2de19",
+    "source_commit": "5dfb3bf68e783af9820711b40794b182b2faf95b",
+    "test_only": true,
+    "bundled_in_product": false
+  }
+}

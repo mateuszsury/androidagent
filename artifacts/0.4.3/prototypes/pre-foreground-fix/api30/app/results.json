@@ -1,0 +1,524 @@
+{
+  "tests": [
+    {
+      "name": "permissions: real state and native consent routes",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 24
+    },
+    {
+      "name": "permissions: FlowMesh is never mistaken for our service",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 0
+    },
+    {
+      "name": "permissions: screen refresh preserves existing consent",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 423
+    },
+    {
+      "name": "commands: native approval works without Accessibility",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 933
+    },
+    {
+      "name": "commands: native denial never executes the command",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 82
+    },
+    {
+      "name": "commands: stale consent cannot approve a replacement",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 100
+    },
+    {
+      "name": "commands: a revoked run cannot inherit consent",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 102
+    },
+    {
+      "name": "commands: cancellation stops the approved shell",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 166
+    },
+    {
+      "name": "commands: a cancelled shell cannot spawn",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 1
+    },
+    {
+      "name": "home: conversation-first UI",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 1888
+    },
+    {
+      "name": "appearance: native light dialog and custom text stay readable",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 18
+    },
+    {
+      "name": "defaults: Codex, no fabricated ready state",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 1
+    },
+    {
+      "name": "device: live battery, RAM, storage",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 1
+    },
+    {
+      "name": "terminal: real Android application UID",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 103
+    },
+    {
+      "name": "terminal: persistent working files and Unicode",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 205
+    },
+    {
+      "name": "terminal: nonzero exit reported",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 103
+    },
+    {
+      "name": "terminal: invalid command",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 104
+    },
+    {
+      "name": "terminal: output truncation",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 319
+    },
+    {
+      "name": "terminal: timeout and process cleanup",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 10021
+    },
+    {
+      "name": "terminal: explicit cancellation",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 804
+    },
+    {
+      "name": "device UI: metrics and command controls",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 1627
+    },
+    {
+      "name": "device UI: execute button returns real output",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 1224
+    },
+    {
+      "name": "chat: local /status through composer",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 1698
+    },
+    {
+      "name": "chat: session persists to disk",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 0
+    },
+    {
+      "name": "chat: draft survives activity recreation",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 151
+    },
+    {
+      "name": "chat: real model picker opens",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 1060
+    },
+    {
+      "name": "chat: attachments sheet opens",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 1663
+    },
+    {
+      "name": "chat renderer: copy preserves code indentation",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 127
+    },
+    {
+      "name": "appearance: dark theme",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 2326
+    },
+    {
+      "name": "setup: accessible onboarding",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 1928
+    },
+    {
+      "name": "MCP: Stop closes active and queued client sockets",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 157
+    },
+    {
+      "name": "MCP: complete chunk framing and bounded headers",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 89
+    },
+    {
+      "name": "MCP: a new run cannot revive an old credential or queued request",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 81
+    },
+    {
+      "name": "attachments: bounded panorama decode and file provider projection",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 135
+    },
+    {
+      "name": "voice: previous speech callbacks and delayed TTS cannot revive after Stop",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 1
+    },
+    {
+      "name": "Stop: main thread stays responsive while USB cleanup is blocked",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 58
+    },
+    {
+      "name": "terminal: background children obey timeout and cleanup",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 10034
+    },
+    {
+      "name": "accessibility: service starts with explicit test grant",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 962
+    },
+    {
+      "name": "MCP: unauthenticated requests rejected",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 16
+    },
+    {
+      "name": "MCP: authenticated initialize",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 6
+    },
+    {
+      "name": "MCP: tool discovery includes phone, shell and Docker",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 49
+    },
+    {
+      "name": "MCP: device status matches Android",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 28
+    },
+    {
+      "name": "MCP: read actual screen",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 991
+    },
+    {
+      "name": "MCP: actual tap focuses command field",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 2288
+    },
+    {
+      "name": "MCP: writes Unicode to real native field",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 249
+    },
+    {
+      "name": "MCP: scroll moves native content",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 1710
+    },
+    {
+      "name": "MCP: installed apps",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 27
+    },
+    {
+      "name": "MCP: open Settings and read its screen",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 1714
+    },
+    {
+      "name": "MCP: screenshot returns real JPEG",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 646
+    },
+    {
+      "name": "MCP: system navigation",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 875
+    },
+    {
+      "name": "MCP: unknown tool errors",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 2
+    },
+    {
+      "name": "MCP: shell blocked when developer mode off",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 4
+    },
+    {
+      "name": "MCP: shell approval denied means no execution",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 1052
+    },
+    {
+      "name": "MCP: approved command executes in app sandbox",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 1744
+    },
+    {
+      "name": "MCP: stop revokes further phone actions",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 292
+    },
+    {
+      "name": "attachments: provider rejects traversal",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 0
+    },
+    {
+      "name": "sessions: delete removes persisted conversation",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 134
+    },
+    {
+      "name": "Claude UI: choose backend on home",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 2344
+    },
+    {
+      "name": "Claude UI: home creates a Claude conversation",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 71
+    },
+    {
+      "name": "Claude UI: real model picker selects Sonnet alias",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 1455
+    },
+    {
+      "name": "Claude UI: local status and unsigned model gate",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 51
+    },
+    {
+      "name": "Claude UI: backend switch keeps histories separate",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 1579
+    },
+    {
+      "name": "Claude protocol fixture: live Unicode text before final message",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 1235
+    },
+    {
+      "name": "chat UI: live response survives leaving and resuming the screen",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 7
+    },
+    {
+      "name": "Claude protocol fixture: final text is persisted once",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 208
+    },
+    {
+      "name": "Claude protocol fixture: subagent deltas stay separate",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 0
+    },
+    {
+      "name": "Claude protocol fixture: error arrays and auth errors are visible",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 147
+    },
+    {
+      "name": "Claude protocol fixture: stop preserves partial text and ends run",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 166
+    },
+    {
+      "name": "agents: callbacks cannot stop or resurrect another run",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 46
+    },
+    {
+      "name": "agents: history retention preserves active chats and releases evictions",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 43
+    },
+    {
+      "name": "agents: history migration preserves data and updates only changed conversations",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 617
+    },
+    {
+      "name": "agents: initial streaming blocks are bounded and subagent replies separated",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 127
+    },
+    {
+      "name": "agents: failed Stop ends local state and reports undelivered termination",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 40
+    },
+    {
+      "name": "agents: surviving helper after app restart receives an exact Stop",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 47
+    },
+    {
+      "name": "agents: rejected dispatch preserves draft and revokes run access",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 81
+    },
+    {
+      "name": "UI: long model name keeps selector chevron within its bounds",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 12
+    },
+    {
+      "name": "chat UI: long tool histories retain bounded rows and recent messages",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 450
+    },
+    {
+      "name": "chat UI: attachment import survives recreation and gates Send",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 226
+    },
+    {
+      "name": "chat UI: keyboard input sends local status without fullscreen extraction",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 10
+    },
+    {
+      "name": "UI: tall bottom sheet reaches its final option",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 268
+    },
+    {
+      "name": "UI: switch exposes checked state to accessibility",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 5
+    },
+    {
+      "name": "UI: large font landscape keeps composer and useful home content visible",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 5512
+    },
+    {
+      "name": "final: clean home",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 1520
+    }
+  ],
+  "version": "0.4.3",
+  "failures": 0,
+  "api": 30,
+  "model": "Android SDK built for x86_64",
+  "run_id": "7cf065d2-c263-4ff2-a433-8b57a193f0c6",
+  "host_observation": {
+    "started_utc": "2026-10-11T23:02:30.760664+00:00",
+    "completed_utc": "2026-10-11T23:12:54.674854+00:00",
+    "elapsed_ms": 623914,
+    "scope": "Software x86_64 Android emulator with TCG guest clock drift; not physical ARM Android performance"
+  },
+  "tested_apk": {
+    "name": "androidagent-0.4.3.apk",
+    "bytes": 653533571,
+    "sha256": "26d0f5d756815bac4ecbcf791b39e730b8d6e6180ee70d55793e8c253d07da92"
+  },
+  "tested_instrumentation": {
+    "bytes": 156187,
+    "sha256": "c47ee18c26fc28ef495637988907cd5e1e731efca50f11efb7097ed7aad5bb4c",
+    "test_only": true,
+    "bundled_in_product": false
+  }
+}

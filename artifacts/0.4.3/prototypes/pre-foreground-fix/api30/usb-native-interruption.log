@@ -1,0 +1,42 @@
+--------- beginning of crash
+10-11 23:12:28.592  4182  4203 F libc    : Fatal signal 5 (SIGTRAP), code 2 (TRAP_TRACE), fault addr 0x78f9ce710c4f in tid 4203 (UsbRuntimeTests), pid 4182 (ry.androidagent)
+10-11 23:12:28.685  4244  4244 F DEBUG   : *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** ***
+10-11 23:12:28.685  4244  4244 F DEBUG   : Build fingerprint: 'Android/sdk_phone_x86_64/generic_x86_64:11/RSR1.210722.013.A2/10067904:userdebug/test-keys'
+10-11 23:12:28.685  4244  4244 F DEBUG   : Revision: '0'
+10-11 23:12:28.686  4244  4244 F DEBUG   : ABI: 'x86_64'
+10-11 23:12:28.686  4244  4244 F DEBUG   : Timestamp: 2026-10-11 23:12:28+0000
+10-11 23:12:28.686  4244  4244 F DEBUG   : pid: 4182, tid: 4203, name: UsbRuntimeTests  >>> dev.mateuszsury.androidagent <<<
+10-11 23:12:28.686  4244  4244 F DEBUG   : uid: 10132
+10-11 23:12:28.686  4244  4244 F DEBUG   : signal 5 (SIGTRAP), code 2 (TRAP_TRACE), fault addr 0x78f9ce710c4f
+10-11 23:12:28.686  4244  4244 F DEBUG   :     rax 000000007109a788  rbx 0000000012c75b80  rcx 0000000000000000  rdx 00000000000007d2
+10-11 23:12:28.686  4244  4244 F DEBUG   :     r8  0000000012c78790  r9  0000000000000aa9  r10 00000000711d6c20  r11 00000000000007d2
+10-11 23:12:28.686  4244  4244 F DEBUG   :     r12 0000000012c75b80  r13 0000000012c75b28  r14 000078f9ce6f5080  r15 000078f977009688
+10-11 23:12:28.686  4244  4244 F DEBUG   :     rdi 000000007114dc58  rsi 0000000012c75b80
+10-11 23:12:28.686  4244  4244 F DEBUG   :     rbp 0000000012c75b28  rsp 000078f977009480  rip 000078f9ce710c4f
+10-11 23:12:28.898  4244  4244 F DEBUG   : backtrace:
+10-11 23:12:28.898  4244  4244 F DEBUG   :       #00 pc 0000000000183c4f  /apex/com.android.art/lib64/libart.so (art_quick_imt_conflict_trampoline+63) (BuildId: 1dfb27162fe62a7ac7a10ea361233369)
+10-11 23:12:28.898  4244  4244 F DEBUG   :       #01 pc 000000000004e5e4  /apex/com.android.art/javalib/x86_64/boot-core-libart.oat (org.json.JSONStringer.beforeValue+132) (BuildId: 06c723e2ff44ead3e0ba45af7efe3dfad2b4a85d)
+10-11 23:12:28.898  4244  4244 F DEBUG   :       #02 pc 000000000004f975  /apex/com.android.art/javalib/x86_64/boot-core-libart.oat (org.json.JSONStringer.open+149) (BuildId: 06c723e2ff44ead3e0ba45af7efe3dfad2b4a85d)
+10-11 23:12:28.898  4244  4244 F DEBUG   :       #03 pc 000000000004f8b4  /apex/com.android.art/javalib/x86_64/boot-core-libart.oat (org.json.JSONStringer.object+84) (BuildId: 06c723e2ff44ead3e0ba45af7efe3dfad2b4a85d)
+10-11 23:12:28.898  4244  4244 F DEBUG   :       #04 pc 000000000004dfae  /apex/com.android.art/javalib/x86_64/boot-core-libart.oat (org.json.JSONObject.writeTo+62) (BuildId: 06c723e2ff44ead3e0ba45af7efe3dfad2b4a85d)
+10-11 23:12:28.898  4244  4244 F DEBUG   :       #05 pc 000000000004fc98  /apex/com.android.art/javalib/x86_64/boot-core-libart.oat (org.json.JSONStringer.value+440) (BuildId: 06c723e2ff44ead3e0ba45af7efe3dfad2b4a85d)
+10-11 23:12:28.898  4244  4244 F DEBUG   :       #06 pc 000000000004c037  /apex/com.android.art/javalib/x86_64/boot-core-libart.oat (org.json.JSONArray.writeTo+183) (BuildId: 06c723e2ff44ead3e0ba45af7efe3dfad2b4a85d)
+10-11 23:12:28.898  4244  4244 F DEBUG   :       #07 pc 000000000004bef8  /apex/com.android.art/javalib/x86_64/boot-core-libart.oat (org.json.JSONArray.toString+184) (BuildId: 06c723e2ff44ead3e0ba45af7efe3dfad2b4a85d)
+10-11 23:12:28.898  4244  4244 F DEBUG   :       #08 pc 00000000001713dc  /apex/com.android.art/lib64/libart.so (BuildId: 1dfb27162fe62a7ac7a10ea361233369)
+10-11 23:12:28.898  4244  4244 F DEBUG   :       #09 pc 000000000002bd54  /data/app/~~hW74IUVrWRQr8fA1UBHy4w==/dev.mateuszsury.androidagent.tests-K3waF6kTih8k7scimDvVSA==/oat/x86_64/base.vdex (dev.mateuszsury.androidagent.UsbRuntimeTests.lambda$suite$5$dev-mateuszsury-androidagent-UsbRuntimeTests+300)
+10-11 23:12:28.899  4244  4244 F DEBUG   :       #10 pc 0000000000170d5d  /apex/com.android.art/lib64/libart.so (BuildId: 1dfb27162fe62a7ac7a10ea361233369)
+10-11 23:12:28.899  4244  4244 F DEBUG   :       #11 pc 0000000000027198  /data/app/~~hW74IUVrWRQr8fA1UBHy4w==/dev.mateuszsury.androidagent.tests-K3waF6kTih8k7scimDvVSA==/oat/x86_64/base.vdex (dev.mateuszsury.androidagent.UsbRuntimeTests$$ExternalSyntheticLambda34.run+4)
+10-11 23:12:28.899  4244  4244 F DEBUG   :       #12 pc 00000000001718ea  /apex/com.android.art/lib64/libart.so (BuildId: 1dfb27162fe62a7ac7a10ea361233369)
+10-11 23:12:28.899  4244  4244 F DEBUG   :       #13 pc 000000000002d8a2  /data/app/~~hW74IUVrWRQr8fA1UBHy4w==/dev.mateuszsury.androidagent.tests-K3waF6kTih8k7scimDvVSA==/oat/x86_64/base.vdex (dev.mateuszsury.androidagent.UsbRuntimeTests.test+2)
+10-11 23:12:28.899  4244  4244 F DEBUG   :       #14 pc 0000000000170d5d  /apex/com.android.art/lib64/libart.so (BuildId: 1dfb27162fe62a7ac7a10ea361233369)
+10-11 23:12:28.899  4244  4244 F DEBUG   :       #15 pc 000000000002d632  /data/app/~~hW74IUVrWRQr8fA1UBHy4w==/dev.mateuszsury.androidagent.tests-K3waF6kTih8k7scimDvVSA==/oat/x86_64/base.vdex (dev.mateuszsury.androidagent.UsbRuntimeTests.suite+54)
+10-11 23:12:28.899  4244  4244 F DEBUG   :       #16 pc 0000000000170d5d  /apex/com.android.art/lib64/libart.so (BuildId: 1dfb27162fe62a7ac7a10ea361233369)
+10-11 23:12:28.899  4244  4244 F DEBUG   :       #17 pc 000000000002d0ae  /data/app/~~hW74IUVrWRQr8fA1UBHy4w==/dev.mateuszsury.androidagent.tests-K3waF6kTih8k7scimDvVSA==/oat/x86_64/base.vdex (dev.mateuszsury.androidagent.UsbRuntimeTests.onStart+70)
+10-11 23:12:28.899  4244  4244 F DEBUG   :       #18 pc 0000000000170d5d  /apex/com.android.art/lib64/libart.so (BuildId: 1dfb27162fe62a7ac7a10ea361233369)
+10-11 23:12:28.899  4244  4244 F DEBUG   :       #19 pc 0000000000210ea6  /system/framework/framework.jar (android.app.Instrumentation$InstrumentationThread.run+94)
+10-11 23:12:28.900  4244  4244 F DEBUG   :       #20 pc 0000000000178cb4  /apex/com.android.art/lib64/libart.so (art_quick_invoke_stub+756) (BuildId: 1dfb27162fe62a7ac7a10ea361233369)
+10-11 23:12:28.900  4244  4244 F DEBUG   :       #21 pc 000000000020ba92  /apex/com.android.art/lib64/libart.so (art::ArtMethod::Invoke(art::Thread*, unsigned int*, unsigned int, art::JValue*, char const*)+242) (BuildId: 1dfb27162fe62a7ac7a10ea361233369)
+10-11 23:12:28.900  4244  4244 F DEBUG   :       #22 pc 000000000062a1be  /apex/com.android.art/lib64/libart.so (art::JValue art::InvokeVirtualOrInterfaceWithJValues<art::ArtMethod*>(art::ScopedObjectAccessAlreadyRunnable const&, _jobject*, art::ArtMethod*, jvalue const*)+478) (BuildId: 1dfb27162fe62a7ac7a10ea361233369)
+10-11 23:12:28.900  4244  4244 F DEBUG   :       #23 pc 000000000068d843  /apex/com.android.art/lib64/libart.so (art::Thread::CreateCallback(void*)+1411) (BuildId: 1dfb27162fe62a7ac7a10ea361233369)
+10-11 23:12:28.900  4244  4244 F DEBUG   :       #24 pc 00000000000c7d2a  /apex/com.android.runtime/lib64/bionic/libc.so (__pthread_start(void*)+58) (BuildId: 3707c39fc397eeaa328142d90b50a973)
+10-11 23:12:28.900  4244  4244 F DEBUG   :       #25 pc 000000000005f0c7  /apex/com.android.runtime/lib64/bionic/libc.so (__start_thread+55) (BuildId: 3707c39fc397eeaa328142d90b50a973)
