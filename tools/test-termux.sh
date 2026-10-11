@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Real Termux integration. Use a disposable emulator with Termux, Codex, jq and curl installed.
+# Compatibility smoke for the embedded runtime; full acceptance uses test-embedded-runtime.sh.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 : "${ANDROID_SDK_ROOT:?Set ANDROID_SDK_ROOT}"
