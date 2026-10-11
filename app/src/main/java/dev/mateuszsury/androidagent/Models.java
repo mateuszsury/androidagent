@@ -12,7 +12,7 @@ final class Models {
     static final String[][] CODEX = {
             {"", "Default"},
     };
-    private static String[][] codexLive;
+    private static volatile String[][] codexLive;
 
     private Models() {
     }

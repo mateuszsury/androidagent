@@ -1,6 +1,6 @@
 {
-  "version": "0.4.0",
-  "run_id": "7f114485-6218-43a1-9da8-b78cd07b96d0",
+  "version": "0.4.1",
+  "run_id": "92d42fd1-2993-414f-8855-b1c4d4c3fd00",
   "api": 30,
   "environment": "Android emulator; synthetic UART\/SAF fixtures and real local adbd; physical OTG unavailable",
   "tests": [
@@ -25,6 +25,11 @@
       "detail": ""
     },
     {
+      "name": "USB service: destruction preserves a newer session whose start is still queued",
+      "pass": true,
+      "detail": ""
+    },
+    {
       "name": "JNI: real x86 library loads, invalid physical descriptor fails cleanly",
       "pass": true,
       "detail": ""
@@ -45,7 +50,27 @@
       "detail": ""
     },
     {
-      "name": "ESP: native port rejects cancelled operation, restores UART lease",
+      "name": "UART: full 64 KiB hex decoding and bounded encoded inputs",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "UART: failed initialization closes the port and preserves cause",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "UART: bridge and flash reservations exclude direct writes",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "UI: light UART terminal has code contrast and preserves unchanged text",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "ESP: cancelled operation restores the complete UART configuration",
       "pass": true,
       "detail": ""
     },
@@ -61,6 +86,21 @@
     },
     {
       "name": "SAF: ownership, read-only grant, restore write and import SHA256",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "SAF: revoked streams cannot revive when the same owner is reassigned",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "SAF: stalled provider does not block revocation or publish stale handles",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "UI: SAF browser reaches files after 200 and navigates back",
       "pass": true,
       "detail": ""
     },
@@ -95,7 +135,17 @@
       "detail": ""
     },
     {
+      "name": "ADB: buffered data and ready writes still honor deadlines and cancellation",
+      "pass": true,
+      "detail": ""
+    },
+    {
       "name": "ADB: real emulator adbd shell_v2, stderr and nonzero exit",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "ADB: multiple logcat tag filters are separate arguments",
       "pass": true,
       "detail": ""
     },
@@ -106,6 +156,11 @@
     },
     {
       "name": "ADB: actual APK install and target package verification",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "ADB: cancelled APK staging removes the partial target file",
       "pass": true,
       "detail": ""
     },

@@ -63,6 +63,7 @@ final class ChatHub {
     private ChatHub(Context app) {
         this.app = app;
         sessions = new Sessions(app);
+        sessions.onEvicted = this::releaseSession;
     }
 
     void addListener(Listener l) {
@@ -75,7 +76,7 @@ final class ChatHub {
 
     void setViewing(Sessions.Session ses, boolean on) {
         if (on) {
-            viewing.add(ses);
+            if (!viewing.contains(ses)) viewing.add(ses);
             ses.unread = false;
         } else {
             viewing.remove(ses);
@@ -105,6 +106,12 @@ final class ChatHub {
     }
 
     void delete(Sessions.Session s) {
+        releaseSession(s);
+        sessions.remove(s);
+        changed();
+    }
+
+    private void releaseSession(Sessions.Session s) {
         McpHost.get(app).revoke(s.id);
         UsbSessions.get(app).closeOwner("pending:"+s.id);
         try {
@@ -112,8 +119,7 @@ final class ChatHub {
         } catch (Exception ignored) {
         }
         viewing.remove(s);
-        sessions.remove(s);
-        changed();
+        if (foregroundChat == s) foregroundChat = null;
     }
 
     /** Sends a message. Returns an error text, or null when sent. */
@@ -124,6 +130,7 @@ final class ChatHub {
     /** Sends a message with attachments (ids from Attachments); the helper fetches them before the agent runs. */
     String send(final Sessions.Session ses, String text, List<String> files) {
         if (ses.running) return "This chat is still working. Tap Stop, or use another chat.";
+        if (sessions.runningCount() >= Sessions.MAX_SESSIONS) return "Too many chats are working. Stop one before sending another message.";
         if ("/status".equals(text.trim())) {
             add(ses, Bubble.Kind.USER, text);
             try { add(ses, Bubble.Kind.BUDDY, DeviceState.summary(app)); }
@@ -137,11 +144,13 @@ final class ChatHub {
         boolean hasFiles = files != null && !files.isEmpty();
         if (text.isEmpty() && !hasFiles) return null;
         String forAgent = text.isEmpty() && hasFiles ? "Have a look at what I attached." : text;
-        BuddyService svc = BuddyService.get();
         McpHost.get(app).allowControl();
+        // The helper echoes this identifier on every callback. A stopped run may still have
+        // an HTTP request in flight when the next request in the same chat begins.
+        ses.callbackRun = java.util.UUID.randomUUID().toString();
         try {
             Termux.run(app, "ask", ses.id, ses.backend, Prefs.devMode(app) ? "1" : "0", forAgent, ses.model,
-                    hasFiles ? android.text.TextUtils.join(",", files) : "", McpHost.get(app).credential(ses.id));
+                    hasFiles ? android.text.TextUtils.join(",", files) : "", McpHost.get(app).credential(ses.id), ses.callbackRun);
         } catch (Exception e) {
             McpHost.get(app).revoke(ses.id);
             return e.getMessage();
@@ -154,9 +163,8 @@ final class ChatHub {
         changed();
         final int id = ses.runId;
         main.postDelayed(() -> {
-            if (ses.running && id == ses.runId && SystemClock.elapsedRealtime() - ses.lastEventAt >= NO_RESPONSE_MS - 100) {
-                ses.running = false;
-                McpHost.get(app).revoke(ses.id);
+            if (ses.running && id == ses.runId && !ses.runAcknowledged) {
+                stop(ses);
                 add(ses, Bubble.Kind.ERROR, "No response from Termux. Open androidagent settings and check the Termux helper step.");
                 changed();
             }
@@ -180,11 +188,16 @@ final class ChatHub {
         McpHost.get(app).revoke(ses.id);
         if (!ses.running) return;
         try {
-            Termux.run(app, "stop", ses.id);
-            ses.status = "Stopping…";
+            Termux.run(app, "stop", ses.id, ses.callbackRun);
         } catch (Exception e) {
             add(ses, Bubble.Kind.ERROR, e.getMessage());
+            changed();
+            return;
         }
+        flushStream(ses);
+        ses.running = false;
+        ses.status = "";
+        add(ses, Bubble.Kind.STEP, "Stopped.");
         changed();
     }
 
@@ -201,12 +214,21 @@ final class ChatHub {
     void onEvent(JSONObject ev) {
         Sessions.Session ses = sessions.find(ev.optString("buddy_session", null));
         if (ses == null) return; // unknown chat (deleted, or started outside Buddy)
+        // Untagged external/legacy callbacks remain usable only until a managed run starts.
+        // A completed/stopped managed run cannot be resurrected by delayed CLI output.
+        String callback = ev.optString("buddy_run");
+        if ((!ses.callbackRun.isEmpty() || !callback.isEmpty()) &&
+                (ses.callbackRun.isEmpty() || !ses.callbackRun.equals(callback) || !ses.running)) return;
+        if (!ev.isNull("parent_tool_use_id")) return;
         ses.lastEventAt = SystemClock.elapsedRealtime();
+        ses.runAcknowledged = true;
         String type = ev.optString("type");
         if (!ses.running && ("system".equals(type) || "assistant".equals(type))) startRun(ses);
         switch (type) {
+            case "buddy_started":
+                ses.status = "Thinking…";
+                break;
             case "stream_event": {
-                if (!ev.isNull("parent_tool_use_id")) break;
                 JSONObject part = ev.optJSONObject("event");
                 if (part == null) break;
                 String eventType = part.optString("type");
@@ -214,11 +236,11 @@ final class ChatHub {
                 else if ("content_block_start".equals(eventType)) {
                     JSONObject block = part.optJSONObject("content_block");
                     if (block != null && "text".equals(block.optString("type")))
-                        ses.streamText += block.optString("text");
+                        appendStream(ses, block.optString("text"));
                 } else if ("content_block_delta".equals(eventType)) {
                     JSONObject delta = part.optJSONObject("delta");
-                    if (delta != null && "text_delta".equals(delta.optString("type")) && ses.streamText.length() < 262144)
-                        ses.streamText += delta.optString("text");
+                    if (delta != null && "text_delta".equals(delta.optString("type")))
+                        appendStream(ses, delta.optString("text"));
                 }
                 break;
             }
@@ -305,7 +327,7 @@ final class ChatHub {
                 flushStream(ses);
                 if (ses.running) {
                     ses.running = false;
-                McpHost.get(app).revoke(ses.id);
+                    McpHost.get(app).revoke(ses.id);
                     ses.status = "";
                     if (!ses.lastReply.isEmpty()) {
                         Prefs.setHadReply(app);
@@ -320,6 +342,11 @@ final class ChatHub {
     }
 
     // ---------------------------------------------------------------- state
+
+    private static void appendStream(Sessions.Session ses, String text) {
+        int available = 262144 - ses.streamText.length();
+        if (available > 0) ses.streamText += text.length() <= available ? text : text.substring(0, available);
+    }
 
     private void reply(Sessions.Session ses, String text) {
         add(ses, Bubble.Kind.BUDDY, text);
@@ -369,6 +396,7 @@ final class ChatHub {
 
     private void startRun(Sessions.Session ses) {
         ses.running = true;
+        ses.runAcknowledged = false;
         ses.gotText = false;
         ses.lastReply = "";
         ses.lastError = "";

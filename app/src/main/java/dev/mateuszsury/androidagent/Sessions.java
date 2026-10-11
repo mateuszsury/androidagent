@@ -47,7 +47,7 @@ final class Sessions {
         long updated = System.currentTimeMillis();
         final List<Msg> messages = new ArrayList<>();
         // runtime only
-        boolean running, gotText, unread;
+        boolean running, gotText, unread, runAcknowledged;
         String status = "";
         String lastReply = "";
         String lastError = "";
@@ -60,6 +60,8 @@ final class Sessions {
         final List<String> agentTools = new ArrayList<>();
         long lastEventAt;
         int runId;
+        /** Correlates callbacks with one request, not merely with its reusable chat id. */
+        String callbackRun = "";
 
         Session(String id, String backend) {
             this.id = id;
@@ -76,8 +78,12 @@ final class Sessions {
     }
 
     private final SharedPreferences sp;
+    private static final String INDEX = "index_v2", RECORD = "session_v2_";
+    private boolean indexed, legacyComplete = true;
+    private final List<String> removed = new ArrayList<>();
     final List<Session> all = new ArrayList<>(); // most recent first
     Session current;
+    java.util.function.Consumer<Session> onEvicted;
 
     Sessions(Context c) {
         sp = c.getSharedPreferences("buddy_sessions", Context.MODE_PRIVATE);
@@ -86,14 +92,26 @@ final class Sessions {
         String cur = sp.getString("current", null);
         current = find(cur);
         if (current == null) current = all.get(0);
+        if (!indexed) save(null);
     }
 
     Session create(String backend) {
         Session s = new Session(UUID.randomUUID().toString().replace("-", "").substring(0, 12), backend);
         all.add(0, s);
-        while (all.size() > MAX_SESSIONS) all.remove(all.size() - 1);
+        // Never hide a live process from Stop. If every existing chat is running,
+        // retain one extra empty composer; send() limits simultaneous runs.
+        while (all.size() > MAX_SESSIONS) {
+            Session oldest = null;
+            for (int i = all.size() - 1; i > 0; i--) {
+                if (!all.get(i).running) { oldest = all.get(i); break; }
+            }
+            if (oldest == null) break;
+            all.remove(oldest);
+            removed.add(oldest.id);
+            if (onEvicted != null) onEvicted.accept(oldest);
+        }
         current = s;
-        save();
+        save(s);
         return s;
     }
 
@@ -105,15 +123,16 @@ final class Sessions {
 
     void remove(Session s) {
         all.remove(s);
+        removed.add(s.id);
         if (all.isEmpty()) create(s.backend);
         if (current == s) current = all.get(0);
-        save();
+        save(null);
     }
 
     void select(Session s) {
         current = s;
         s.unread = false;
-        save();
+        save(null);
     }
 
     int runningCount() {
@@ -142,48 +161,67 @@ final class Sessions {
         // keep most recently used first
         all.remove(s);
         all.add(0, s);
-        save();
+        save(s);
     }
 
-    void save() {
+    /** Serialize only the changed conversation; selecting a chat updates just the index.
+     *  SharedPreferences publishes the migration's records, index and legacy removal in
+     *  one atomic editor transaction, retaining its file backup until the write succeeds. */
+    private void save(Session changed) {
         try {
-            JSONArray arr = new JSONArray();
+            SharedPreferences.Editor edit = sp.edit();
+            JSONArray ids = new JSONArray();
             for (Session s : all) {
-                JSONArray msgs = new JSONArray();
-                for (Msg m : s.messages) {
-                    JSONObject mo = new JSONObject().put("k", m.kind.name()).put("t", m.text);
-                    if (!m.files.isEmpty()) mo.put("f", new JSONArray(m.files));
-                    msgs.put(mo);
-                }
-                arr.put(new JSONObject().put("id", s.id).put("backend", s.backend).put("title", s.title).put("model", s.model)
-                        .put("updated", s.updated).put("messages", msgs));
+                ids.put(s.id);
+                if (!indexed || changed == s) edit.putString(RECORD + s.id, encode(s).toString());
             }
-            sp.edit().putString("all", arr.toString()).putString("current", current == null ? null : current.id).apply();
+            for (String id : removed) edit.remove(RECORD + id);
+            // Keep the original JSON if a malformed legacy record could not be loaded.
+            if (!indexed && legacyComplete) edit.remove("all");
+            edit.putString(INDEX, ids.toString()).putString("current", current == null ? null : current.id).apply();
+            indexed = true;
+            removed.clear();
         } catch (Exception ignored) {
         }
     }
 
+    private static JSONObject encode(Session s) throws Exception {
+        JSONArray msgs = new JSONArray();
+        for (Msg m : s.messages) {
+            JSONObject mo = new JSONObject().put("k", m.kind.name()).put("t", m.text);
+            if (!m.files.isEmpty()) mo.put("f", new JSONArray(m.files));
+            msgs.put(mo);
+        }
+        return new JSONObject().put("id", s.id).put("backend", s.backend).put("title", s.title).put("model", s.model)
+                .put("updated", s.updated).put("messages", msgs);
+    }
+
     private void load() {
         try {
-            JSONArray arr = new JSONArray(sp.getString("all", "[]"));
+            indexed = sp.contains(INDEX);
+            JSONArray arr = new JSONArray(sp.getString(indexed ? INDEX : "all", "[]"));
             for (int i = 0; i < arr.length(); i++) {
-                JSONObject o = arr.getJSONObject(i);
-                Session s = new Session(o.getString("id"), o.optString("backend", "claude"));
-                s.title = o.optString("title");
-                s.model = o.optString("model");
-                s.updated = o.optLong("updated");
-                JSONArray msgs = o.optJSONArray("messages");
-                if (msgs != null) for (int j = 0; j < msgs.length(); j++) {
-                    JSONObject m = msgs.getJSONObject(j);
-                    List<String> files = new ArrayList<>();
-                    JSONArray f = m.optJSONArray("f");
-                    if (f != null) for (int k = 0; k < f.length(); k++) files.add(f.getString(k));
-                    s.messages.add(new Msg(Bubble.Kind.valueOf(m.getString("k")), m.getString("t"), files));
+                try {
+                    JSONObject o = indexed ? new JSONObject(sp.getString(RECORD + arr.getString(i), "")) : arr.getJSONObject(i);
+                    Session s = new Session(o.getString("id"), o.optString("backend", "claude"));
+                    s.title = o.optString("title");
+                    s.model = o.optString("model");
+                    s.updated = o.optLong("updated");
+                    JSONArray msgs = o.optJSONArray("messages");
+                    if (msgs != null) for (int j = 0; j < msgs.length(); j++) {
+                        JSONObject m = msgs.getJSONObject(j);
+                        List<String> files = new ArrayList<>();
+                        JSONArray f = m.optJSONArray("f");
+                        if (f != null) for (int k = 0; k < f.length(); k++) files.add(f.getString(k));
+                        s.messages.add(new Msg(Bubble.Kind.valueOf(m.getString("k")), m.getString("t"), files));
+                    }
+                    all.add(s);
+                } catch (Exception invalidRecord) {
+                    legacyComplete = false;
                 }
-                all.add(s);
             }
         } catch (Exception ignored) {
-            all.clear();
+            legacyComplete = false;
         }
     }
 }

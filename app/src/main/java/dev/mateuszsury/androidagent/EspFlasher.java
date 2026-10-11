@@ -20,6 +20,6 @@ final class EspFlasher {
     static JSONObject run(SerialTransport serial,UsbJobs.Job job,List<File> files,long[] offsets,int expectedChip,boolean autoReset)throws Exception{
         if(files.size()!=offsets.length||files.size()>16)throw new IllegalArgumentException("Invalid flash segment map");
         List<String> paths=new ArrayList<>();long end=0;for(int i=0;i<files.size();i++){File f=files.get(i);if(!f.isFile()||f.length()==0||f.length()>32L*1024*1024||offsets[i]<end||offsets[i]%4096!=0||offsets[i]>32L*1024*1024-f.length())throw new IllegalArgumentException("Use ordered, non-overlapping flash segments aligned to 4 KiB, up to 32 MiB");end=offsets[i]+f.length();job.total+=f.length();paths.add(f.getAbsolutePath());}
-        int original=serial.baud;serial.beginExclusive();try{serial.configure(115200,8,1,0);return new JSONObject(operate(new Port(serial,job,autoReset),paths.toArray(new String[0]),offsets,expectedChip));}finally{serial.endExclusive();if(!serial.closed)try{serial.configure(original,8,1,0);}catch(Exception ignored){}}
+        int original,bits,stop,parity;synchronized(serial){serial.beginExclusive();original=serial.baud;bits=serial.dataBits;stop=serial.stopBits;parity=serial.parity;}try{serial.configure(115200,8,1,0);return new JSONObject(operate(new Port(serial,job,autoReset),paths.toArray(new String[0]),offsets,expectedChip));}finally{synchronized(serial){if(!serial.closed)try{serial.configure(original,bits,stop,parity);}catch(Exception ignored){}serial.endExclusive();}}
     }
 }

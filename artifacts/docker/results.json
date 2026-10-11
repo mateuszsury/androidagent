@@ -1,6 +1,6 @@
 {
-  "version": "0.4.0",
-  "run_id": "106a034b-3231-44ad-abcb-34edb2e27948",
+  "version": "0.4.1",
+  "run_id": "5b822e71-f8a1-4ec3-847a-24663e7cbc21",
   "tests": [
     {
       "name": "QEMU: actual Android binary and app UID",

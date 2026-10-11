@@ -126,6 +126,12 @@ final class Bubble implements ChatHub.Listener {
     }
 
     void remove() {
+        cancelConfirm();
+        unregisterBack();
+        if(root!=null)root.removeCallbacks(outsideCollapse);
+        if(viewingSes!=null&&hub!=null)hub.setViewing(viewingSes,false);
+        viewingSes=null;
+        expanded=false;
         if (arcs != null) {
             try {
                 wm.removeView(arcs);
@@ -1008,11 +1014,15 @@ final class Bubble implements ChatHub.Listener {
     }
 
     void cancelConfirm() {
+        ConfirmCallback cb=pendingConfirm;
         pendingConfirm = null;
         confirmCard.setVisibility(View.GONE);
         refreshStatus();
         hub.changed();
+        if(cb!=null)cb.onAnswer(false);
     }
+
+    void cancelConfirm(ConfirmCallback expected) { if(pendingConfirm==expected)cancelConfirm(); }
 
     private void answerConfirm(boolean approved) {
         ConfirmCallback cb = pendingConfirm;

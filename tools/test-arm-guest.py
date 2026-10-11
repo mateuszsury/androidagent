@@ -4,6 +4,7 @@
 This does not assert that ARM Android JNI loading or a physical phone works.
 """
 import json
+import re
 import sys
 import socket
 import time
@@ -114,7 +115,8 @@ except Exception as error:
     results.append({'name':'runtime', 'pass':False, 'detail':str(error)})
     report = {'tests':results,'failures':1}
 finally:
-    report['version'] = '0.4.0'
+    report['version'] = re.search(r'VERSION = "([^"]+)"',
+        (root / 'app/src/main/java/dev/mateuszsury/androidagent/BuildInfo.java').read_text())[1]
     report['clock_mode'] = clock_mode
     report['icount_shift'] = 3 if clock_mode == 'instruction_count' else None
     report['guest_manifest'] = json.loads((root / 'app/src/main/assets/docker/arm64-v8a/manifest.json').read_text())

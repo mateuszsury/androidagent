@@ -61,6 +61,7 @@ final class Attachments {
         if (name == null || name.isEmpty()) name = type != null && type.startsWith("image/") ? "photo.jpg" : "file";
         boolean photo = type != null && type.startsWith("image/") && !type.contains("gif") && !type.contains("svg");
         String base = name.replaceAll("[^A-Za-z0-9._-]", "_");
+        while(base.contains(".."))base=base.replace("..", "_");
         if (photo) base = base.replaceAll("\\.[A-Za-z0-9]{1,5}$", "") + ".jpg";
         if (base.length() > 60) base = base.substring(base.length() - 60);
         byte[] r = new byte[4];
@@ -86,6 +87,7 @@ final class Attachments {
     }
 
     private static boolean savePhoto(Context c, Uri uri, File out) {
+        Bitmap b = null;
         try {
             BitmapFactory.Options bounds = new BitmapFactory.Options();
             bounds.inJustDecodeBounds = true;
@@ -97,7 +99,6 @@ final class Attachments {
             while (Math.max(bounds.outWidth, bounds.outHeight) / (sample * 2) >= MAX_SIDE) sample *= 2;
             BitmapFactory.Options o = new BitmapFactory.Options();
             o.inSampleSize = sample;
-            Bitmap b;
             try (InputStream in = c.getContentResolver().openInputStream(uri)) {
                 b = BitmapFactory.decodeStream(in, null, o);
             }
@@ -119,13 +120,14 @@ final class Attachments {
                 b = t;
             }
             try (OutputStream os = new FileOutputStream(out)) {
-                b.compress(Bitmap.CompressFormat.JPEG, 88, os);
+                if(!b.compress(Bitmap.CompressFormat.JPEG, 88, os))throw new IOException("Could not encode photo");
             }
-            b.recycle();
             return true;
         } catch (Exception e) {
             out.delete();
             return false;
+        } finally {
+            if(b!=null&&!b.isRecycled())b.recycle();
         }
     }
 
@@ -140,13 +142,15 @@ final class Attachments {
 
     /** A small bitmap for previews. */
     static Bitmap thumb(Context c, String id, int px) {
+        if(px<=0)throw new IllegalArgumentException("Thumbnail size must be positive");
         File f = file(c, id);
         if (f == null || !f.exists()) return null;
         BitmapFactory.Options b = new BitmapFactory.Options();
         b.inJustDecodeBounds = true;
         BitmapFactory.decodeFile(f.getPath(), b);
         int s = 1;
-        while (Math.min(b.outWidth, b.outHeight) / (s * 2) >= px) s *= 2;
+        // Bound both axes; using the short edge decodes panoramas at full resolution.
+        while (Math.max(b.outWidth, b.outHeight) / (s * 2L) >= px) s *= 2;
         BitmapFactory.Options o = new BitmapFactory.Options();
         o.inSampleSize = s;
         return BitmapFactory.decodeFile(f.getPath(), o);

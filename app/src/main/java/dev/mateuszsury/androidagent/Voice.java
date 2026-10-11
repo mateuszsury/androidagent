@@ -26,6 +26,7 @@ final class Voice {
 
     private static SpeechRecognizer recognizer;
     private static Listener current;
+    private static long recognitionGeneration;
     private static TextToSpeech tts;
     private static boolean ttsReady;
     private static String pending;
@@ -48,16 +49,34 @@ final class Voice {
         stopListening();
         stopSpeaking();
         current = l;
-        recognizer = SpeechRecognizer.createSpeechRecognizer(c.getApplicationContext());
-        recognizer.setRecognitionListener(new RecognitionListener() {
+        long generation = ++recognitionGeneration;
+        try {
+            recognizer = SpeechRecognizer.createSpeechRecognizer(c.getApplicationContext());
+            recognizer.setRecognitionListener(recognitionListener(l, generation));
+            Intent i = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
+                    .putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+                    .putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
+                    .putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1);
+            recognizer.startListening(i);
+            return null;
+        } catch (RuntimeException e) {
+            finish();
+            return "Could not start speech recognition: " + e.getMessage();
+        }
+    }
+
+    private static RecognitionListener recognitionListener(final Listener l, final long generation) {
+        return new RecognitionListener() {
+            private boolean active() { return current == l && recognitionGeneration == generation; }
             @Override
             public void onPartialResults(Bundle b) {
                 String t = best(b);
-                if (t != null && current == l) l.onPartial(t);
+                if (t != null && active()) l.onPartial(t);
             }
 
             @Override
             public void onResults(Bundle b) {
+                if (!active()) return;
                 String t = best(b);
                 finish();
                 if (t != null && !t.trim().isEmpty()) l.onFinal(t.trim());
@@ -66,6 +85,7 @@ final class Voice {
 
             @Override
             public void onError(int error) {
+                if (!active()) return;
                 finish();
                 l.onEnd(error == SpeechRecognizer.ERROR_NO_MATCH || error == SpeechRecognizer.ERROR_SPEECH_TIMEOUT
                         ? "Didn't catch that." : error == SpeechRecognizer.ERROR_CLIENT ? null
@@ -78,13 +98,7 @@ final class Voice {
             @Override public void onBufferReceived(byte[] buf) {}
             @Override public void onEndOfSpeech() {}
             @Override public void onEvent(int type, Bundle b) {}
-        });
-        Intent i = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
-                .putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-                .putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
-                .putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1);
-        recognizer.startListening(i);
-        return null;
+        };
     }
 
     /** Stop listening now; whatever was heard so far is delivered as the final result. */
@@ -94,20 +108,26 @@ final class Voice {
 
     static void stopListening() {
         Listener l = current;
-        if (recognizer != null) recognizer.cancel();
+        // Android may deliver cancellation callbacks after the next session starts.
+        // Invalidate first, before cancel/destroy can trigger callbacks.
+        current = null;
+        ++recognitionGeneration;
+        if (recognizer != null) try { recognizer.cancel(); } catch (RuntimeException ignored) {}
         finish();
         if (l != null) l.onEnd(null);
     }
 
     private static void finish() {
         current = null;
+        ++recognitionGeneration;
         if (recognizer != null) {
-            recognizer.destroy();
+            try { recognizer.destroy(); } catch (RuntimeException ignored) {}
             recognizer = null;
         }
     }
 
     private static String best(Bundle b) {
+        if (b == null) return null;
         ArrayList<String> r = b.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
         return r == null || r.isEmpty() ? null : r.get(0);
     }
@@ -146,6 +166,7 @@ final class Voice {
     }
 
     static void stopSpeaking() {
+        pending = null;
         if (tts != null && ttsReady) tts.stop();
     }
 }

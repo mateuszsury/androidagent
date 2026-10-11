@@ -41,7 +41,7 @@ final class LocalShell {
     pidFile = File.createTempFile("shell-", ".pid", c.getCacheDir());
     ProcessBuilder pb =
         new ProcessBuilder(
-            "/system/bin/sh", "-c", "echo $$ > \"$ANDROIDAGENT_PID_FILE\"; " + command);
+            "/system/bin/sh", "-c", "trap 'wait' EXIT; echo $$ > \"$ANDROIDAGENT_PID_FILE\"; " + command);
     pb.environment().put("ANDROIDAGENT_PID_FILE", pidFile.getAbsolutePath());
     pb.directory(workspace(c));
     pb.redirectErrorStream(true);

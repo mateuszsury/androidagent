@@ -1,12 +1,14 @@
 # androidagent
 
-Natywna aplikacja Android do pracy z Codexem i Claude Code na telefonie: rozmowy, narzędzia telefonu i lokalne komendy. Wersja **0.4.0**, lokalny fork [Buddy](https://github.com/ghorbelhamdi/buddy-android), Apache-2.0. Niezależny projekt, niezwiązany z OpenAI ani Anthropic.
+Natywna aplikacja Android do pracy z Codexem i Claude Code na telefonie: rozmowy, narzędzia telefonu i lokalne komendy. Wersja **0.4.1**, lokalny fork [Buddy](https://github.com/ghorbelhamdi/buddy-android), Apache-2.0. Niezależny projekt, niezwiązany z OpenAI ani Anthropic.
+
+Zmiany stabilności i interfejsu: [przegląd 0.4.1](docs/REVIEW_0.4.1.md). Wyniki oraz zakres weryfikacji: [raport testów](docs/TESTING.md).
 
 ## Uruchomienie
 
-1. Zainstaluj `artifacts/androidagent-0.4.0.apk` na 64-bitowym Androidzie 11 lub nowszym (ARM64 albo x86_64).
+1. Zainstaluj `artifacts/androidagent-0.4.1.apk` na 64-bitowym Androidzie 11 lub nowszym (ARM64 albo x86_64).
 2. Panel **Sprawdź telefon** i **Uruchom komendę** działają od razu. `/status` w rozmowie również działa bez modelu.
-3. Dotknij selektora agenta u góry i wybierz **Codex** albo **Claude Code**. **Konfiguruj agentów** prowadzi przez Termux, usługę Accessibility, zgodę `RUN_COMMAND`, instalację pomocnika i wybranych klientów. Można zainstalować obu agentów.
+3. Dotknij selektora agenta u góry i wybierz **Codex** albo **Claude Code**. **Konfiguruj agentów** prowadzi przez Termux, zgodę `RUN_COMMAND`, instalację pomocnika i wybranych klientów. Accessibility jest opcjonalne i służy do sterowania ekranem. Można zainstalować obu agentów.
 4. Zaloguj się przez oficjalny klient: `~/bin/codex login --device-auth` lub `~/bin/claude auth login`. Dane logowania pozostają w Termux. Modele wymagają internetu.
 5. Wróć do androidagent i rozpocznij rozmowę. Sam USB/Docker może korzystać z opcji **Włącz dostęp agentów** w panelu USB; sterowanie ekranem wymaga Accessibility. W ustawieniach możesz włączyć tryb programisty i pływający przycisk. **Stop** odbiera agentowi sterowanie.
 
@@ -36,7 +38,7 @@ Moduł [USB](docs/USB.md) obejmuje bezpośredni UART/ESP, ADB do drugiego Androi
 | Termux / agenci | Zwykły tryb: powłoka Codexa wyłączona; Claude ma WebSearch/WebFetch/Read z dostępem do załączników oraz MCP telefonu. Tryb programisty: komendy i pliki dostępne dla UID Termux, z katalogiem startowym `~/.buddy/work` |
 | Docker | Oddzielny Linux VM i kontener z katalogiem wyłącznie swojego zadania; bez katalogów telefonu i kont agentów |
 | USB | Wybrane urządzenie po zgodzie Androida i przydziale do aktywnej rozmowy; osobne katalogi SAF z odczytem lub zapisem |
-| Shizuku | Opcja następnego etapu, nieimplementowana w 0.4.0 |
+| Shizuku | Opcja następnego etapu, nieimplementowana w 0.4.1 |
 | Model | Usługa zewnętrzna; lokalnie działają klienci Codex/Claude i narzędzia, nie wagi modelu |
 
 Nowe narzędzie MCP `run_command` wymaga trybu programisty i zatwierdzenia dokładnej komendy. Terminal otwierany przez użytkownika wykonuje komendę po naciśnięciu przycisku. Odziedziczone narzędzia gestów opierają zgodę na instrukcjach agenta; nie jest to twarda blokada wszystkich możliwych operacji w innych aplikacjach. Ekrany chronione, ekran blokady i ograniczenia Androida nie są obchodzone.
@@ -45,7 +47,7 @@ Codex w trybie programisty używa `--sandbox danger-full-access` wewnątrz Termu
 
 Claude Code w trybie programisty ma zatwierdzone narzędzia Bash/Read/Write/Edit/Glob/Grep/Skill/Agent i pokrewne narzędzia kodowania. Działają z uprawnieniami Termux, bez osobnej karty zgody na każdą operację. W zwykłym trybie narzędzia powłoki i zmiany plików są usunięte przez `--tools`. Pozostałe żądania uprawnień w trybie nieinteraktywnym są odrzucane; aplikacja nie wyłącza wszystkich kontroli uprawnień Claude. MCP `run_command` nadal wymaga osobnego zatwierdzenia.
 
-MCP słucha wyłącznie na `127.0.0.1:8766` i wymaga losowego tokenu instalacji. Upstream Buddy używa innego portu. Token nie jest zapisywany w repozytorium ani raportach testów. USB i Docker mogą korzystać z tego samego serwera bez Accessibility, po włączeniu dostępu agentów w panelu USB. Aktywne rozmowy mają osobne poświadczenia i przydziały urządzeń.
+MCP słucha wyłącznie na `127.0.0.1:8766` i wymaga losowego tokenu instalacji lub konkretnego przebiegu rozmowy. Upstream Buddy używa innego portu. Tokeny nie są zapisywane w repozytorium ani raportach testów. USB i Docker mogą korzystać z tego samego serwera bez Accessibility, po włączeniu dostępu agentów w panelu USB. Aktywne rozmowy mają osobne poświadczenia i przydziały urządzeń.
 
 ## Kompilacja bez Gradle
 
@@ -59,13 +61,13 @@ export JAVA_HOME=/ścieżka/do/jdk-21
 ./tools/build-local.sh
 ```
 
-Powstaje `artifacts/androidagent-0.4.0.apk`. Skrypt tworzy lokalny klucz deweloperski w `~/.androidagent-keys`; zachowaj go do instalowania aktualizacji. Kluczy nie dodajemy do Git. Alternatywna konfiguracja Android Studio/Gradle pochodzi z upstream; zweryfikowana ścieżka tej iteracji to `aapt2 → javac → d8 → apksigner`.
+Powstaje `artifacts/androidagent-0.4.1.apk`. Skrypt tworzy lokalny klucz deweloperski w `~/.androidagent-keys`; zachowaj go do instalowania aktualizacji. Kluczy nie dodajemy do Git. Alternatywna konfiguracja Android Studio/Gradle pochodzi z upstream; zweryfikowana ścieżka tej iteracji to `aapt2 → javac → d8 → apksigner`.
 
 ## Testy na urządzeniu / emulatorze
 
 ```sh
 export KEYSTORE="$HOME/.androidagent-keys/development.jks"
-adb install -r artifacts/androidagent-0.4.0.apk
+adb install -r artifacts/androidagent-0.4.1.apk
 ./tools/test-android.sh
 ```
 

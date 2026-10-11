@@ -13,31 +13,77 @@ final class McpHost implements McpServer.Handler {
     final Context app;
     private final Set<Object> owners=new HashSet<>();
     private final Map<String,String> runs=new HashMap<>();
+    private final Set<String> startingOwners=new HashSet<>(), closingOwners=new HashSet<>(), cancelledStarts=new HashSet<>();
+    private long controlGeneration;
     private McpServer server;
     private volatile long revokedUntil;
+    private volatile boolean stopping;
     private McpHost(Context c){app=c;}
     synchronized void acquire(Object owner){owners.add(owner);if(server==null){server=new McpServer(Prefs.token(app),this);server.start();}}
     synchronized void release(Object owner){owners.remove(owner);if(owners.isEmpty()&&runs.isEmpty()&&server!=null){server.stop();server=null;}}
-    synchronized String credential(String chat){revoke(chat);String token=UUID.randomUUID().toString()+UUID.randomUUID();runs.put(token,"chat:"+chat);UsbSessions.get(app).activate(chat);UsbStorage.get(app).activate(chat);acquire("chat:"+chat);return token;}
-    synchronized void revoke(String chat){String owner="chat:"+chat;runs.values().removeIf(owner::equals);UsbSessions.get(app).closeOwner(owner);release(owner);}
+    String credential(String chat){
+        String owner="chat:"+chat,token=UUID.randomUUID().toString()+UUID.randomUUID();
+        final long generation;
+        synchronized(this){requireReady(chat);startingOwners.add(owner);generation=controlGeneration;}
+        try{
+            UsbSessions.get(app).activate(chat);UsbStorage.get(app).activate(chat);
+            synchronized(this){requireReady();if(generation!=controlGeneration||cancelledStarts.contains(owner))throw new IllegalStateException("Start rozmowy anulowano przez Stop.");runs.put(token,owner);acquire(owner);}
+            return token;
+        }catch(RuntimeException e){revoke(chat);throw e;}
+        finally{synchronized(this){startingOwners.remove(owner);cancelledStarts.remove(owner);notifyAll();}}
+    }
+    void revoke(String chat){
+        String owner="chat:"+chat;boolean close;
+        synchronized(this){runs.values().removeIf(owner::equals);if(startingOwners.contains(owner))cancelledStarts.add(owner);release(owner);close=!stopping&&closingOwners.add(owner);}
+        if(close)new Thread(()->{
+            try{synchronized(this){while(startingOwners.contains(owner))try{wait();}catch(InterruptedException e){Thread.currentThread().interrupt();return;}}UsbSessions.get(app).closeOwner(owner);}
+            finally{synchronized(this){closingOwners.remove(owner);notifyAll();}}
+        },"androidagent-run-stop").start();
+    }
     @Override public synchronized String principal(String token){return runs.get(token);}
     synchronized boolean running(){return server!=null&&server.listening();}
-    String controlRevoked(){return SystemClock.elapsedRealtime()<revokedUntil?"The user pressed Stop. Control has been revoked.":null;}
+    boolean stopping(){return stopping;}
+    void requireReady(){if(stopping)throw new IllegalStateException("Trwa zatrzymywanie narzędzi. Spróbuj ponownie za chwilę.");}
+    synchronized void requireReady(String chat){requireReady();String owner="chat:"+chat;if(startingOwners.contains(owner)||closingOwners.contains(owner)||runs.containsValue(owner))throw new IllegalStateException("Poprzednie narzędzia tej rozmowy są jeszcze aktywne lub zatrzymywane. Spróbuj ponownie za chwilę.");}
+    private synchronized void requireActiveCaller(String caller){
+        if(!caller.startsWith("chat:"))return;
+        String credential=McpServer.credential();
+        // Native UI and direct test fixtures have no HTTP request credential.
+        // Authenticated requests must retain the exact run, not just its chat id.
+        boolean active=credential==null?runs.containsValue(caller):caller.equals(runs.get(credential));
+        if(!active)throw new SecurityException("This conversation's tool access has ended.");
+    }
+    void requireCaller(String caller){requireReady();if(!"panel".equals(caller)&&controlRevoked()!=null)throw new IllegalStateException(controlRevoked());requireActiveCaller(caller);}
+    String controlRevoked(){return stopping||SystemClock.elapsedRealtime()<revokedUntil?"The user pressed Stop. Control has been revoked.":null;}
     void allowControl(){revokedUntil=0;}
     void emergencyStop(){
         revokedUntil=SystemClock.elapsedRealtime()+60000;
-        synchronized(this){owners.removeAll(runs.values());runs.clear();}
-        UsbSessions.get(app).closeAll();UsbStorage.get(app).revokeAll();UsbJobs.get(app).cancelAll();DockerVm.get(app).emergencyStop();
-        new Handler(Looper.getMainLooper()).post(()->ChatHub.get(app).stopAll());
+        synchronized(this){if(stopping)return;stopping=true;++controlGeneration;owners.removeAll(runs.values());runs.clear();}
+        java.util.concurrent.CountDownLatch chatsStopped=new java.util.concurrent.CountDownLatch(1);
+        Runnable stopChats=()->{try{ChatHub.get(app).stopAll();BuddyService svc=BuddyService.get();if(svc!=null)svc.onControlStopped();}finally{chatsStopped.countDown();}};
+        if(Looper.myLooper()==Looper.getMainLooper())stopChats.run();else new Handler(Looper.getMainLooper()).post(stopChats);
+        new Thread(()->{
+            try{
+                try{chatsStopped.await();}catch(InterruptedException e){Thread.currentThread().interrupt();}
+                synchronized(this){while(!startingOwners.isEmpty())try{wait();}catch(InterruptedException e){Thread.currentThread().interrupt();break;}}
+                cleanup(()->{BuddyService svc=BuddyService.get();if(svc!=null)svc.cancelLocalCommands();});
+                cleanup(()->UsbJobs.get(app).cancelAll());
+                cleanup(()->UsbSessions.get(app).closeAll());
+                cleanup(()->UsbStorage.get(app).revokeAll());
+                cleanup(()->DockerVm.get(app).emergencyStop());
+            }finally{stopping=false;synchronized(this){if(owners.isEmpty()&&runs.isEmpty()&&server!=null){server.stop();server=null;}}}
+        },"androidagent-stop").start();
     }
+    private static void cleanup(Runnable action){try{action.run();}catch(RuntimeException e){android.util.Log.w("androidagentStop","Resource cleanup failed",e);}}
     @Override public JSONArray listTools()throws JSONException{
         JSONArray all=new Tools(BuddyService.get()).list();JSONArray usb=UsbTools.list();for(int i=0;i<usb.length();i++)all.put(usb.get(i));return all;
     }
     @Override public JSONObject callTool(String name,JSONObject a)throws Exception{
         if(controlRevoked()!=null&&!"notify".equals(name))throw new IllegalStateException(controlRevoked());
         String caller=McpServer.caller();
+        requireActiveCaller(caller);
         if(UsbTools.handles(name))return UsbTools.call(app,caller,name,a);
-        if(name.startsWith("docker_")){synchronized(UsbDocker.taskAccess){UsbSessions.get(app).authorizeTask(caller,a.optString("task"));return DockerTools.call(app,name,a);}}
+        if(name.startsWith("docker_")){synchronized(UsbDocker.taskAccess){requireCaller(caller);UsbSessions.get(app).authorizeTask(caller,a.optString("task"));return DockerTools.call(app,name,a);}}
         if("device_status".equals(name))return UsbTools.result(DeviceState.read(app));
         BuddyService svc=BuddyService.get();
         if(svc==null)throw new IllegalStateException("This screen-control tool needs Accessibility. USB and Docker work without it.");

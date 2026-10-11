@@ -1,6 +1,6 @@
 #!/data/data/com.termux/files/usr/bin/bash
 # Called by the Buddy app through Termux's RUN_COMMAND service.
-#   buddy-run <token> ask <session> <claude|codex> <dev:0|1> <message> [model] [attachment-ids]
+#   buddy-run <token> ask <session> <claude|codex> <dev:0|1> <message> [model] [attachment-ids] [mcp-token] [run-id]
 #                                    run the agent on the message in that session, streaming events to the bubble
 #   buddy-run <token> stop <session>       stop that session's running request
 #   buddy-run <token> delete <session>     forget that session
@@ -12,7 +12,7 @@
 #   buddy-run <token> adopt <session> <claude|codex> <agent-session-id>  continue that session as a Buddy chat
 #   buddy-run <token> handoff <session>    (run in a Termux tab) reopen a Buddy chat with remote control (that session only)
 # Every event sent to the bubble carries "buddy_session" so the app can route it.
-HELPER_VERSION=13
+HELPER_VERSION=14
 set -u
 export PATH=$HOME/bin:/data/data/com.termux/files/usr/bin:$PATH
 # The claude launcher sets BUN_OPTIONS with a path relative to its folder; never inherit a stale one.
@@ -30,6 +30,22 @@ post() { # post one JSON event to the bubble
 }
 have() { command -v "$1" >/dev/null 2>&1; }
 valid_sid() { [[ "$1" =~ ^[A-Za-z0-9_-]{1,64}$ ]]; }
+
+process_start() {
+  local stat
+  IFS= read -r stat < "/proc/$1/stat" 2>/dev/null || return 1
+  # comm is parenthesized and may contain spaces; starttime is field 20 after it.
+  stat=${stat##*) }
+  set -- $stat
+  [ "$#" -ge 20 ] && printf '%s' "${20}"
+}
+session_alive() {
+  local p started
+  p=$(cat "$1/pid" 2>/dev/null)
+  [[ "$p" =~ ^[0-9]+$ ]] && kill -0 "$p" 2>/dev/null || return 1
+  started=$(cat "$1/pid-start" 2>/dev/null)
+  [ -n "$started" ] && [ "$started" = "$(process_start "$p")" ]
+}
 
 # Kill a process and everything it started (claude/codex run a few levels below buddy-run).
 kill_tree() {
@@ -70,6 +86,7 @@ case "$CMD" in
     declare -A owner=()
     for f in "$D"/sessions/*/pid; do
       [ -f "$f" ] || continue
+      session_alive "$(dirname "$f")" || continue
       sid=$(basename "$(dirname "$f")")
       for q in $(descendants "$(cat "$f")"); do owner[$q]=$sid; done
     done
@@ -156,7 +173,7 @@ case "$CMD" in
     DEV=${4:-0}; MODEL=${5:-}
     CS=$(cat "$D/sessions/$SID/claude-session" 2>/dev/null)
     if [ -z "$CS" ]; then echo "This chat has no Claude Code conversation yet. Send it a message first."; read -r -t 15 _; exit 1; fi
-    if [ -f "$D/sessions/$SID/pid" ] && kill -0 "$(cat "$D/sessions/$SID/pid")" 2>/dev/null; then
+    if session_alive "$D/sessions/$SID"; then
       echo "This chat is still working in Buddy. Stop it there first."; read -r -t 15 _; exit 1
     fi
     echo "Opening this Buddy chat with Remote Control for this session only."
@@ -184,32 +201,75 @@ case "$CMD" in
     exit 0 ;;
   stop)
     SID=${3:-}; valid_sid "$SID" || exit 2
-    P=$D/sessions/$SID/pid
-    if [ -f "$P" ]; then
-      kill_tree "$(cat "$P")"
-      rm -f "$P"
-      jq -cn --arg s "$SID" '{type:"buddy_stopped",buddy_session:$s}' | post
+    RUN=${4:-}; [ -z "$RUN" ] || valid_sid "$RUN" || exit 2
+    S=$D/sessions/$SID
+    mkdir -p "$S"
+    # RUN_COMMAND delivery is asynchronous: cancellation can arrive before ask.
+    [ -z "$RUN" ] || : > "$S/cancel-$RUN"
+    active=$(cat "$S/run" 2>/dev/null)
+    if [ -z "$RUN" ] || [ "$RUN" = "$active" ]; then
+      if session_alive "$S"; then kill_tree "$(cat "$S/pid")"; fi
+      rm -f "$S/pid" "$S/pid-start" "$S/run"
+      rmdir "$S/run-lock" 2>/dev/null || true
     fi
+    jq -cn --arg s "$SID" --arg r "$RUN" '{type:"buddy_stopped",buddy_session:$s,buddy_run:$r}' | post
     exit 0 ;;
   delete)
     SID=${3:-}; valid_sid "$SID" || exit 2
     S=$D/sessions/$SID
-    [ -f "$S/pid" ] && kill_tree "$(cat "$S/pid")"
+    session_alive "$S" && kill_tree "$(cat "$S/pid")"
     rm -rf "${S:?}"
     exit 0 ;;
-  ask) SID=${3:-}; BACKEND=${4:-claude}; DEV=${5:-0}; MSG=${6:-}; MODEL=${7:-}; FILES=${8:-}; MCP_TOKEN=${9:-$TOKEN} ;;
+  ask) SID=${3:-}; BACKEND=${4:-claude}; DEV=${5:-0}; MSG=${6:-}; MODEL=${7:-}; FILES=${8:-}; MCP_TOKEN=${9:-$TOKEN}; RUN=${10:-} ;;
   *) echo "usage: buddy-run <token> ask|stop|delete|ping ..." >&2; exit 2 ;;
 esac
 
 valid_sid "$SID" || exit 2
+[ -z "$RUN" ] || valid_sid "$RUN" || exit 2
+case "$BACKEND" in claude|codex) ;; *) exit 2 ;; esac
 [ -z "$MSG" ] && exit 0
 S=$D/sessions/$SID
 mkdir -p "$S"
-event() { jq -cn --arg type "$1" --arg text "${2:-}" --arg s "$SID" '{type:$type,text:$text,buddy_session:$s}' | post; }
-tag() { jq -c --arg s "$SID" '. + {buddy_session:$s}' 2>/dev/null; }
+event() { jq -cn --arg type "$1" --arg text "${2:-}" --arg s "$SID" --arg r "$RUN" '{type:$type,text:$text,buddy_session:$s,buddy_run:$r}' | post; }
+tag() { jq -c --arg s "$SID" --arg r "$RUN" '. + {buddy_session:$s,buddy_run:$r}' 2>/dev/null; }
 
-if [ -f "$S/pid" ] && kill -0 "$(cat "$S/pid")" 2>/dev/null; then
-  event buddy_error "This session is still working. Tap Stop first, or start another session."
+if [ -n "$RUN" ] && [ -f "$S/cancel-$RUN" ]; then
+  rm -f "$S/cancel-$RUN"
+  event buddy_done
+  exit 0
+fi
+if ! mkdir "$S/run-lock" 2>/dev/null; then
+  # Reclaim only an abandoned lock; a newly created lock may not have its pid yet.
+  age=$(( $(date +%s) - $(stat -c %Y "$S/run-lock" 2>/dev/null || date +%s) ))
+  if ! session_alive "$S" && { [ -f "$S/pid" ] || [ "$age" -ge 30 ]; }; then
+    rmdir "$S/run-lock" 2>/dev/null || true
+    mkdir "$S/run-lock" 2>/dev/null || exit 1
+  else
+    event buddy_error "This session is still working. Tap Stop first, or start another session."
+    event buddy_done
+    exit 0
+  fi
+fi
+# Track the wrapper before downloads and CLI startup, so Stop also cancels preparation.
+printf '%s' "$$" > "$S/pid"
+process_start "$$" > "$S/pid-start"
+printf '%s' "$RUN" > "$S/run"
+finish_run() {
+  if [ "$(cat "$S/pid" 2>/dev/null)" = "$$" ]; then
+    rm -f "$S/pid" "$S/pid-start" "$S/run"
+    rmdir "$S/run-lock" 2>/dev/null || true
+  fi
+  [ -z "$RUN" ] || rm -f "$S/cancel-$RUN"
+  event buddy_done
+}
+trap finish_run EXIT
+if [ -n "$RUN" ] && [ -f "$S/cancel-$RUN" ]; then exit 0; fi
+event buddy_started
+# Prune old cancellation records; IDs are never reused by the app.
+find "$S" -maxdepth 1 -name 'cancel-*' -mtime +1 -delete 2>/dev/null || true
+
+if ! have "$BACKEND"; then
+  event buddy_error "The selected agent isn't installed in Termux."
   exit 0
 fi
 
@@ -303,11 +363,11 @@ run_codex() {
 
 # Translate Codex's JSONL events into the Claude Code stream format the bubble understands.
 stream_codex() {
-  while IFS= read -r line; do
+  while IFS= read -r line || [ -n "$line" ]; do
     [ -z "$line" ] && continue
     tid=$(printf '%s' "$line" | jq -r 'select(.type=="thread.started") | .thread_id // empty' 2>/dev/null)
     [ -n "$tid" ] && printf '%s' "$tid" > "$S/codex-thread"
-    printf '%s' "$line" | jq -c --arg s "$SID" '
+    printf '%s' "$line" | jq -c --arg s "$SID" --arg r "${RUN:-}" '
       (if .type == "item.started" and .item.type == "mcp_tool_call" then
         {type:"assistant", message:{content:[{type:"tool_use",
           name:("mcp__" + (.item.server // "phone") + "__" + (.item.tool // "")),
@@ -325,7 +385,7 @@ stream_codex() {
         {type:"result", subtype:"error", is_error:true, result:("Codex: " + (.error.message // "turn failed"))}
       elif .type == "error" then
         {type:"buddy_error", text:("Codex: " + (.message // "error"))}
-      else empty end) | . + {buddy_session:$s}' 2>/dev/null | while IFS= read -r ev; do printf '%s' "$ev" | post; done
+      else empty end) | . + {buddy_session:$s,buddy_run:$r}' 2>/dev/null | while IFS= read -r ev; do printf '%s' "$ev" | post; done
   done
 }
 
@@ -356,7 +416,4 @@ stream_codex() {
     event buddy_error "$name failed: $(tail -c 400 "$S/last-error.log")"
   fi
 ) &
-echo $! > "$S/pid"
 wait $! 2>/dev/null
-rm -f "$S/pid"
-event buddy_done

@@ -21,8 +21,9 @@ final class TermuxSetup {
                 + "echo 'Setting up the androidagent helper…'\n"
                 + "for p in jq curl; do command -v $p >/dev/null || pkg install -y $p; done\n"
                 + "mkdir -p \"$HOME/bin\" \"$HOME/.buddy/work\" \"$HOME/.termux\"\n"
-                + "echo '" + b64(asset(c, "termux/buddy-run")) + "' | base64 -d > \"$HOME/bin/buddy-run\"\n"
-                + "chmod 700 \"$HOME/bin/buddy-run\"\n"
+                + "HELPER_TMP=$(mktemp \"$HOME/bin/.buddy-run.XXXXXX\")\n"
+                + "echo '" + b64(asset(c, "termux/buddy-run")) + "' | base64 -d > \"$HELPER_TMP\"\n"
+                + "chmod 700 \"$HELPER_TMP\"; mv \"$HELPER_TMP\" \"$HOME/bin/buddy-run\"\n"
                 + "echo '" + b64(asset(c, "termux/system-prompt.md")) + "' | base64 -d > \"$HOME/.buddy/system-prompt.md\"\n"
                 + "SK=\"$HOME/.buddy/work/.claude/skills/android-app\"; mkdir -p \"$SK\"\n"
                 + "echo '" + b64(asset(c, "termux/android-app/SKILL.md")) + "' | base64 -d > \"$SK/SKILL.md\"\n"
@@ -44,8 +45,9 @@ final class TermuxSetup {
         String script = "set -e\n"
                 + "echo '" + b64(asset(c, "termux/install-claude")) + "' | base64 -d | bash\n"
                 + "mkdir -p \"$HOME/bin\"\n"
-                + "echo '" + b64(asset(c, "termux/claude")) + "' | base64 -d > \"$HOME/bin/claude\"\n"
-                + "chmod 700 \"$HOME/bin/claude\"\n"
+                + "LAUNCHER_TMP=$(mktemp \"$HOME/bin/.claude.XXXXXX\")\n"
+                + "echo '" + b64(asset(c, "termux/claude")) + "' | base64 -d > \"$LAUNCHER_TMP\"\n"
+                + "chmod 700 \"$LAUNCHER_TMP\"; mv \"$LAUNCHER_TMP\" \"$HOME/bin/claude\"\n"
                 + "grep -q 'HOME/bin' \"$HOME/.bashrc\" 2>/dev/null || echo 'export PATH=$HOME/bin:$PATH' >> \"$HOME/.bashrc\"\n"
                 + "~/bin/claude --version\n";
         return "echo '" + b64(script.getBytes(StandardCharsets.UTF_8))
@@ -63,8 +65,9 @@ final class TermuxSetup {
                 + "pkg install -y nodejs-lts npm proot\n"
                 + "npm install -g --os=linux @openai/codex@0.162.1\n"
                 + "mkdir -p \"$HOME/bin\"\n"
-                + "echo '" + b64(asset(c, "termux/codex")) + "' | base64 -d > \"$HOME/bin/codex\"\n"
-                + "chmod 700 \"$HOME/bin/codex\"\n"
+                + "LAUNCHER_TMP=$(mktemp \"$HOME/bin/.codex.XXXXXX\")\n"
+                + "echo '" + b64(asset(c, "termux/codex")) + "' | base64 -d > \"$LAUNCHER_TMP\"\n"
+                + "chmod 700 \"$LAUNCHER_TMP\"; mv \"$LAUNCHER_TMP\" \"$HOME/bin/codex\"\n"
                 + "grep -q 'HOME/bin' \"$HOME/.bashrc\" 2>/dev/null || echo 'export PATH=$HOME/bin:$PATH' >> \"$HOME/.bashrc\"\n"
                 + "echo 'Codex installed. Sign in with your ChatGPT account next.'\n";
         return "echo '" + b64(script.getBytes(StandardCharsets.UTF_8)) + "' | base64 -d | bash && ~/bin/codex login --device-auth";

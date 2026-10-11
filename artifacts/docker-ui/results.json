@@ -1,7 +1,27 @@
 {
-  "version": "0.4.0",
-  "run_id": "80022527-ae80-48ff-8f94-8a319517e9e3",
+  "version": "0.4.1",
+  "run_id": "1bd57f27-64f2-4276-b05b-251e241656ad",
   "tests": [
+    {
+      "name": "Docker cancel: malformed task cannot close unrelated USB leases",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "UART Docker: cannot attach a second caller to an owned task",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "UART Docker: failed attachment closes its generation before retry (HTTP fixture)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "UART Docker: Stop stays responsive and late attachment is rolled back (HTTP fixture)",
+      "pass": true,
+      "detail": ""
+    },
     {
       "name": "UI: readable memory selector in light theme",
       "pass": true,

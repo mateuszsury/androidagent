@@ -93,11 +93,15 @@ public class BuddyService extends AccessibilityService implements McpServer.Hand
 
     @Override
     public void onDestroy() {
+        main.removeCallbacksAndMessages(null);
         try {
             unregisterReceiver(lockReceiver);
         } catch (Exception ignored) {
         }
-        if (tools != null) tools.cancelLocalCommands();
+        if (tools != null) {
+            Tools oldTools = tools;
+            new Thread(()->{oldTools.cancelLocalCommands();oldTools.clearNodes();}, "androidagent-service-stop").start();
+        }
         McpHost.get(this).release(this);
         if (bubble != null) bubble.remove();
         if (control != null) control.end();
@@ -212,6 +216,7 @@ public class BuddyService extends AccessibilityService implements McpServer.Hand
 
     void onToolActivity(final String tool) {
         main.post(() -> {
+            if(instance!=this)return;
             bubble.onToolActivity(tool);
             // asking for approval or posting a note isn't operating the phone
             if (!"confirm".equals(tool) && !"notify".equals(tool)) control.onActivity();
@@ -232,11 +237,14 @@ public class BuddyService extends AccessibilityService implements McpServer.Hand
     void takeBackControl() {
         main.post(() -> {
             McpHost.get(this).emergencyStop();
-            if (tools != null) tools.cancelCommands();
-            ChatHub.get(this).stopAll();
-            control.end();
             android.widget.Toast.makeText(this, "Stopped. Your phone is yours again.", android.widget.Toast.LENGTH_SHORT).show();
         });
+    }
+
+    void cancelLocalCommands() { if(tools!=null)tools.cancelLocalCommands(); }
+    void onControlStopped() {
+        if(bubble!=null)bubble.cancelConfirm();
+        if(control!=null)control.end();
     }
 
     /** Short vibration to get the user's attention (e.g. "tap Update"). */
@@ -249,14 +257,13 @@ public class BuddyService extends AccessibilityService implements McpServer.Hand
     }
 
     void showStatus(final String text) {
-        main.post(() -> bubble.setStatus(text));
+        main.post(() -> {if(instance==this)bubble.setStatus(text);});
     }
 
     void setBubblePassThrough(final boolean on) {
         final CountDownLatch done = new CountDownLatch(1);
         main.post(() -> {
-            bubble.setPassThrough(on);
-            done.countDown();
+            try{if(instance==this)bubble.setPassThrough(on);}finally{done.countDown();}
         });
         try {
             done.await(1, TimeUnit.SECONDS);
@@ -269,13 +276,16 @@ public class BuddyService extends AccessibilityService implements McpServer.Hand
     String askConfirm(final String summary) throws InterruptedException {
         final CountDownLatch done = new CountDownLatch(1);
         final AtomicReference<Boolean> answer = new AtomicReference<>();
-        main.post(() -> bubble.askConfirm(summary, approved -> {
+        final Bubble.ConfirmCallback callback = approved -> {
             answer.set(approved);
             done.countDown();
-        }));
-        if (!done.await(5, TimeUnit.MINUTES)) {
-            main.post(() -> bubble.cancelConfirm());
-            return "DENIED: the user did not answer within 5 minutes. Do not do it.";
+        };
+        main.post(() -> {if(instance!=this||bubble==null||controlRevoked()!=null)callback.onAnswer(false);else bubble.askConfirm(summary,callback);});
+        try {
+            if (!done.await(5, TimeUnit.MINUTES))
+                return "DENIED: the user did not answer within 5 minutes. Do not do it.";
+        } finally {
+            main.post(() -> {if(bubble!=null)bubble.cancelConfirm(callback);});
         }
         return Boolean.TRUE.equals(answer.get())
                 ? "APPROVED by the user. Go ahead."

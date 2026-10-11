@@ -41,6 +41,12 @@ public class ChatActivity extends Screen implements ChatHub.Listener {
     private android.widget.HorizontalScrollView trayScroll;
     private LinearLayout tray;
     private static final int REQ_CAMERA = 21, REQ_PHOTOS = 22, REQ_FILES = 23;
+    private boolean firstResume = true;
+    private final java.util.concurrent.ThreadPoolExecutor thumbnails = new java.util.concurrent.ThreadPoolExecutor(
+            2, 2, 0L, java.util.concurrent.TimeUnit.MILLISECONDS,
+            new java.util.concurrent.ArrayBlockingQueue<>(256),
+            runnable -> new Thread(runnable, "chat-thumbnail"),
+            new java.util.concurrent.ThreadPoolExecutor.DiscardPolicy());
 
     @Override
     protected void onCreate(Bundle state) {
@@ -206,7 +212,6 @@ public class ChatActivity extends Screen implements ChatHub.Listener {
             hint.setPadding(dp(this, 16), dp(this, 100), dp(this, 16), 0);
             messages.addView(hint, full());
         }
-        for (Sessions.Msg m : ses.messages) show(m);
         if (state != null) {
             input.setText(state.getString("draft_text", ""));
             java.util.ArrayList<String> restored = state.getStringArrayList("draft_files");
@@ -228,7 +233,11 @@ public class ChatActivity extends Screen implements ChatHub.Listener {
     protected void onResume() {
         super.onResume();
         if (ses == null || isFinishing()) return;
+        final int previousY = scroll.getScrollY();
+        boolean follow = firstResume || nearEnd();
         if (!ses.messages.isEmpty()) {
+            thumbnails.getQueue().clear();
+            removeStreaming();
             messages.removeAllViews();
             log = null;
             for (Sessions.Msg m : ses.messages) show(m);
@@ -238,7 +247,9 @@ public class ChatActivity extends Screen implements ChatHub.Listener {
         hub.select(ses);
         hub.setForegroundChat(ses, true);
         refresh();
-        scrollToEnd();
+        if (follow) scrollToEnd();
+        else scroll.post(() -> scroll.scrollTo(0, previousY));
+        firstResume = false;
     }
 
     @Override
@@ -250,6 +261,11 @@ public class ChatActivity extends Screen implements ChatHub.Listener {
             hub.removeListener(this);
         }
         super.onPause();
+    }
+
+    @Override protected void onDestroy() {
+        thumbnails.shutdownNow();
+        super.onDestroy();
     }
 
     @Override protected void onSaveInstanceState(Bundle out) {
@@ -281,6 +297,7 @@ public class ChatActivity extends Screen implements ChatHub.Listener {
         input.setText("");
         pending.clear();
         renderTray();
+        scrollToEnd();
     }
 
     @Override
@@ -295,10 +312,11 @@ public class ChatActivity extends Screen implements ChatHub.Listener {
     @Override
     public void onMessage(Sessions.Session s, Sessions.Msg msg) {
         if (s == ses) {
+            boolean follow = nearEnd();
             removeStreaming();
             if (ses.messages.size() == 1) messages.removeAllViews(); // drop the empty-chat hint
             show(msg);
-            scrollToEnd();
+            if (follow) scrollToEnd();
         }
     }
 
@@ -462,17 +480,21 @@ public class ChatActivity extends Screen implements ChatHub.Listener {
         boolean speak = Prefs.speakReplies(this);
         speaker.setImageResource(speak ? R.drawable.ms_volume_up : R.drawable.ms_volume_off);
         speaker.setImageTintList(ColorStateList.valueOf(speak ? ACCENT : MUTED));
-        title.setText(ses.label());
-        chipText.setText(ses.brainName() + " · " + Models.label(ses.backend, ses.model)
+        setChanged(title, ses.label());
+        setChanged(chipText, ses.brainName() + " · " + Models.label(ses.backend, ses.model)
                 + (Prefs.devMode(this) ? " · dev" : ""));
         strip.setVisibility(ses.running ? View.VISIBLE : View.GONE);
-        stripText.setText(ses.status.isEmpty() ? "Pracuję…" : ses.status);
+        setChanged(stripText, ses.status.isEmpty() ? "Pracuję…" : ses.status);
         if (log != null) {
             if (ses.running) log.setLive(true);
             else log.finish();
         }
         renderApproval();
         renderStreaming();
+    }
+
+    private static void setChanged(TextView view, String value) {
+        if (!value.contentEquals(view.getText())) view.setText(value);
     }
 
     private void removeStreaming() {
@@ -493,8 +515,11 @@ public class ChatActivity extends Screen implements ChatHub.Listener {
             streamingText.setPadding(0, dp(this, 20), 0, 0);
             messages.addView(streamingText, full());
         }
-        streamingText.setText(ses.streamText);
-        scrollToEnd();
+        if (!ses.streamText.contentEquals(streamingText.getText())) {
+            boolean follow = nearEnd();
+            streamingText.setText(ses.streamText);
+            if (follow) scrollToEnd();
+        }
     }
 
     private String shownApproval;
@@ -675,7 +700,7 @@ public class ChatActivity extends Screen implements ChatHub.Listener {
             }
             final String error = err;
             runOnUiThread(() -> {
-                if (isFinishing()) return;
+                if (isFinishing() || isDestroyed()) return;
                 pending.addAll(ids);
                 renderTray();
                 if (error != null) Toast.makeText(this, error, Toast.LENGTH_LONG).show();
@@ -716,9 +741,8 @@ public class ChatActivity extends Screen implements ChatHub.Listener {
         if (Attachments.isImage(id)) {
             ImageView iv = new ImageView(this);
             int side = dp(this, inThread ? 180 : 64);
-            android.graphics.Bitmap b = Attachments.thumb(this, id, side);
-            if (b != null) iv.setImageBitmap(b);
-            else iv.setBackground(rounded(this, CARD2, 14));
+            iv.setBackground(rounded(this, CARD2, 14));
+            iv.setContentDescription(Attachments.name(id));
             iv.setScaleType(ImageView.ScaleType.CENTER_CROP);
             iv.setClipToOutline(true);
             iv.setOutlineProvider(new android.view.ViewOutlineProvider() {
@@ -727,9 +751,15 @@ public class ChatActivity extends Screen implements ChatHub.Listener {
                     o.setRoundRect(0, 0, view.getWidth(), view.getHeight(), dp(ChatActivity.this, inThread ? 18 : 14));
                 }
             });
-            int h = side;
-            if (inThread && b != null && b.getWidth() > 0) h = Math.min(dp(this, 240), side * b.getHeight() / b.getWidth());
-            iv.setLayoutParams(new LinearLayout.LayoutParams(side, h));
+            iv.setLayoutParams(new LinearLayout.LayoutParams(side, side));
+            thumbnails.execute(() -> {
+                android.graphics.Bitmap bitmap = Attachments.thumb(getApplicationContext(), id, side);
+                if (bitmap == null) return;
+                runOnUiThread(() -> {
+                    if (isDestroyed() || iv.getParent() == null) { bitmap.recycle(); return; }
+                    iv.setImageBitmap(bitmap);
+                });
+            });
             v = iv;
         } else {
             LinearLayout chip = row(this);
@@ -822,6 +852,10 @@ public class ChatActivity extends Screen implements ChatHub.Listener {
 
     private void scrollToEnd() {
         scroll.post(() -> scroll.fullScroll(View.FOCUS_DOWN));
+    }
+
+    private boolean nearEnd() {
+        return messages.getHeight() - scroll.getScrollY() - scroll.getHeight() <= dp(this, 96);
     }
 
     /** Consecutive tool steps, grouped into one collapsible log. */
