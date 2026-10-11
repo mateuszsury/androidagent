@@ -17,11 +17,12 @@ RUN_ID=$(python3 -c 'import uuid; print(uuid.uuid4())')
 "$ADB" wait-for-device
 "$ADB" shell rm -rf /sdcard/Download/androidagent-usb-tests
 "$ADB" shell am instrument -w -e run_id "$RUN_ID" dev.mateuszsury.androidagent.tests/dev.mateuszsury.androidagent.UsbRuntimeTests
-mkdir -p artifacts/usb
-"$ADB" pull /sdcard/Download/androidagent-usb-tests/. artifacts/usb/
-python3 - "$RUN_ID" <<'PY'
-import json,sys
-r=json.load(open('artifacts/usb/results.json'))
+DEST="${ANDROIDAGENT_USB_EVIDENCE_DIR:-artifacts/usb}"
+mkdir -p "$DEST"
+"$ADB" pull /sdcard/Download/androidagent-usb-tests/. "$DEST/"
+python3 - "$RUN_ID" "$DEST" <<'PY'
+import json,pathlib,sys
+r=json.loads((pathlib.Path(sys.argv[2])/'results.json').read_text())
 assert r['run_id']==sys.argv[1], 'Stale USB evidence'
 print(f"{len(r['tests'])} USB checks, {r['failures']} failures")
 raise SystemExit(bool(r['failures']))
