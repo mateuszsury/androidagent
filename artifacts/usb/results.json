@@ -1,6 +1,6 @@
 {
-  "version": "0.4.1",
-  "run_id": "92d42fd1-2993-414f-8855-b1c4d4c3fd00",
+  "version": "0.4.2",
+  "run_id": "ca4e62d8-cf50-426f-8c8c-38009fdfb460",
   "api": 30,
   "environment": "Android emulator; synthetic UART\/SAF fixtures and real local adbd; physical OTG unavailable",
   "tests": [
@@ -21,6 +21,11 @@
     },
     {
       "name": "USB: empty bus, agent cannot mint leases or request permission",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "USB broadcasts: blocked hardware cleanup does not block the main thread",
       "pass": true,
       "detail": ""
     },
@@ -131,6 +136,16 @@
     },
     {
       "name": "ADB: corrupted legacy CNXN checksum is rejected",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "ADB legacy: transport disconnect cannot masquerade as command completion",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "ADB legacy: explicit CLSE completes normally even if transport then closes",
       "pass": true,
       "detail": ""
     },

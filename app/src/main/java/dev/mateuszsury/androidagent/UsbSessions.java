@@ -15,7 +15,7 @@ final class UsbSessions {
     private static final java.util.concurrent.atomic.AtomicLong GENERATIONS=new java.util.concurrent.atomic.AtomicLong();
     private static UsbSessions instance;
     static synchronized UsbSessions get(Context c){if(instance==null)instance=new UsbSessions(c.getApplicationContext());return instance;}
-    final Context app;final UsbManager manager;
+    final Context app;final UsbManager manager;final android.os.HandlerThread events;
     final Map<String,Device> devices=new LinkedHashMap<>();final Map<String,Session> sessions=new LinkedHashMap<>();
     static final class Device{final String id=UUID.randomUUID().toString();final UsbDevice usb;Device(UsbDevice d){usb=d;}}
     static final class Session implements Closeable {
@@ -25,7 +25,12 @@ final class UsbSessions {
         synchronized JSONObject json()throws JSONException{return new JSONObject().put("id",id).put("device",device).put("profile",profile).put("owner",owner).put("task",task).put("connected",!closed&&(serial==null||!serial.closed)&&(adb==null||!adb.closed)&&(redirection==0||"active".equals(UsbNative.state(redirection)))).put("rx",serial==null?0:serial.received.end()).put("tx",serial==null?0:serial.tx).put("error",serial==null?"":serial.error);}
         @Override public synchronized void close(){closed=true;UsbSerialBridge.revoke(this);if(serial!=null)serial.close();if(adb!=null)adb.close();if(redirection!=0){UsbNative.stop(redirection);redirection=0;}if(connection!=null)connection.close();}
     }
-    private UsbSessions(Context c){app=c;manager=c.getSystemService(UsbManager.class);IntentFilter f=new IntentFilter(UsbManager.ACTION_USB_DEVICE_DETACHED);f.addAction(PERMISSION);BroadcastReceiver receiver=new BroadcastReceiver(){public void onReceive(Context c,Intent i){synchronized(UsbSessions.this){if(UsbManager.ACTION_USB_DEVICE_DETACHED.equals(i.getAction())){UsbDevice d=i.getParcelableExtra(UsbManager.EXTRA_DEVICE);if(d!=null){for(Device entry:new ArrayList<>(devices.values()))if(entry.usb.getDeviceName().equals(d.getDeviceName())){closeDevice(entry.id);devices.remove(entry.id);}}}refresh();}}};if(Build.VERSION.SDK_INT>=33)c.registerReceiver(receiver,f,Context.RECEIVER_NOT_EXPORTED);else c.registerReceiver(receiver,f);}
+    private UsbSessions(Context c){app=c;manager=c.getSystemService(UsbManager.class);IntentFilter f=new IntentFilter(UsbManager.ACTION_USB_DEVICE_DETACHED);f.addAction(PERMISSION);BroadcastReceiver receiver=new BroadcastReceiver(){public void onReceive(Context c,Intent i){synchronized(UsbSessions.this){if(UsbManager.ACTION_USB_DEVICE_DETACHED.equals(i.getAction())){UsbDevice d=i.getParcelableExtra(UsbManager.EXTRA_DEVICE);if(d!=null){for(Device entry:new ArrayList<>(devices.values()))if(entry.usb.getDeviceName().equals(d.getDeviceName())){closeDevice(entry.id);devices.remove(entry.id);}}}refresh();}}};
+        // The singleton and receiver live for the app process. Keep detach cleanup off
+        // the UI thread even while an in-flight USB write owns the transport lock.
+        events=new android.os.HandlerThread("androidagent-usb-events");events.start();android.os.Handler handler=new android.os.Handler(events.getLooper());
+        try{if(Build.VERSION.SDK_INT>=33)c.registerReceiver(receiver,f,null,handler,Context.RECEIVER_NOT_EXPORTED);else c.registerReceiver(receiver,f,null,handler);}catch(RuntimeException e){events.quitSafely();throw e;}
+    }
     synchronized void refresh(){Map<String,UsbDevice> current=manager.getDeviceList();for(Device d:new ArrayList<>(devices.values()))if(!current.containsKey(d.usb.getDeviceName())){closeDevice(d.id);devices.remove(d.id);}for(UsbDevice d:current.values())if(devices.values().stream().noneMatch(x->x.usb.getDeviceName().equals(d.getDeviceName()))) {Device entry=new Device(d);devices.put(entry.id,entry);}}
     synchronized Device device(String id){refresh();Device d=devices.get(id);if(d==null)throw new IllegalArgumentException("Device disconnected or invalid generation");return d;}
     synchronized JSONArray list()throws JSONException{

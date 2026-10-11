@@ -1,6 +1,6 @@
 {
-  "version": "0.4.1",
-  "run_id": "1bd57f27-64f2-4276-b05b-251e241656ad",
+  "version": "0.4.2",
+  "run_id": "b3acaef9-af3e-40a7-b572-067aef01333b",
   "tests": [
     {
       "name": "Docker cancel: malformed task cannot close unrelated USB leases",

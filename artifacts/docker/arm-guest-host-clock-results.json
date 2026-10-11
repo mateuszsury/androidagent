@@ -56,14 +56,14 @@
     }
   ],
   "failures": 0,
-  "version": "0.4.0",
+  "version": "0.4.2",
   "clock_mode": "host",
   "icount_shift": null,
   "guest_manifest": {
     "version": 1,
     "disk_gb": 8,
     "files": {
-      "base.qcow2.gz": "a22b5069e5b76e8b345a060f2cdd8a094b2a52826cc29f791689d719a5406111",
+      "base.qcow2.gz": "7399ae1c32e046f67bc5bc1de6ff2b71af4ed1329eefe3600396ab6bc67821d4",
       "vmlinuz-virt": "0431ad6e5e0296080add279573c773287b55427bf3ec94fbc2c9f985d0b79966",
       "initramfs-virt": "947384afeab8c7622d144e1b400d81b3a18b5353252ab38f45dd982fefd45d27"
     }

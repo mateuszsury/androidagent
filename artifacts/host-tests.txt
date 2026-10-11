@@ -44,9 +44,18 @@ test_text_upload_limit_is_enforced (test_docker_guest.GuestBoundaryTests.test_te
 test_traversal_cannot_overwrite_neighbor (test_docker_guest.GuestBoundaryTests.test_traversal_cannot_overwrite_neighbor) ... ok
 test_unknown_task_and_job_are_rejected (test_docker_guest.GuestBoundaryTests.test_unknown_task_and_job_are_rejected) ... ok
 test_usb_grant_only_maps_selected_char_device (test_docker_guest.GuestBoundaryTests.test_usb_grant_only_maps_selected_char_device) ... ok
+test_attachment_replaces_directory_symlink_without_writing_through_it (test_helper_lifecycle.HelperLifecycleTests.test_attachment_replaces_directory_symlink_without_writing_through_it) ... ok
+test_attachment_target_directory_is_rejected_without_starting_cli (test_helper_lifecycle.HelperLifecycleTests.test_attachment_target_directory_is_rejected_without_starting_cli) ... ok
 test_duplicate_run_finishes_with_error_without_starting_second_cli (test_helper_lifecycle.HelperLifecycleTests.test_duplicate_run_finishes_with_error_without_starting_second_cli) ... ok
 test_every_callback_is_correlated_and_state_is_cleaned (test_helper_lifecycle.HelperLifecycleTests.test_every_callback_is_correlated_and_state_is_cleaned) ... ok
+test_failed_attachment_does_not_start_agent_or_expose_partial_file (test_helper_lifecycle.HelperLifecycleTests.test_failed_attachment_does_not_start_agent_or_expose_partial_file) ... ok
+test_failed_attachment_preserves_previous_completed_copy (test_helper_lifecycle.HelperLifecycleTests.test_failed_attachment_preserves_previous_completed_copy) ... ok
+test_failed_claude_resume_preserves_conversation_identity (test_helper_lifecycle.HelperLifecycleTests.test_failed_claude_resume_preserves_conversation_identity) ... ok
+test_invalid_attachment_identifier_is_reported_without_launch (test_helper_lifecycle.HelperLifecycleTests.test_invalid_attachment_identifier_is_reported_without_launch) ... ok
 test_late_stop_for_old_run_cannot_kill_new_run (test_helper_lifecycle.HelperLifecycleTests.test_late_stop_for_old_run_cannot_kill_new_run) ... ok
+test_leading_dash_filename_is_downloaded_as_a_literal_name (test_helper_lifecycle.HelperLifecycleTests.test_leading_dash_filename_is_downloaded_as_a_literal_name) ... ok
+test_model_not_found_does_not_delete_resume_state_or_retry (test_helper_lifecycle.HelperLifecycleTests.test_model_not_found_does_not_delete_resume_state_or_retry) ... ok
+test_nonzero_cli_exit_without_stderr_is_reported (test_helper_lifecycle.HelperLifecycleTests.test_nonzero_cli_exit_without_stderr_is_reported) ... ok
 test_stop_cancels_attachment_download_before_cli_starts (test_helper_lifecycle.HelperLifecycleTests.test_stop_cancels_attachment_download_before_cli_starts) ... ok
 test_stop_delivered_before_ask_prevents_launch (test_helper_lifecycle.HelperLifecycleTests.test_stop_delivered_before_ask_prevents_launch) ... ok
 test_baud_dtr_rts_break_follow_pyserial_properties (test_serial_bridge.PyserialBridgeTests.test_baud_dtr_rts_break_follow_pyserial_properties) ... ok
@@ -55,6 +64,6 @@ test_close_and_non_qemu_host_rejected (test_serial_bridge.PyserialBridgeTests.te
 test_reset_input_discards_previous_bytes_without_resetting_target (test_serial_bridge.PyserialBridgeTests.test_reset_input_discards_previous_bytes_without_resetting_target) ... ok
 
 ----------------------------------------------------------------------
-Ran 55 tests in 3.973s
+Ran 64 tests in 7.774s
 
 OK

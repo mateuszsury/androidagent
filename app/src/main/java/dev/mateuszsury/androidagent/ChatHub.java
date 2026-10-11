@@ -19,12 +19,17 @@ final class ChatHub {
         void onMessage(Sessions.Session ses, Sessions.Msg msg);
     }
 
+    interface CommandRunner {
+        void run(String... args);
+    }
+
     private static final long NO_RESPONSE_MS = 30000;
     private static final String TOOL_PREFIX = "mcp__phone__";
     private static ChatHub instance;
 
     final Sessions sessions;
     private final Context app;
+    private final CommandRunner commands;
     private final Handler main = new Handler(Looper.getMainLooper());
     private final List<Listener> listeners = new ArrayList<>();
     private final List<Sessions.Session> viewing = new ArrayList<>();
@@ -46,9 +51,11 @@ final class ChatHub {
         Sessions.Session s = sessions.create(backend);
         s.title = title == null ? "" : title;
         try {
-            Termux.run(app, "adopt", s.id, backend, agentSessionId);
+            commands.run("adopt", s.id, backend, agentSessionId);
         } catch (Exception e) {
             add(s, Bubble.Kind.ERROR, e.getMessage());
+            changed();
+            return s;
         }
         add(s, Bubble.Kind.STEP, "Continuing an earlier " + s.brainName() + " session. If it's still open in a terminal, close it there first.");
         changed();
@@ -61,7 +68,12 @@ final class ChatHub {
     }
 
     private ChatHub(Context app) {
+        this(app, args -> Termux.run(app, args));
+    }
+
+    ChatHub(Context app, CommandRunner commands) {
         this.app = app;
+        this.commands = commands;
         sessions = new Sessions(app);
         sessions.onEvicted = this::releaseSession;
     }
@@ -115,7 +127,7 @@ final class ChatHub {
         McpHost.get(app).revoke(s.id);
         UsbSessions.get(app).closeOwner("pending:"+s.id);
         try {
-            Termux.run(app, "delete", s.id);
+            commands.run("delete", s.id);
         } catch (Exception ignored) {
         }
         viewing.remove(s);
@@ -149,7 +161,7 @@ final class ChatHub {
         // an HTTP request in flight when the next request in the same chat begins.
         ses.callbackRun = java.util.UUID.randomUUID().toString();
         try {
-            Termux.run(app, "ask", ses.id, ses.backend, Prefs.devMode(app) ? "1" : "0", forAgent, ses.model,
+            commands.run("ask", ses.id, ses.backend, Prefs.devMode(app) ? "1" : "0", forAgent, ses.model,
                     hasFiles ? android.text.TextUtils.join(",", files) : "", McpHost.get(app).credential(ses.id), ses.callbackRun);
         } catch (Exception e) {
             McpHost.get(app).revoke(ses.id);
@@ -187,17 +199,18 @@ final class ChatHub {
     void stop(Sessions.Session ses) {
         McpHost.get(app).revoke(ses.id);
         if (!ses.running) return;
+        String deliveryError = null;
         try {
-            Termux.run(app, "stop", ses.id, ses.callbackRun);
+            commands.run("stop", ses.id, ses.callbackRun);
         } catch (Exception e) {
-            add(ses, Bubble.Kind.ERROR, e.getMessage());
-            changed();
-            return;
+            deliveryError = e.getMessage() == null ? e.toString() : e.getMessage();
         }
         flushStream(ses);
         ses.running = false;
         ses.status = "";
-        add(ses, Bubble.Kind.STEP, "Stopped.");
+        if (deliveryError == null) add(ses, Bubble.Kind.STEP, "Stopped.");
+        else add(ses, Bubble.Kind.ERROR, "Phone tool access ended, but the Stop command could not reach Termux: "
+                + deliveryError + " Check Termux for any process still running.");
         changed();
     }
 
@@ -315,6 +328,17 @@ final class ChatHub {
             case "buddy_error":
                 flushStream(ses);
                 add(ses, Bubble.Kind.ERROR, ev.optString("text", "Something went wrong."));
+                String activeRun = ev.optString("active_run");
+                if (activeRun.matches("[A-Za-z0-9_-]{1,64}") && !activeRun.equals(ses.callbackRun)) {
+                    // The app process may have restarted while its Termux helper survived.
+                    // Cancel that exact old run; its late callbacks cannot finish this one.
+                    try {
+                        commands.run("stop", ses.id, activeRun);
+                        add(ses, Bubble.Kind.STEP, "Asked Termux to stop the earlier request. Send your message again when it has stopped.");
+                    } catch (Exception e) {
+                        add(ses, Bubble.Kind.ERROR, "Could not stop the earlier Termux request: " + e.getMessage());
+                    }
+                }
                 break;
             case "buddy_stopped":
                 flushStream(ses);

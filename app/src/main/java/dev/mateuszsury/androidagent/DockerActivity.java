@@ -50,6 +50,7 @@ public class DockerActivity extends Screen {
             } else {
                 int[] sizes={512,1024,2048};
                 startForegroundService(new Intent(this,DockerService.class).putExtra("ram",sizes[ram.getSelectedItemPosition()]).putExtra("cores",1));
+                offerNotifications();
             }
         });
         body.addView(start,full());

@@ -27,20 +27,45 @@ abstract class Screen extends Activity {
         resumed = true;
         Theme.load(this);
         if (!Theme.key().equals(themeKey)) recreate();
+        else offerActiveNotifications();
     }
+
+    @Override public void onWindowFocusChanged(boolean focused) {
+        super.onWindowFocusChanged(focused);
+        if (focused) offerActiveNotifications();
+    }
+
+    private void offerActiveNotifications() {
+        // Includes returning from Android's accessibility settings and an already running USB host.
+        if (McpHost.get(this).running() || BuddyService.get() != null) offerNotifications();
+    }
+
+    protected void offerNotifications() {
+        getWindow().getDecorView().post(() -> {
+            if (resumed && hasWindowFocus() && !isFinishing() && !isDestroyed())
+                NotificationPermission.requestIfNeeded(this);
+        });
+    }
+
+    @Override public void onRequestPermissionsResult(int request, String[] permissions, int[] results) {
+        super.onRequestPermissionsResult(request, permissions, results);
+        if (request == NotificationPermission.REQUEST) onNotificationPermissionChanged();
+    }
+
+    protected void onNotificationPermissionChanged() {}
 
     /** Start local tools from a visible screen, then wait for their loopback listener. */
     protected void withToolHost(Runnable action) {
         if (!resumed || isFinishing() || isDestroyed()) return;
         hostStartup.removeCallbacksAndMessages(null);
-        if (McpHost.get(this).running()) { action.run(); return; }
+        if (McpHost.get(this).running()) { action.run(); offerNotifications(); return; }
         try { startForegroundService(new Intent(this, AgentService.class)); }
         catch (Exception e) { Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show(); return; }
         final long deadline = SystemClock.elapsedRealtime() + 5000;
         hostStartup.post(new Runnable() {
             @Override public void run() {
                 if (!resumed || isFinishing() || isDestroyed()) return;
-                if (McpHost.get(Screen.this).running()) action.run();
+                if (McpHost.get(Screen.this).running()) { action.run(); offerNotifications(); }
                 else if (SystemClock.elapsedRealtime() < deadline) hostStartup.postDelayed(this, 100);
                 else Toast.makeText(Screen.this, "Nie udało się uruchomić narzędzi. Spróbuj ponownie.", Toast.LENGTH_LONG).show();
             }

@@ -25,8 +25,11 @@ public class UsbService extends Service {
         PendingIntent open=PendingIntent.getActivity(this,906,new Intent(this,UsbActivity.class),PendingIntent.FLAG_IMMUTABLE|PendingIntent.FLAG_UPDATE_CURRENT);
         PendingIntent stop=PendingIntent.getService(this,907,new Intent(this,UsbService.class).setAction("stop"),PendingIntent.FLAG_IMMUTABLE|PendingIntent.FLAG_UPDATE_CURRENT);
         Notification n=new Notification.Builder(this,"usb-device").setSmallIcon(R.mipmap.ic_launcher).setContentTitle("androidagent · aktywne USB").setContentText("Otwórz urządzenia lub naciśnij Stop").setContentIntent(open).setOngoing(true).addAction(0,"Stop",stop).build();
-        if(android.os.Build.VERSION.SDK_INT>=34)startForeground(906,n,android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE);else startForeground(906,n);return START_NOT_STICKY;
+        try{if(android.os.Build.VERSION.SDK_INT>=34)startForeground(906,n,android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE);else startForeground(906,n);}
+        catch(SecurityException e){android.util.Log.w("androidagentUsb","USB foreground permission was lost before service startup",e);closeAcceptedSessions();stopSelfResult(id);}
+        return START_NOT_STICKY;
     }
-    @Override public void onDestroy(){long generation=acceptedGeneration;Context app=getApplicationContext();new Thread(()->UsbSessions.get(app).closeThrough(generation),"usb-service-stop").start();McpHost.get(app).release(this);super.onDestroy();}
+    private void closeAcceptedSessions(){long generation=acceptedGeneration;Context app=getApplicationContext();new Thread(()->UsbSessions.get(app).closeThrough(generation),"usb-service-stop").start();}
+    @Override public void onDestroy(){closeAcceptedSessions();McpHost.get(getApplicationContext()).release(this);super.onDestroy();}
     @Override public IBinder onBind(Intent i){return null;}
 }

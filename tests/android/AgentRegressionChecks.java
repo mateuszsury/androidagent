@@ -16,6 +16,78 @@ final class AgentRegressionChecks {
         return new JSONObject().put("buddy_session", session.id).put("type", type).put("buddy_run", run);
     }
 
+    private static Context isolated(Context app, String prefix) {
+        return new ContextWrapper(app) {
+            @Override public SharedPreferences getSharedPreferences(String name, int mode) {
+                return super.getSharedPreferences(prefix + name, mode);
+            }
+        };
+    }
+
+    static void failedStopEndsLocalRun(Context app) {
+        Context context = isolated(app, "agent_failed_stop_");
+        ChatHub hub = new ChatHub(context, args -> { throw new IllegalStateException("Termux unavailable"); });
+        Sessions.Session session = hub.sessions.current;
+        try {
+            session.running = true;
+            session.callbackRun = "failed-stop-run";
+            session.streamText = "Partial reply before the failure";
+            hub.stop(session);
+            check(!session.running && session.status.isEmpty(), "Failed Stop left the chat permanently running");
+            check(session.streamText.isEmpty() && session.messages.stream().anyMatch(m -> m.text.equals("Partial reply before the failure")), "Failed Stop lost the received text");
+            check(session.messages.stream().anyMatch(m -> m.kind == Bubble.Kind.ERROR && m.text.contains("could not reach Termux")), "Stop failure was presented as successful termination");
+        } finally {
+            hub.delete(session);
+            context.getSharedPreferences("buddy_sessions", Context.MODE_PRIVATE).edit().clear().commit();
+        }
+    }
+
+    static void busyRequestRecoversSurvivingHelper(Context app) throws Exception {
+        Context context = isolated(app, "agent_surviving_helper_");
+        java.util.List<String[]> commands = new java.util.ArrayList<>();
+        ChatHub hub = new ChatHub(context, args -> commands.add(args.clone()));
+        Sessions.Session session = hub.sessions.current;
+        try {
+            session.running = true;
+            session.callbackRun = "after-app-restart";
+            hub.onEvent(event(session, "buddy_error", "after-app-restart")
+                    .put("text", "An earlier request is still running").put("active_run", "before-app-restart"));
+            check(commands.size() == 1 && "stop".equals(commands.get(0)[0]) && session.id.equals(commands.get(0)[1])
+                    && "before-app-restart".equals(commands.get(0)[2]), "Recovery did not target exactly the surviving helper");
+            hub.onEvent(event(session, "buddy_stopped", "before-app-restart"));
+            check(session.running, "Old Stop callback ended the new request");
+            hub.onEvent(event(session, "buddy_done", "after-app-restart"));
+            check(!session.running, "Rejected duplicate request remains running");
+            check(session.messages.stream().anyMatch(m -> m.text.contains("Send your message again")), "Recovery gives no retry guidance");
+        } finally {
+            hub.delete(session);
+            context.getSharedPreferences("buddy_sessions", Context.MODE_PRIVATE).edit().clear().commit();
+        }
+    }
+
+    static void failedDispatchDoesNotPersistUserMessage(Context app) {
+        Context context = isolated(app, "agent_failed_dispatch_");
+        java.util.List<String[]> commands = new java.util.ArrayList<>();
+        ChatHub hub = new ChatHub(context, args -> { commands.add(args.clone()); throw new IllegalStateException("RUN_COMMAND refused"); });
+        Sessions.Session session = hub.sessions.current;
+        try {
+            Prefs.setHelperStatus(context, "codex");
+            Prefs.setHelperVersion(context, SetupState.HELPER_VERSION);
+            Prefs.setSignedAgents(context, "codex");
+            String error = hub.send(session, "Never dispatched");
+            check("RUN_COMMAND refused".equals(error), "Dispatch failure was not returned to the composer: " + error);
+            check(!session.running && session.messages.isEmpty(), "Failed dispatch persisted a phantom sent message");
+            check(commands.size() == 1 && "ask".equals(commands.get(0)[0]), "No launch was attempted");
+            check(McpHost.get(app).principal(commands.get(0)[7]) == null, "Failed start retained a live run credential");
+            hub.adopt("codex", "saved-conversation-id", "Cannot adopt");
+            check(hub.sessions.current.messages.stream().noneMatch(m -> m.kind == Bubble.Kind.STEP && m.text.startsWith("Continuing")), "Failed adoption claims that resume succeeded");
+        } finally {
+            hub.delete(session);
+            context.getSharedPreferences("buddy_sessions", Context.MODE_PRIVATE).edit().clear().commit();
+            context.getSharedPreferences("buddy", Context.MODE_PRIVATE).edit().clear().commit();
+        }
+    }
+
     static void callbackIsolation(Context app) throws Exception {
         ChatHub hub = ChatHub.get(app);
         Sessions.Session session = hub.create("claude");

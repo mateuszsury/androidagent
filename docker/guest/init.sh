@@ -24,7 +24,11 @@ dockerd >/var/log/docker.log 2>&1 &
   if [ ! -f /var/lib/androidagent/images-ready ]; then
     docker load -i /opt/androidagent/alpine-base.tar
     docker tag "$(cat /opt/androidagent/alpine-base-id)" alpine:3.23
+    # Persist layer contents before publishing readiness. Android may kill the
+    # VM immediately afterwards, before Linux writes its dirty page cache.
+    sync
     touch /var/lib/androidagent/images-ready
+    sync
   fi
 ) >/var/log/base-images.log 2>&1 &
 # virtio-mmio and virtio-pci enumerate disks in different orders. The secret

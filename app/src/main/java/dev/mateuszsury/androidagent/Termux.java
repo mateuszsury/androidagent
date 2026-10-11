@@ -1,6 +1,7 @@
 package dev.mateuszsury.androidagent;
 
 import android.content.Context;
+import android.content.ComponentName;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 
@@ -52,10 +53,12 @@ final class Termux {
         i.putExtra("com.termux.RUN_COMMAND_BACKGROUND", background);
         // 0 = open the new terminal session in front
         i.putExtra("com.termux.RUN_COMMAND_SESSION_ACTION", "0");
+        ComponentName started;
         try {
-            c.startService(i);
+            started = c.startService(i);
         } catch (IllegalStateException e) {
-            c.startForegroundService(i);
+            started = c.startForegroundService(i);
         }
+        if (started == null) throw new IllegalStateException("Termux's command service is unavailable. Reinstall or enable Termux, then retry.");
     }
 }

@@ -1,0 +1,20 @@
+{
+  "version": "0.4.2",
+  "api": 36,
+  "apk_sha256": "5300a530810554f5f693e5757e34e4683734b92c647b192f247c7f747aad80a0",
+  "status": "test_fixture_timing_failure",
+  "scenario": "MCP: open Settings and read its screen",
+  "activity_start_result": 0,
+  "settings_displayed_after_ms": 1727,
+  "previous_fixed_wait_ms": 1500,
+  "evidence": "ActivityTaskManager: Displayed com.android.settings/.Settings for user 0: +1s727ms",
+  "fix": "Poll actual Accessibility screen for com.android.settings with a 5 second deadline after the launch response; retain the same assertion and report the actual tree on failure",
+  "product_changed": false,
+  "counted_in_release_total": false,
+  "run_id": "3cb88032-4a9a-474d-bf51-d636f24a7f95",
+  "passed": 74,
+  "failed": 1,
+  "verified_run_id": "4eafc8a2-cfd5-424c-8bf7-506a0b6cb94e",
+  "fixed_scenario_passed": true,
+  "report_cleanup_verified": true
+}

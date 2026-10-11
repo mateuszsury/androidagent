@@ -12,7 +12,7 @@
 #   buddy-run <token> adopt <session> <claude|codex> <agent-session-id>  continue that session as a Buddy chat
 #   buddy-run <token> handoff <session>    (run in a Termux tab) reopen a Buddy chat with remote control (that session only)
 # Every event sent to the bubble carries "buddy_session" so the app can route it.
-HELPER_VERSION=14
+HELPER_VERSION=15
 set -u
 export PATH=$HOME/bin:/data/data/com.termux/files/usr/bin:$PATH
 # The claude launcher sets BUN_OPTIONS with a path relative to its folder; never inherit a stale one.
@@ -210,6 +210,7 @@ case "$CMD" in
     if [ -z "$RUN" ] || [ "$RUN" = "$active" ]; then
       if session_alive "$S"; then kill_tree "$(cat "$S/pid")"; fi
       rm -f "$S/pid" "$S/pid-start" "$S/run"
+      find "$S" -maxdepth 1 -type f -name '.attachment.*' -delete 2>/dev/null || true
       rmdir "$S/run-lock" 2>/dev/null || true
     fi
     jq -cn --arg s "$SID" --arg r "$RUN" '{type:"buddy_stopped",buddy_session:$s,buddy_run:$r}' | post
@@ -230,7 +231,8 @@ case "$BACKEND" in claude|codex) ;; *) exit 2 ;; esac
 [ -z "$MSG" ] && exit 0
 S=$D/sessions/$SID
 mkdir -p "$S"
-event() { jq -cn --arg type "$1" --arg text "${2:-}" --arg s "$SID" --arg r "$RUN" '{type:$type,text:$text,buddy_session:$s,buddy_run:$r}' | post; }
+event() { jq -cn --arg type "$1" --arg text "${2:-}" --arg s "$SID" --arg r "$RUN" --arg active "${3:-}" \
+  '{type:$type,text:$text,buddy_session:$s,buddy_run:$r} + (if $active != "" then {active_run:$active} else {} end)' | post; }
 tag() { jq -c --arg s "$SID" --arg r "$RUN" '. + {buddy_session:$s,buddy_run:$r}' 2>/dev/null; }
 
 if [ -n "$RUN" ] && [ -f "$S/cancel-$RUN" ]; then
@@ -245,7 +247,7 @@ if ! mkdir "$S/run-lock" 2>/dev/null; then
     rmdir "$S/run-lock" 2>/dev/null || true
     mkdir "$S/run-lock" 2>/dev/null || exit 1
   else
-    event buddy_error "This session is still working. Tap Stop first, or start another session."
+    event buddy_error "An earlier request in this chat is still running." "$(cat "$S/run" 2>/dev/null)"
     event buddy_done
     exit 0
   fi
@@ -255,6 +257,7 @@ printf '%s' "$$" > "$S/pid"
 process_start "$$" > "$S/pid-start"
 printf '%s' "$RUN" > "$S/run"
 finish_run() {
+  [ -z "${DOWNLOAD_TMP:-}" ] || rm -f -- "$DOWNLOAD_TMP"
   if [ "$(cat "$S/pid" 2>/dev/null)" = "$$" ]; then
     rm -f "$S/pid" "$S/pid-start" "$S/run"
     rmdir "$S/run-lock" 2>/dev/null || true
@@ -280,12 +283,18 @@ if [ -n "${FILES:-}" ]; then
   mkdir -p "$S/files"
   IFS=, read -ra ids <<< "$FILES"
   for id in "${ids[@]}"; do
-    [[ "$id" =~ ^[A-Za-z0-9._-]{1,120}$ && "$id" != *..* ]] || continue
-    if curl -s -f -m 120 -H "Authorization: Bearer $TOKEN" "$URL/file/$id" -o "$S/files/$id"; then
+    if ! [[ "$id" =~ ^[A-Za-z0-9._-]{1,120}$ && "$id" != *..* && "$id" != . ]]; then
+      event buddy_error "Invalid attachment identifier. Attach the file again."
+      exit 0
+    fi
+    DOWNLOAD_TMP=$(mktemp "$S/.attachment.XXXXXX") || { event buddy_error "Can't prepare the attachment file."; exit 0; }
+    if curl -s -f -m 120 -H "Authorization: Bearer $TOKEN" "$URL/file/$id" -o "$DOWNLOAD_TMP" && mv -T -- "$DOWNLOAD_TMP" "$S/files/$id"; then
+      DOWNLOAD_TMP=""
       ATT+=("$S/files/$id")
       case "${id,,}" in *.jpg|*.jpeg|*.png|*.webp|*.gif) IMGS+=("$S/files/$id") ;; esac
     else
       event buddy_error "Couldn't get the attachment ${id#*_} from Buddy."
+      exit 0
     fi
   done
   if [ ${#ATT[@]} -gt 0 ]; then
@@ -395,25 +404,18 @@ stream_codex() {
     if ! have codex; then event buddy_error "Codex isn't installed in Termux."; exit 0; fi
     run_codex | stream_codex
     status=${PIPESTATUS[0]}
-    if [ "$status" -ne 0 ] && [ -s "$S/codex-thread" ] && grep -q -i -E 'not found|no such|unknown (thread|session)' "$S/last-error.log" 2>/dev/null; then
-      rm -f "$S/codex-thread"   # old thread is gone; retry as a new conversation
-      run_codex | stream_codex
-      status=${PIPESTATUS[0]}
-    fi
     name=Codex
   else
     if ! have claude; then event buddy_error "Claude Code isn't installed in Termux."; exit 0; fi
     run_claude | stream_claude
     status=${PIPESTATUS[0]}
-    if [ "$status" -ne 0 ] && grep -q -i 'no conversation found' "$S/last-error.log" 2>/dev/null; then
-      rm -f "$S/claude-session"   # old session is gone; retry as a new conversation
-      run_claude | stream_claude
-      status=${PIPESTATUS[0]}
-    fi
     name="Claude Code"
   fi
-  if [ "$status" -ne 0 ] && [ "$status" -ne 143 ] && [ -s "$S/last-error.log" ]; then
-    event buddy_error "$name failed: $(tail -c 400 "$S/last-error.log")"
+  # Keep saved conversation identifiers on errors; silently retrying as a new chat
+  # discards context and can repeat side effects from a partially completed turn.
+  if [ "$status" -ne 0 ]; then
+    detail=$(tail -c 400 "$S/last-error.log" 2>/dev/null)
+    event buddy_error "$name failed (exit $status)${detail:+: $detail}"
   fi
 ) &
 wait $! 2>/dev/null

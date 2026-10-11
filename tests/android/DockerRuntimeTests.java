@@ -54,6 +54,55 @@ public class DockerRuntimeTests extends Instrumentation {
         bitmap.recycle();check(contrasting>25,"Back arrow is invisible in the actual rendered frame: "+contrasting+" contrasting pixels");
     }
     void shell(String cmd)throws Exception{try(ParcelFileDescriptor p=ui.executeShellCommand(cmd);InputStream in=new FileInputStream(p.getFileDescriptor())){byte[] b=new byte[4096];while(in.read(b)!=-1){}}}
+    String shellOutput(String cmd)throws Exception{
+        try(ParcelFileDescriptor p=ui.executeShellCommand(cmd);InputStream in=new FileInputStream(p.getFileDescriptor())){
+            return read(in);
+        }
+    }
+    static String accessibilityUserState(String dump,int user){
+        java.util.regex.Pattern attributes=java.util.regex.Pattern.compile("(?m)^\\s*attributes:\\{id="+user+"(?:,|\\})");
+        for(String state:dump.split("User state\\["))if(attributes.matcher(state).find())return "User state["+state;
+        return null;
+    }
+    static boolean accessibilityResetComplete(String dump,int user){
+        String state=accessibilityUserState(dump,user);
+        if(state==null)return false;
+        // The public enabled-service list contains only connected services and is already empty
+        // after a crash. Wait for AMS to consume the disable setting and clear its crash marker.
+        for(String field:new String[]{"Bound","Enabled","Binding","Crashed"})
+            if(!java.util.regex.Pattern.compile("(?m)^\\s*"+field+" services:\\{\\s*\\}(?:\\])?\\s*$").matcher(state).find())return false;
+        return true;
+    }
+    String accessibilityDiagnostic(String dump,int user){
+        String state=accessibilityUserState(dump,user);
+        if(state==null)state="Missing user "+user+" state in dumpsys:\n"+dump;
+        return state.substring(0,Math.min(state.length(),12000))
+            +"\nBuddyService="+(BuddyService.get()!=null)+", MCP listening="+McpHost.get(app).running();
+    }
+    void reconnectAccessibility()throws Exception{
+        int user=Integer.parseInt(shellOutput("am get-current-user").trim());
+        String settings="settings --user "+user+" put secure ";
+        shell(settings+"enabled_accessibility_services ''");
+        shell(settings+"accessibility_enabled 0");
+        long disabledUntil=SystemClock.elapsedRealtime()+10000;
+        String dump="No accessibility state received";
+        boolean disabled=false;
+        while(SystemClock.elapsedRealtime()<disabledUntil){
+            dump=shellOutput("dumpsys -t 2 accessibility");
+            if(accessibilityResetComplete(dump,user)&&BuddyService.get()==null){disabled=true;break;}
+            SystemClock.sleep(100);
+        }
+        check(disabled,"Android did not clear the previous accessibility binding/crash state before re-enable:\n"
+            +accessibilityDiagnostic(dump,user));
+        shell(settings+"enabled_accessibility_services dev.mateuszsury.androidagent/dev.mateuszsury.androidagent.BuddyService");
+        shell(settings+"accessibility_enabled 1");
+        long until=SystemClock.elapsedRealtime()+30000;
+        while((BuddyService.get()==null||!McpHost.get(app).running())&&SystemClock.elapsedRealtime()<until)SystemClock.sleep(100);
+        if(BuddyService.get()==null||!McpHost.get(app).running())
+            throw new AssertionError("Fresh accessibility service/MCP listener missing:\n"
+                +accessibilityDiagnostic(shellOutput("dumpsys -t 2 accessibility"),user));
+        BuddyService.get().allowControl();
+    }
     JSONObject call(String name,JSONObject args)throws Exception{
         HttpURLConnection c=(HttpURLConnection)new URL("http://127.0.0.1:8766/mcp").openConnection();c.setConnectTimeout(5000);c.setReadTimeout(90000);c.setRequestMethod("POST");c.setDoOutput(true);c.setRequestProperty("Authorization","Bearer "+Prefs.token(app));c.setRequestProperty("Content-Type","application/json");
         try{JSONObject payload=new JSONObject().put("jsonrpc","2.0").put("id",1).put("method","tools/call").put("params",new JSONObject().put("name",name).put("arguments",args));
@@ -106,21 +155,43 @@ public class DockerRuntimeTests extends Instrumentation {
         }))return;
         test("UI: Docker dashboard without model account",()->{launch(DockerActivity.class);check(find(screen.getWindow().getDecorView(),"Uruchom środowisko")!=null,"Start button");shot("01-docker-dashboard");});
         if(!test("MCP: real accessibility server connected",()->{
-            shell("settings put secure enabled_accessibility_services ''");shell("settings put secure accessibility_enabled 0");
-            android.view.accessibility.AccessibilityManager manager=(android.view.accessibility.AccessibilityManager)app.getSystemService(Context.ACCESSIBILITY_SERVICE);
-            long disabledUntil=SystemClock.elapsedRealtime()+10000;
-            while(!manager.getEnabledAccessibilityServiceList(android.accessibilityservice.AccessibilityServiceInfo.FEEDBACK_ALL_MASK).isEmpty()&&SystemClock.elapsedRealtime()<disabledUntil)SystemClock.sleep(250);
-            check(manager.getEnabledAccessibilityServiceList(android.accessibilityservice.AccessibilityServiceInfo.FEEDBACK_ALL_MASK).isEmpty(),"Previous accessibility binding did not clear");
-            shell("settings put secure enabled_accessibility_services dev.mateuszsury.androidagent/dev.mateuszsury.androidagent.BuddyService");shell("settings put secure accessibility_enabled 1");
-            long until=SystemClock.elapsedRealtime()+30000;while(BuddyService.get()==null&&SystemClock.elapsedRealtime()<until)SystemClock.sleep(250);
-            check(BuddyService.get()!=null,"MCP server missing");BuddyService.get().allowControl();
+            reconnectAccessibility();
         }))return;
         if(!test("VM: user starts real Linux Docker Engine",()->{
             runOnMainSync(()->((Spinner)find(screen.getWindow().getDecorView(),"Pamięć środowiska Docker")).setSelection(0));
             click("Uruchom środowisko");waitReady();
+            // No network call, screenshot or sleep before the durability test kills
+            // this first boot: those delays could let an unsynced import reach disk.
+            JSONObject state=DockerVm.get(app).status();check(state.getBoolean("ready"),state.toString());
+            JSONObject guest=state.getJSONObject("guest");check(guest.getString("engine_version").startsWith("29."),"No actual engine version");
+            check(guest.getString("storage_driver").equals("overlay2"),guest.toString());
+        }))return;
+        if(!test("VM: forced stop after readiness restarts the same disk",()->{
+            DockerVm vm=DockerVm.get(app);
+            File overlay=new File(vm.directory,"user.qcow2");
+            android.system.StructStat original=android.system.Os.stat(overlay.getAbsolutePath());
+            java.lang.reflect.Field processField=DockerVm.class.getDeclaredField("process");processField.setAccessible(true);
+            java.lang.Process running=(java.lang.Process)processField.get(vm);
+            check(running!=null&&running.isAlive(),"No live QEMU process to interrupt");
+            // Destroying this service invokes emergencyStop(), without the guest
+            // shutdown request or sync used by the dashboard's normal Stop button.
+            check(app.stopService(new Intent(app,DockerService.class)),"Docker service was not running");
+            check(running.waitFor(5,java.util.concurrent.TimeUnit.SECONDS),"QEMU did not exit after forced stop");
+            check(running.exitValue()!=0,"QEMU exited normally instead of being forcibly interrupted");
+            waitForIdleSync(); // Finish onDestroy before starting a new service.
+            check(!vm.alive()&&"stopped".equals(vm.state),"VM lifecycle did not finish forced stop");
+            android.system.StructStat stopped=android.system.Os.stat(overlay.getAbsolutePath());
+            check(stopped.st_ino==original.st_ino&&stopped.st_dev==original.st_dev,"Forced stop replaced the working disk");
+            launch(DockerActivity.class);
+            runOnMainSync(()->((Spinner)find(screen.getWindow().getDecorView(),"Pamięć środowiska Docker")).setSelection(0));
+            click("Uruchom środowisko");waitReady();
+            android.system.StructStat restarted=android.system.Os.stat(overlay.getAbsolutePath());
+            check(restarted.st_ino==original.st_ino&&restarted.st_dev==original.st_dev,"Restart replaced the working disk");
             JSONObject state=call("docker_status",args());check(state.getBoolean("ready"),state.toString());
             JSONObject guest=state.getJSONObject("guest");check(guest.getString("engine_version").startsWith("29."),"No actual engine version");
             check(guest.getString("storage_driver").equals("overlay2"),guest.toString());SystemClock.sleep(2000);shot("02-docker-running");
+            // The existing Dockerfile RUN/COPY test below verifies that the
+            // persisted base layer can actually execute /bin/sh after this kill.
         }))return;
         test("Guest API: rejects missing bearer token",()->{
             HttpURLConnection c=(HttpURLConnection)new URL("http://127.0.0.1:"+DockerVm.API_PORT+"/request").openConnection();

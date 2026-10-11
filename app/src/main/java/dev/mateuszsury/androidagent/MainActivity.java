@@ -126,7 +126,11 @@ public class MainActivity extends Screen implements ChatHub.Listener {
     prompt.setTextSize(16);
     prompt.setTypeface(sans(this, 400));
     prompt.setBackground(null);
-    prompt.setMaxLines(3);
+    prompt.setInputType(android.text.InputType.TYPE_CLASS_TEXT | android.text.InputType.TYPE_TEXT_FLAG_MULTI_LINE
+        | android.text.InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
+    prompt.setImeOptions(android.view.inputmethod.EditorInfo.IME_FLAG_NO_FULLSCREEN
+        | android.view.inputmethod.EditorInfo.IME_FLAG_NO_EXTRACT_UI);
+    prompt.setMaxLines(compactHeight ? 2 : 3);
     prompt.setPadding(dp(this, 6), dp(this, 8), dp(this, 6), dp(this, 8));
     composer.addView(prompt, weight1());
     ImageButton send =

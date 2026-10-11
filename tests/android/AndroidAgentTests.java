@@ -516,6 +516,9 @@ public class AndroidAgentTests extends Instrumentation {
           check("codex".equals(Prefs.backend(app)), "Codex default");
           check(!new SetupState(app).canRun(), "Fresh install incorrectly ready");
         });
+    if (Build.VERSION.SDK_INT >= 33)
+      test("notifications: fresh-install denial keeps foreground tools usable",
+          () -> NotificationRegressionChecks.freshInstallDenialKeepsToolsRunning(this, current, ui));
     test(
         "device: live battery, RAM, storage",
         () -> {
@@ -902,9 +905,14 @@ public class AndroidAgentTests extends Instrumentation {
           String result =
               toolText(tool("open_app", new JSONObject().put("app", "com.android.settings")));
           check(result.contains("Opened"), result);
-          check(
-              toolText(tool("read_screen", new JSONObject())).contains("com.android.settings"),
-              "Settings not in tree");
+          String screen = "";
+          long until = SystemClock.elapsedRealtime() + 5000;
+          do {
+            screen = toolText(tool("read_screen", new JSONObject()));
+            if (screen.contains("com.android.settings")) break;
+            SystemClock.sleep(250);
+          } while (SystemClock.elapsedRealtime() < until);
+          check(screen.contains("com.android.settings"), "Settings not in tree: " + screen);
         });
     test(
         "MCP: screenshot returns real JPEG",
@@ -1208,6 +1216,27 @@ public class AndroidAgentTests extends Instrumentation {
         () -> mainCheck(() -> AgentRegressionChecks.persistenceMigration(app)));
     test("agents: initial streaming blocks are bounded and subagent replies separated",
         () -> mainCheck(() -> AgentRegressionChecks.streamingBoundsAndSubagents(app)));
+    test("agents: failed Stop ends local state and reports undelivered termination",
+        () -> mainCheck(() -> AgentRegressionChecks.failedStopEndsLocalRun(app)));
+    test("agents: surviving helper after app restart receives an exact Stop",
+        () -> mainCheck(() -> AgentRegressionChecks.busyRequestRecoversSurvivingHelper(app)));
+    test("agents: rejected dispatch preserves draft and revokes run access",
+        () -> mainCheck(() -> AgentRegressionChecks.failedDispatchDoesNotPersistUserMessage(app)));
+    test("UI: long model name keeps selector chevron within its bounds",
+        () -> UiRegressionChecks.longModelChipFits(this, current));
+    final Sessions.Session[] uiChat = {null};
+    main(() -> uiChat[0] = ChatHub.get(app).create("codex"));
+    launch(new Intent(app, ChatActivity.class).putExtra("id", uiChat[0].id));
+    main(() -> edit(current.getWindow().getDecorView()).setText("/status"));
+    click("Wyślij");
+    test("chat UI: long tool histories retain bounded rows and recent messages",
+        () -> UiRegressionChecks.toolLogRemainsBounded(this, current));
+    test("chat UI: attachment import survives recreation and gates Send",
+        () -> current = UiRegressionChecks.attachmentImportSurvivesRecreate(this, current));
+    test("chat UI: keyboard input sends local status without fullscreen extraction",
+        () -> UiRegressionChecks.keyboardInputSendsLocalStatus(this, current));
+    main(() -> ChatHub.get(app).delete(uiChat[0]));
+    launch(MainActivity.class);
     test("UI: tall bottom sheet reaches its final option",
         () -> UiRegressionChecks.tallSheetScrolls(this, current));
     test("UI: switch exposes checked state to accessibility",
