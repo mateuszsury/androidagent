@@ -137,16 +137,26 @@ final class DockerVm {
                 } catch (Exception ignored) {}
             }, "docker-console");
             reader.setDaemon(true); reader.start();
-            long deadline = SystemClock.elapsedRealtime() + (emulatedAndroid ? 600000 : 300000);
+            // Each stage has a real bounded probe in the guest. A physical TCG
+            // host must also allow cold image import; failures arrive sooner.
+            long deadline = SystemClock.elapsedRealtime() + (emulatedAndroid ? 900000 : 600000);
             while (epoch == generation && running.isAlive()) {
+                String startupError = null;
                 try {
                     JSONObject result = requestRaw(new JSONObject().put("op", "status"), 12000);
                     synchronized (lifecycle) {
                         if (epoch != generation || process != running) break;
                         guest = result;
+                        JSONObject startup = result.optJSONObject("startup");
+                        if (startup != null && "error".equals(startup.optString("stage"))) startupError = startup.optString("detail", "Błąd rozruchu Docker Engine");
                         if (result.optBoolean("ready")) { state = "ready"; detail = "Docker działa na telefonie"; }
+                        // A busy engine can miss one short heartbeat while a
+                        // build is running. Its supervisor publishes failures
+                        // explicitly; do not reject cancellation due to jitter.
+                        else if (!"ready".equals(state)) { state = "booting"; detail = startup == null ? "Uruchamianie Linuxa i Dockera" : startup.optString("detail", "Uruchamianie Dockera"); }
                     }
                 } catch (Exception ignored) {}
+                if (startupError != null) throw new IOException(startupError + ". Szczegóły są w dzienniku containerd i Dockera.");
                 if (!"ready".equals(state) && SystemClock.elapsedRealtime() > deadline) throw new IOException("Linux nie uruchomił Dockera w wyznaczonym czasie. Sprawdź dziennik środowiska.");
                 Thread.sleep(2000);
             }
@@ -174,31 +184,52 @@ final class DockerVm {
         if (marker.isFile() && manifest.equals(readBounded(new FileInputStream(marker), 16384))
                 && new File(directory, "base.qcow2").isFile() && new File(directory, "vmlinuz-virt").isFile()
                 && new File(directory, "initramfs-virt").isFile()) return;
-        if (new File(directory, "user.qcow2").exists()) throw new IOException("Nowa wersja środowiska wymaga resetu dysku. Najpierw zachowaj wyniki zadań.");
-        if (directory.getUsableSpace() < 1024L * 1024 * 1024) throw new IOException("Przygotowanie środowiska wymaga co najmniej 1 GB wolnego miejsca.");
+        boolean preserveDisk = new File(directory, "user.qcow2").exists();
+        JSONObject current = new JSONObject(manifest);
+        if (preserveDisk) {
+            if (!marker.isFile()) throw new IOException("Nie można potwierdzić wersji zapisanego dysku. Zachowaj wyniki przed zmianą środowiska.");
+            JSONObject previous = new JSONObject(readBounded(new FileInputStream(marker), 16384));
+            JSONObject priorFiles = previous.getJSONObject("files"), nextFiles = current.getJSONObject("files");
+            // Never replace a QCOW2 backing image underneath existing user
+            // sectors. 0.4.3 changes only the owned guest runtime in initramfs.
+            for (String name : Arrays.asList("base.qcow2.gz", "vmlinuz-virt")) {
+                if (!nextFiles.getString(name).equals(priorFiles.optString(name)))
+                    throw new IOException("Ta aktualizacja zmienia bazę dysku. Najpierw zachowaj wyniki; dysk nie został zmieniony.");
+            }
+            if (!new File(directory, "base.qcow2").isFile() || !new File(directory, "vmlinuz-virt").isFile())
+                throw new IOException("Brakuje bazy zapisanego dysku. Dysk użytkownika pozostaje zachowany.");
+            detail = "Aktualizowanie nadzoru Dockera z zachowaniem dysku i projektów";
+        }
+        long needed = (preserveDisk ? 64L : 1024L) * 1024 * 1024;
+        if (directory.getUsableSpace() < needed) throw new IOException(preserveDisk
+                ? "Aktualizacja nadzoru Dockera wymaga co najmniej 64 MB wolnego miejsca."
+                : "Przygotowanie środowiska wymaga co najmniej 1 GB wolnego miejsca.");
         JSONObject files = new JSONObject(manifest).getJSONObject("files");
         for (String name : Arrays.asList("base.qcow2.gz", "vmlinuz-virt", "initramfs-virt")) {
+            if (preserveDisk && !"initramfs-virt".equals(name)) continue;
             if (epoch != generation) return;
             detail = "Rozpakowywanie środowiska Linux";
             File part = new File(directory, name + ".part");
             MessageDigest hash = MessageDigest.getInstance("SHA-256");
-            try (InputStream in = context.getAssets().open(asset + name); OutputStream out = new FileOutputStream(part)) {
+            try (InputStream in = context.getAssets().open(asset + name); FileOutputStream out = new FileOutputStream(part)) {
                 byte[] buffer = new byte[65536]; int n;
                 while ((n = in.read(buffer)) != -1) {
                     if (epoch != generation) throw new IOException("Przerwano przygotowanie");
                     hash.update(buffer, 0, n); out.write(buffer, 0, n);
                 }
+                out.getFD().sync();
             }
             if (!hex(hash.digest()).equals(files.getString(name))) { part.delete(); throw new IOException("Nieprawidłowa suma SHA256 środowiska"); }
             if (name.endsWith(".gz")) {
                 File unpacked = new File(directory, "base.qcow2.part");
-                try (InputStream in = new GZIPInputStream(new FileInputStream(part), 65536); OutputStream out = new FileOutputStream(unpacked)) {
+                try (InputStream in = new GZIPInputStream(new FileInputStream(part), 65536); FileOutputStream out = new FileOutputStream(unpacked)) {
                     byte[] buffer = new byte[65536]; int n; long total=0;
                     while ((n=in.read(buffer))!=-1) {
                         if(epoch!=generation)throw new IOException("Przerwano przygotowanie");
                         total+=n;if(total>1024L*1024*1024)throw new IOException("Obraz przekracza limit rozpakowania");
                         out.write(buffer,0,n);detail="Rozpakowywanie Linuxa: "+(total/1048576)+" MB";
                     }
+                    out.getFD().sync();
                 }
                 if (epoch != generation) return;
                 if (!unpacked.renameTo(new File(directory, "base.qcow2"))) throw new IOException("Nie można zapisać obrazu Linuxa");
@@ -207,7 +238,14 @@ final class DockerVm {
         }
         if (epoch != generation) return;
         copyAssets(asset + "qemu", new File(directory, "qemu"));
-        try (OutputStream out = new FileOutputStream(marker)) { out.write(manifest.getBytes(StandardCharsets.UTF_8)); }
+        if (epoch != generation) return;
+        File markerPart = new File(directory, "installed-manifest.part");
+        try (FileOutputStream out = new FileOutputStream(markerPart)) {
+            out.write(manifest.getBytes(StandardCharsets.UTF_8)); out.getFD().sync();
+        }
+        if (!markerPart.renameTo(marker)) throw new IOException("Nie można zapisać wersji środowiska");
+        java.io.FileDescriptor installedDirectory = android.system.Os.open(directory.getAbsolutePath(), android.system.OsConstants.O_RDONLY, 0);
+        try { android.system.Os.fsync(installedDirectory); } finally { android.system.Os.close(installedDirectory); }
     }
     private void copyAssets(String source, File target) throws IOException {
         String[] children = context.getAssets().list(source);
@@ -215,7 +253,9 @@ final class DockerVm {
             target.mkdirs(); for (String child : children) copyAssets(source + "/" + child, new File(target, child));
         } else {
             target.getParentFile().mkdirs();
-            try (InputStream in = context.getAssets().open(source); OutputStream out = new FileOutputStream(target)) { copy(in, out, 32 * 1024 * 1024); }
+            try (InputStream in = context.getAssets().open(source); FileOutputStream out = new FileOutputStream(target)) {
+                copy(in, out, 32 * 1024 * 1024); out.getFD().sync();
+            }
         }
     }
 

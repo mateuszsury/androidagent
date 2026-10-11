@@ -35,7 +35,7 @@ final class AgentRegressionChecks {
             hub.stop(session);
             check(!session.running && session.status.isEmpty(), "Failed Stop left the chat permanently running");
             check(session.streamText.isEmpty() && session.messages.stream().anyMatch(m -> m.text.equals("Partial reply before the failure")), "Failed Stop lost the received text");
-            check(session.messages.stream().anyMatch(m -> m.kind == Bubble.Kind.ERROR && m.text.contains("could not reach Termux")), "Stop failure was presented as successful termination");
+            check(session.messages.stream().anyMatch(m -> m.kind == Bubble.Kind.ERROR && m.text.contains("polecenie Stop nie dotarło do klienta")), "Stop failure was presented as successful termination");
         } finally {
             hub.delete(session);
             context.getSharedPreferences("buddy_sessions", Context.MODE_PRIVATE).edit().clear().commit();
@@ -58,7 +58,7 @@ final class AgentRegressionChecks {
             check(session.running, "Old Stop callback ended the new request");
             hub.onEvent(event(session, "buddy_done", "after-app-restart"));
             check(!session.running, "Rejected duplicate request remains running");
-            check(session.messages.stream().anyMatch(m -> m.text.contains("Send your message again")), "Recovery gives no retry guidance");
+            check(session.messages.stream().anyMatch(m -> m.text.contains("Wyślij wiadomość ponownie")), "Recovery gives no retry guidance");
         } finally {
             hub.delete(session);
             context.getSharedPreferences("buddy_sessions", Context.MODE_PRIVATE).edit().clear().commit();

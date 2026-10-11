@@ -72,12 +72,12 @@ public class TranscriptActivity extends Screen implements ChatHub.MonitorListene
             ct.setTextColor(ON_ACCENT);
             ct.setPadding(dp(this, 8), 0, 0, 0);
             cont.addView(ct);
-            cont.setOnClickListener(v -> {
+            cont.setOnClickListener(v -> withToolHost(() -> {
                 Sessions.Session s = hub.adopt(agent, id, title);
                 hub.select(s);
                 startActivity(new Intent(this, ChatActivity.class).putExtra("id", s.id));
                 finish();
-            });
+            }));
             LinearLayout.LayoutParams cp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(this, 52));
             cp.setMargins(dp(this, 16), dp(this, 8), dp(this, 16), dp(this, 12));
             root.addView(cont, cp);
@@ -101,6 +101,15 @@ public class TranscriptActivity extends Screen implements ChatHub.MonitorListene
         super.onResume();
         if (isFinishing()) return;
         hub.monitor = this;
+        if (!EmbeddedRuntime.get(this).ready()) {
+            messages.removeAllViews();
+            messages.addView(note("Przygotuj wbudowane środowisko w panelu Środowisko i konta."), full());
+            return;
+        }
+        withToolHost(this::requestTranscript);
+    }
+
+    private void requestTranscript() {
         try {
             Termux.run(this, "transcript", agent, file);
         } catch (Exception e) {

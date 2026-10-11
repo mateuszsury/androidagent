@@ -1,5 +1,5 @@
 #!/data/data/com.termux/files/usr/bin/bash
-# Called by the Buddy app through Termux's RUN_COMMAND service.
+# Started by androidagent's embedded runtime; legacy Termux adapters remain supported.
 #   buddy-run <token> ask <session> <claude|codex> <dev:0|1> <message> [model] [attachment-ids] [mcp-token] [run-id]
 #                                    run the agent on the message in that session, streaming events to the bubble
 #   buddy-run <token> stop <session>       stop that session's running request
@@ -10,9 +10,9 @@
 #   buddy-run <token> recent               list recent Claude Code / Codex sessions from their history (buddy_recent)
 #   buddy-run <token> transcript <claude|codex> <file>   last messages of a session (buddy_transcript)
 #   buddy-run <token> adopt <session> <claude|codex> <agent-session-id>  continue that session as a Buddy chat
-#   buddy-run <token> handoff <session>    (run in a Termux tab) reopen a Buddy chat with remote control (that session only)
+#   buddy-run <token> handoff <session>    (interactive terminal) reopen a Buddy chat with remote control (that session only)
 # Every event sent to the bubble carries "buddy_session" so the app can route it.
-HELPER_VERSION=15
+HELPER_VERSION=16
 set -u
 export PATH=$HOME/bin:/data/data/com.termux/files/usr/bin:$PATH
 # The claude launcher sets BUN_OPTIONS with a path relative to its folder; never inherit a stale one.
@@ -28,7 +28,33 @@ post() { # post one JSON event to the bubble
   curl -s -m 5 -o /dev/null -X POST -H "Authorization: Bearer $TOKEN" \
     -H 'Content-Type: application/json' --data-binary @- "$URL/event"
 }
-have() { command -v "$1" >/dev/null 2>&1; }
+have() {
+  # Embedded launchers are installed with the shell, before either official CLI.
+  # A launcher on PATH alone must not advertise an installed provider client.
+  if [ "${ANDROIDAGENT_EMBEDDED:-0}" = 1 ]; then
+    case "$1" in
+      claude)
+        [ -f "$HOME/.androidagent/clients/claude/.verified" ] &&
+          [ -s "$HOME/.androidagent/clients/claude/.verified" ] &&
+          [ -f "$HOME/.androidagent/clients/claude/package/claude" ] &&
+          [ -x "$HOME/.androidagent/clients/claude/package/claude" ]
+        return ;;
+      codex)
+        local triple
+        case "$(uname -m)" in
+          aarch64|arm64) triple=aarch64-unknown-linux-musl ;;
+          x86_64) triple=x86_64-unknown-linux-musl ;;
+          *) return 1 ;;
+        esac
+        [ -f "$HOME/.androidagent/clients/codex/.verified" ] &&
+          [ -s "$HOME/.androidagent/clients/codex/.verified" ] &&
+          [ -f "$HOME/.androidagent/clients/codex/package/vendor/$triple/bin/codex" ] &&
+          [ -x "$HOME/.androidagent/clients/codex/package/vendor/$triple/bin/codex" ]
+        return ;;
+    esac
+  fi
+  command -v "$1" >/dev/null 2>&1
+}
 valid_sid() { [[ "$1" =~ ^[A-Za-z0-9_-]{1,64}$ ]]; }
 
 process_start() {
@@ -66,7 +92,7 @@ agent_of() {
   local cmd
   cmd=$(tr '\0' ' ' < "/proc/$1/cmdline" 2>/dev/null) || return 1
   case "${cmd%% *}" in
-    */claude/versions/*|*/@anthropic-ai/claude-code-linux-*/claude) echo claude ;;
+    */claude/versions/*|*/@anthropic-ai/claude-code-linux-*/claude|*/.androidagent/clients/claude/package/claude|*/.androidagent/clients/claude-*/package/claude) echo claude ;;
     */bin/codex) echo codex ;;
     *) return 1 ;;
   esac
@@ -75,8 +101,8 @@ agent_of() {
 case "$CMD" in
   ping) # setup check: proves RUN_COMMAND, the helper and the callback all work
     agents=$({ have claude && echo claude; have codex && echo codex; } | paste -sd, -)
-    # Claude's CLI validates its actual account state without returning credentials.
-    signed=$({ have claude && claude auth status 2>/dev/null | jq -er 'select(.loggedIn == true) | "claude"'; [ -s "$HOME/.codex/auth.json" ] && echo codex; } | paste -sd, -)
+    # The official clients report their account state without returning credentials.
+    signed=$({ have claude && claude auth status 2>/dev/null | jq -er 'select(.loggedIn == true) | "claude"'; have codex && codex login status >/dev/null 2>&1 && echo codex; } | paste -sd, -)
     cm=$(jq -c '[.models[] | select(.visibility == "list") | [.slug, .display_name]]' "$HOME/.codex/models_cache.json" 2>/dev/null)
     jq -cn --arg s "${agents:-none}" --arg g "${signed:-none}" --argjson v "$HELPER_VERSION" --argjson cm "${cm:-[]}" \
       '{type:"buddy_pong",text:$s,signed:$g,helper:$v,codex_models:$cm}' | post
@@ -91,7 +117,7 @@ case "$CMD" in
       for q in $(descendants "$(cat "$f")"); do owner[$q]=$sid; done
     done
     {
-      for p in $(pgrep -f 'claude/versions/|@anthropic-ai/claude-code-linux-.*/claude|/bin/codex' 2>/dev/null); do
+      for p in $(pgrep -f 'claude/versions/|@anthropic-ai/claude-code-linux-.*/claude|\.androidagent/clients/claude(-[^/]+)?/package/claude|/bin/codex' 2>/dev/null); do
         a=$(agent_of "$p") || continue
         [ "$p" = "$$" ] && continue
         cwd=$(readlink "/proc/$p/cwd" 2>/dev/null)
@@ -272,7 +298,11 @@ event buddy_started
 find "$S" -maxdepth 1 -name 'cancel-*' -mtime +1 -delete 2>/dev/null || true
 
 if ! have "$BACKEND"; then
-  event buddy_error "The selected agent isn't installed in Termux."
+  if [ "${ANDROIDAGENT_EMBEDDED:-0}" = 1 ]; then
+    event buddy_error "Wybrany klient nie jest zainstalowany. Otwórz panel środowiska w androidagent."
+  else
+    event buddy_error "The selected agent isn't installed in Termux."
+  fi
   exit 0
 fi
 
@@ -401,12 +431,20 @@ stream_codex() {
 # ------------------------------------------------------------------------ run
 (
   if [ "$BACKEND" = codex ]; then
-    if ! have codex; then event buddy_error "Codex isn't installed in Termux."; exit 0; fi
+    if ! have codex; then
+      if [ "${ANDROIDAGENT_EMBEDDED:-0}" = 1 ]; then event buddy_error "Codex nie jest zainstalowany. Otwórz panel środowiska w androidagent."
+      else event buddy_error "Codex isn't installed in Termux."; fi
+      exit 0
+    fi
     run_codex | stream_codex
     status=${PIPESTATUS[0]}
     name=Codex
   else
-    if ! have claude; then event buddy_error "Claude Code isn't installed in Termux."; exit 0; fi
+    if ! have claude; then
+      if [ "${ANDROIDAGENT_EMBEDDED:-0}" = 1 ]; then event buddy_error "Claude Code nie jest zainstalowany. Otwórz panel środowiska w androidagent."
+      else event buddy_error "Claude Code isn't installed in Termux."; fi
+      exit 0
+    fi
     run_claude | stream_claude
     status=${PIPESTATUS[0]}
     name="Claude Code"

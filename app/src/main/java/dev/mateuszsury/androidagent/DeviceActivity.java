@@ -2,7 +2,6 @@ package dev.mateuszsury.androidagent;
 
 import static dev.mateuszsury.androidagent.Ui.*;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.view.*;
 import android.widget.*;
@@ -45,7 +44,7 @@ public class DeviceActivity extends Screen {
         text(
             this,
             "Komendy wykonują się na telefonie z uprawnieniami androidagent. Pliki zapisujesz w"
-                + " jego katalogu roboczym. Pełne narzędzia programistyczne zapewnia Termux.",
+                + " jego katalogu roboczym. Pełny terminal i klienci agentów są dostępni we wbudowanym środowisku.",
             13,
             MUTED);
     detail.setLineSpacing(dp(this, 3), 1);
@@ -80,8 +79,8 @@ public class DeviceActivity extends Screen {
     TextView hint = text(this, "Limit: 10 s · wynik do 32 KB · bez roota", 11, MUTED);
     hint.setPadding(0, dp(this, 10), 0, dp(this, 20));
     content.addView(hint);
-    Button setup = button(this, "Połącz Codexa i sterowanie ekranem", false);
-    setup.setOnClickListener(v -> startActivity(new Intent(this, OnboardingActivity.class)));
+    Button setup = button(this, "Otwórz środowisko i klientów", false);
+    setup.setOnClickListener(v -> EmbeddedRuntime.open(this));
     content.addView(setup, full());
     scroll.addView(content);
     root.addView(scroll, new LinearLayout.LayoutParams(-1, 0, 1));
@@ -119,6 +118,8 @@ public class DeviceActivity extends Screen {
       metric("Połączenie", s.getString("network"));
       metric(
           "Sterowanie ekranem", s.getBoolean("accessibility_connected") ? "Aktywne" : "Wyłączone");
+      metric("Środowisko agentów", s.getBoolean("runtime_ready") ? "Gotowe"
+          : s.getBoolean("runtime_busy") ? "Przygotowywanie" : "Nieprzygotowane");
     } catch (Exception e) {
       metrics.addView(text(this, e.getMessage(), 14, ERR));
     }

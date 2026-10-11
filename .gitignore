@@ -32,7 +32,10 @@ app/src/main/assets/docker/*/initramfs-virt
 app/src/main/assets/docker/*/qemu/
 app/src/main/assets/docker/licenses/
 app/src/main/assets/docker/SOURCES.txt
+app/src/main/assets/terminal/*/runtime.zip
+app/src/main/assets/terminal/licenses/
 artifacts/docker/*.png
 artifacts/docker-ui/*.png
 artifacts/usb/*.png
 artifacts/api36/**/*.png
+artifacts/0.4.3/**/*.png

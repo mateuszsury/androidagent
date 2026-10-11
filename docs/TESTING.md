@@ -1,4 +1,49 @@
-# Testy androidagent 0.4.2
+# Testy androidagent 0.4.3 i historia 0.4.2
+
+## Bieżące wydanie 0.4.3
+
+Wersja 0.4.3 (`versionCode=403`, helper 16, `targetSdk=36`) dodaje środowisko terminalowe do samej aplikacji. Czysta instalacja nie wymaga `com.termux`, osobnej usługi `RUN_COMMAND` ani ręcznego `pkg`/`npm`. Wbudowany bootstrap i narzędzia są rozpakowywane automatycznie; oficjalne klienty Codex 0.162.1 i Claude Code 2.1.296 pobierają się z UI przez HTTPS z przypiętą długością i SHA256. Logowanie pozostaje osobnym działaniem właściciela przez oficjalną metodę klienta. `/status`, fixtures strumienia i uruchomienie `--version` nie są rozmową z zalogowanym modelem.
+
+Ukończony zestaw [Linux ARM64: start i migracja](../artifacts/docker/arm-startup-migration-results.json) zaliczył **34/34 sprawdzenia**. Jest to gość aarch64 pod QEMU TCG 10.1.5 na gospodarzu Linux x86_64, **nie Android ARM64 ani fizyczny Lenovo**. Docker Engine 29.5.2 i containerd 2.2.0 działają z rzeczywistym zegarem gospodarza, bez `icount`, z 1024 MiB RAM i jednym vCPU. Nowe fazy ograniczają CPU gospodarza do 50%; nie stanowi to skalibrowanego benchmarku tabletu.
+
+| Faza gościa ARM64 | Warunki | Gotowość od uruchomienia VM |
+| --- | --- | ---: |
+| Dane utworzone pod kodem 0.4.2 | Oryginalny initramfs, 1 CPU gospodarza | 37,16 s |
+| Aktualizacja istniejącego dysku | Nowy nadzór, 0,5 CPU, celowe opóźnienie containerd 20 s | 70,497 s |
+| Ponowny start tego samego dysku | 0,5 CPU, bez dodatkowego opóźnienia | 51,179 s |
+| Czysty dysk i import obrazu | 0,5 CPU, celowe opóźnienie containerd 20 s | 86,78 s |
+
+Raport potwierdza identyczne bajty bazy i kernela 0.4.2, zachowany inode dysku, projekty/obrazy/kontenery/logi po migracji i restarcie, rzeczywisty ping/info, import Alpine, build `RUN`/`COPY`, run, exec, UID 1000, limit cgroup 128 MiB, logi, eksport, anulowanie, sprzątanie wybranego zadania oraz zsynchronizowane zatrzymanie QEMU. Gotowość containerd jest weryfikowana rzeczywistym RPC przed startem dockerd z jawnym socketem. Serwer kontenera zwraca prawdziwy interaktywny HTML; wykonanie jego JavaScript wymaga osobnego testu Android WebView. Logi i identyfikator `8f904ef1-c107-4f96-8b5a-51403c7cc05d` są w raporcie.
+
+Testy bieżącego APK wbudowanego środowiska, czystej instalacji bez Termux i aktualizacji z dokładnej opublikowanej APK 0.4.2 są w trakcie weryfikacji. Liczb z historycznych raportów 0.4.2 nie przypisujemy nowemu APK. Końcowy indeks wydania powinien wiązać ukończone przebiegi z SHA256, rozmiarem i certyfikatem nowej APK.
+
+Zestaw `EmbeddedRuntimeTests` sprawdza pod UID niedebugowalnej aplikacji rzeczywisty bootstrap, Bash/Node/Python/Git/jq/curl, shebang i procesy potomne, zegar, anulowanie PRoot, PTY poprzez `script`, wejście z natywnego terminala, pliki w HOME, powtórne przygotowanie, zachowanie danych z 0.4.2, uszkodzone archiwum, oficjalne klienty i stan niezalogowanego konta. Raport zapisuje API, ABI, UID, rozmiar strony, `targetSdk`, wersje, identyfikator oraz czas każdego sprawdzenia. Zweryfikowane archiwa klientów w tym zestawie trafiają przez lokalny transport `adb reverse`; **nie potwierdza to pobierania przez HTTPS z Androida**. Pierwsze uruchomienie binariów jest rzeczywiste, a konto właściciela nie jest podmieniane ani kopiowane.
+
+Nowe regresje [uprawnień](PERMISSIONS.md) nie nadają zgód i nie zastępują listy istniejących usług Accessibility, w tym FlowMesh. Brak Accessibility, odmowa powiadomień i aktywna optymalizacja baterii nie blokują lokalnego środowiska ani rozmów po zalogowaniu. MCP `run_command` działa bez Accessibility; wymagane pozostają tryb programisty, pełna dokładna komenda w karcie zgody i ważne poświadczenie konkretnego przebiegu. Dodatkowe testy sprawdzają wykonanie dopiero po kliknięciu, odmowę, stare ID/przycisk po zastąpieniu prośby, odebranie poświadczeń, przerwanie aktywnej powłoki i anulowanie przed utworzeniem procesu.
+
+Fizyczny Lenovo TB336FU (Android 16/API36, arm64-v8a, strony 4 KiB) miał osobną weryfikację **0.4.2**: diagnostyka i krótkie komendy działały, lecz Docker powtarzalnie zatrzymywał się przy 15-sekundowym limicie managed containerd przy 1 i 2 GB RAM. [Raport i log fizycznego testu są assetami v0.4.2](https://github.com/mateuszsury/androidagent/releases/tag/v0.4.2). To jest wynik poprzedniej APK, a nie ukończony test poprawki. Końcowa instalacja i weryfikacja 0.4.3 na tablecie pozostają osobną walidacją sprzętową.
+
+### Odtwarzanie bieżącej wersji
+
+Przygotuj JNI USB, QEMU/gościa Docker i [przypięte środowisko terminala](../terminal/README.md). Ustaw `JAVA_HOME`, `ANDROID_SDK_ROOT`, `KEYSTORE` oraz `ANDROID_SERIAL` na przeznaczony do testów emulator. Zachowaj certyfikat aktualizacji; nie zastępuj pliku 0.4.2 nowymi bajtami.
+
+```sh
+python3 tools/prepare-terminal.py
+python3 tools/check-terminal-assets.py
+bash tools/build-local.sh
+bash tools/test-embedded-runtime.sh --clean artifacts/androidagent-0.4.3.apk
+bash tools/test-embedded-runtime.sh --upgrade artifacts/androidagent-0.4.2.apk artifacts/androidagent-0.4.3.apk
+bash tools/test-android.sh
+bash tools/test-usb.sh
+bash tools/test-docker.sh
+bash tools/test-webview.sh
+```
+
+Tryby `--clean` i `--upgrade` usuwają instalację i dane testowe, a skrypt wymaga emulatora. Nie uruchamiaj pełnego zbiorczego zestawu na telefonie z potrzebnymi danymi: historyczne scenariusze Accessibility zmieniają jego ustawienia, a testy Dockera resetują dyski fixture. Sam ekran Uprawnień nie wykonuje takich zmian. Nowe raporty środowiska są eksportowane do dedykowanego `Download/androidagent-embedded-tests/` i kopiowane pod `artifacts/api<API>/embedded-runtime/{clean,upgrade}`; skrypt odrzuca stary `run_id`, niewłaściwą wersję i niekompletny zestaw. Test gościa ARM64 można odtworzyć przez `python3 tools/test-docker-startup.py`; korzysta z odrębnego dysku testowego gospodarza i oryginalnego initramfs 0.4.2.
+
+## Historyczne wydanie 0.4.2
+
+Poniższe zestawy i ich suma dotyczą dokładnej APK 0.4.2 oraz wcześniejszych emulatorów. Zachowujemy je jako historię; nie są potwierdzeniem nowego środowiska terminalowego ani aktualizacji 0.4.3.
 
 Weryfikacja po [dodatkowym przeglądzie](REVIEW_0.4.2.md), bez logowania do modeli. Końcowy APK i obraz Linux ARM64 mają **392/392 zaliczonych sprawdzeń w ukończonych zestawach**. [Indeks wydania](../artifacts/release-0.4.2.json) wiąże wyniki z sumą konkretnego APK i identyfikatorami przebiegów. Przerwane i nieudane wcześniejsze próby opisano osobno poniżej; nie wchodzą do tej sumy.
 

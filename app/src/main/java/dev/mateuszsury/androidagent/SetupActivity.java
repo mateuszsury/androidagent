@@ -1,14 +1,10 @@
 package dev.mateuszsury.androidagent;
 
 import android.app.Dialog;
-import android.content.ClipData;
-import android.content.ClipboardManager;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.PowerManager;
-import android.provider.Settings;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.Gravity;
@@ -24,13 +20,14 @@ import android.widget.Toast;
 
 import static dev.mateuszsury.androidagent.Ui.*;
 
-/** Settings: setup checklist, appearance, agent, experience and the optional MCP command. */
+/** Settings: embedded environment, account state and the existing appearance preferences. */
 public class SetupActivity extends Screen {
     private ScrollView scroll;
     private LinearLayout list;
     /** Setup card open state; null = automatic (open until all steps are done). */
     private Boolean setupOpen;
-    private String mcpAgent = "claude";
+    private final android.os.Handler callbacks = new android.os.Handler(android.os.Looper.getMainLooper());
+    private String runtimeState;
 
     @Override
     protected void onCreate(Bundle state) {
@@ -56,29 +53,42 @@ public class SetupActivity extends Screen {
         super.onResume();
         if (isFinishing()) return;
         render();
-        if (Termux.installed(this) && Termux.permitted(this)) ping();
+        runtimeState = runtimeState();
+        callbacks.removeCallbacks(watchRuntime);
+        callbacks.postDelayed(watchRuntime, 1000);
+        ping();
     }
-
-    private static final long PING_WAIT_MS = 4000;
-    private long pingSentAt;
 
     @Override protected void onNotificationPermissionChanged() { render(); }
 
-    /** Ask the Termux helper to answer; re-render as the answer arrives (or doesn't). */
-    private void ping() {
-        withToolHost(this::pingReady);
+    @Override protected void onPause() {
+        callbacks.removeCallbacksAndMessages(null);
+        super.onPause();
     }
 
-    private void pingReady() {
-        pingSentAt = System.currentTimeMillis();
-        try {
-            Termux.run(this, "ping");
-        } catch (Exception e) {
-            pingSentAt = 0;
+    private String runtimeState() {
+        EmbeddedRuntime runtime = EmbeddedRuntime.get(this);
+        return runtime.ready() + ":" + runtime.busy() + ":" + runtime.status() + ":"
+                + runtime.progress() + ":" + runtime.error() + ":" + Prefs.helperCheckedAt(this);
+    }
+
+    private final Runnable watchRuntime = new Runnable() {
+        @Override public void run() {
+            if (isFinishing() || isDestroyed()) return;
+            String state = runtimeState();
+            if (!state.equals(runtimeState)) { runtimeState = state; render(); }
+            callbacks.postDelayed(this, 1000);
         }
-        render();
-        list.postDelayed(this::render, 1200);
-        list.postDelayed(this::render, PING_WAIT_MS + 100);
+    };
+
+    /** Checks the installed clients' actual account status without displaying credentials. */
+    private void ping() {
+        if (!EmbeddedRuntime.get(this).ready()) return;
+        withToolHost(() -> {
+            EmbeddedRuntime.get(this).refreshAccounts();
+            callbacks.postDelayed(this::render, 1200);
+            callbacks.postDelayed(this::render, 4100);
+        });
     }
 
     /** Appearance changed on this screen: restyle everything in place, keeping the scroll position. */
@@ -100,92 +110,68 @@ public class SetupActivity extends Screen {
 
     private void render() {
         if (isFinishing() || isDestroyed()) return;
+        int scrollY = scroll.getScrollY();
         list.removeAllViews();
 
         LinearLayout head = column(this);
         head.setPadding(dp(this, 20), dp(this, 8), dp(this, 20), dp(this, 4));
         head.addView(title(this, "Ustawienia", 28));
-        TextView sub = text(this, "Codex z kontem ChatGPT lub Claude Code z kontem Claude. Obaj agenci działają w Termux na tym telefonie.", 14, MUTED);
+        TextView sub = text(this, "Codex z kontem ChatGPT lub Claude Code z kontem Claude. Oficjalni klienci działają we wbudowanym środowisku na tym telefonie.", 14, MUTED);
         sub.setPadding(0, dp(this, 4), 0, 0);
         head.addView(sub);
         list.addView(head, full());
 
         // ---------------------------------------------------------------- setup
+        EmbeddedRuntime runtime = EmbeddedRuntime.get(this);
         boolean a11y = SetupState.accessibilityEnabled(this);
-        boolean termux = Termux.installed(this);
-        boolean perm = Termux.permitted(this);
+        boolean hasClaude = SetupState.agentInstalled(this, "claude");
+        boolean hasCodex = SetupState.agentInstalled(this, "codex");
+        String backend = Prefs.backend(this);
+        String agent = "codex".equals(backend) ? "Codex" : "Claude Code";
+        boolean agentInstalled = SetupState.agentInstalled(this, backend);
+        boolean accountReady = SetupState.agentReady(this, backend);
         Step[] steps = new Step[5];
 
-        String a11yText = "This shows the bubble and lets androidagent read the screen, tap and type for you.";
-        if (!a11y && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            a11yText += "\n\nSwitch greyed out (\"Restricted setting\")? Android blocks this for apps installed from a file. "
-                    + "Tap App info, then ⋮ in the top right → Allow restricted settings, and try again.";
-        }
-        steps[0] = step("Sterowanie ekranem (opcjonalne)", a11yText, a11y,
-                a11y ? null : "Open settings", v -> startActivity(new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)),
-                a11y || Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ? null : "App info", v -> openAppInfo(getPackageName()));
-        steps[0].optional = true;
+        String environment = runtime.ready()
+                ? "Terminal, pliki i most narzędzi są dostępne w androidagent. Nie potrzebujesz osobnej aplikacji Termux."
+                : runtime.busy() ? runtime.status() + " · " + runtime.progress() + "%"
+                : "androidagent przygotowuje własne środowisko terminalowe i oficjalnych klientów. Pobieranie klientów wymaga internetu.";
+        if (runtime.error() != null && !runtime.error().isEmpty()) environment = runtime.error();
+        steps[0] = step("Wbudowane środowisko", environment, runtime.ready(),
+                runtime.ready() ? "Otwórz środowisko" : runtime.busy() ? "Pokaż postęp" : "Przygotuj / ponów",
+                v -> EmbeddedRuntime.open(this), null, null);
 
-        steps[1] = step("Allow androidagent to run commands in Termux",
-                termux ? "androidagent wysyła zadania do wybranego agenta w Termux."
-                        : "Install Termux first, from GitHub or F-Droid, then install and sign in to Claude Code in it.",
-                termux ? perm : null,
-                termux ? (perm ? null : "Allow") : "Get Termux",
-                termux ? v -> requestPermissions(new String[]{Termux.PERMISSION}, 1)
-                        : v -> openUrl("https://github.com/termux/termux-app/releases"),
-                null, null);
+        String account = accountReady ? agent + " jest zainstalowany i zalogowany."
+                : !agentInstalled ? "Najpierw przygotuj klienta " + agent + " w panelu środowiska."
+                : "Klient " + agent + " jest gotowy. Zaloguj się do własnego konta przez oficjalną stronę. Instalacja środowiska nie loguje Cię automatycznie.";
+        steps[1] = step("Konto " + agent, account, accountReady,
+                accountReady ? "Sprawdź konto" : agentInstalled ? "Zaloguj się" : "Przygotuj klienta",
+                v -> {
+                    if (accountReady) ping();
+                    else if (agentInstalled) TermuxSetup.signIn(this, backend);
+                    else EmbeddedRuntime.open(this);
+                }, agentInstalled && !accountReady ? "Sprawdź ponownie" : null, v -> ping());
 
-        // Step 3 is checked by pinging the helper through Termux (see onResume); it answers via the bubble's server.
-        String helper = Prefs.helperStatus(this);
-        // While a re-check is on its way, keep trusting the last answer (no flicker); if Termux doesn't
-        // answer within PING_WAIT_MS, the old answer no longer counts.
-        boolean fresh = Prefs.helperCheckedAt(this) >= pingSentAt;
-        boolean waiting = pingSentAt > 0 && System.currentTimeMillis() - pingSentAt < PING_WAIT_MS;
-        boolean answered = helper != null && (fresh || waiting);
-        boolean hasClaude = answered && helper.contains("claude");
-        boolean hasCodex = answered && helper.contains("codex");
-        String backend = Prefs.backend(this);
-        boolean helperCurrent = Prefs.helperVersion(this) >= SetupState.HELPER_VERSION;
-        boolean helperOk = ("codex".equals(backend) ? hasCodex : hasClaude) && helperCurrent
-                && SetupState.agentReady(this, backend);
-        String howTo = "Tap Copy setup command: Termux opens. Paste with a long-press and press Enter. "
-                + "It installs androidagent helper and lets androidagent talk to Termux.";
-        String helperText;
-        String agent = "codex".equals(backend) ? "Codex" : "Claude Code";
-        if (helperOk) helperText = "Termux answered and " + agent + " is installed.";
-        else if (answered && !helperCurrent) helperText = "androidagent Termux helper is out of date. " + howTo;
-        else if (answered) helperText = "Termux answered, but " + agent + " isn't installed there yet. Install it in Termux "
-                + "and sign in (see the androidagent README), or choose the other brain below.";
-        else if (!termux || !perm) helperText = "Najpierw zainstaluj Termux i zezwól na wykonywanie komend. " + howTo;
-        else if (pingSentAt > 0 && System.currentTimeMillis() - pingSentAt < PING_WAIT_MS) helperText = "Checking Termux…";
-        else helperText = howTo + " Come back here when it says Done.";
-        if (helperCurrent && answered && !SetupState.agentReady(this, backend)) helperText = agent
-                + " is installed but not signed in. Run " + ("codex".equals(backend) ? "~/bin/codex login --device-auth" : "~/bin/claude auth login")
-                + " in Termux once and sign in.";
-        boolean canSetup = termux && perm;
-        steps[2] = step("Set up the Termux helper", helperText, canSetup ? helperOk : null,
-                canSetup && !helperOk ? "Copy setup command" : null, v -> copySetupCommand(),
-                canSetup && !helperOk ? "Check again" : null, v -> ping());
+        String a11yText = "Pozwala odczytywać ekran, dotykać i wpisywać tekst w innych aplikacjach. Rozmowy, terminal i Docker działają bez tej zgody.";
+        if (!a11y && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
+            a11yText += " Android może najpierw wymagać zezwolenia na ustawienia z ograniczeniami w informacjach o aplikacji.";
+        steps[2] = step("Sterowanie ekranem (opcjonalne)", a11yText, a11y,
+                "Przegląd uprawnień", v -> PermissionGuide.open(this), null, null);
+        steps[2].optional = true;
 
         PowerManager pm = getSystemService(PowerManager.class);
-        boolean buddyBg = pm.isIgnoringBatteryOptimizations(getPackageName());
-        boolean termuxBg = termux && pm.isIgnoringBatteryOptimizations(Termux.PACKAGE);
-        steps[3] = step("Let androidagent and Termux run in the background",
-                "So your phone doesn't stop them to save battery. androidagent: " + (buddyBg ? "allowed" : "not yet")
-                        + " · Termux: " + (termuxBg ? "allowed" : "not yet")
-                        + (termuxBg ? "" : ". For Termux, open its settings → Battery → Unrestricted."),
-                buddyBg && termuxBg,
-                buddyBg ? null : "Allow for androidagent", v -> startActivity(new Intent(
-                        Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, Uri.parse("package:" + getPackageName()))),
-                termuxBg || !termux ? null : "Termux settings", v -> openAppInfo(Termux.PACKAGE));
+        boolean background = pm != null && pm.isIgnoringBatteryOptimizations(getPackageName());
+        steps[3] = step("Praca w tle (opcjonalne)",
+                "Wyjątek optymalizacji baterii pomaga utrzymać długie zadania. Android wymaga Twojej zgody; ustawienie dotyczy tylko androidagent.",
+                background, "Przegląd uprawnień", v -> PermissionGuide.open(this), null, null);
+        steps[3].optional = true;
 
-        boolean replied = Prefs.hadReply(this);
-        steps[4] = step("Try it", replied
-                        ? "androidagent has answered you. Tap the bubble anytime to ask for more."
-                        : perm && helperOk
-                        ? "Tap the bubble on the edge of your screen and ask something like \"open Messenger\", or start a chat here."
-                        : "Finish the steps above first.",
-                replied ? Boolean.TRUE : null, null, null, null, null);
+        steps[4] = step("Pierwsza rozmowa", Prefs.hadReply(this)
+                        ? "Historia rozmów jest zapisana. Możesz wrócić do niej z ekranu głównego."
+                        : "Po zalogowaniu rozpocznij rozmowę. /status odczytuje stan telefonu lokalnie i działa bez modelu.",
+                Prefs.hadReply(this), "Otwórz rozmowy", v -> startActivity(new Intent(this, MainActivity.class)
+                        .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)), null, null);
+        steps[4].optional = true;
         setupCard(steps);
 
         list.addView(sectionLabel(this, "Powiadomienia"));
@@ -225,10 +211,9 @@ public class SetupActivity extends Screen {
         LinearLayout ag = card();
         ag.setPadding(dp(this, 16), dp(this, 14), dp(this, 16), dp(this, 16));
         ag.addView(title(this, "Domyślny agent", 15));
-        TextView brainInfo = text(this, "Who answers new chats from the bubble or the New chat button. Claude Code uses your Claude plan; "
-                + "Codex uses your ChatGPT plan."
-                + (answered ? " Installed in Termux: " + (hasClaude && hasCodex ? "both" : hasClaude ? "Claude Code"
-                : hasCodex ? "Codex" : "neither") + "." : ""), 13, MUTED);
+        TextView brainInfo = text(this, "Nowe rozmowy użyją wybranego agenta. Claude Code korzysta z Twojego konta Claude, a Codex z konta ChatGPT. "
+                + "Dostępni klienci: " + (hasClaude && hasCodex ? "obaj" : hasClaude ? "Claude Code"
+                : hasCodex ? "Codex" : "jeszcze nieprzygotowani") + ".", 13, MUTED);
         brainInfo.setPadding(0, dp(this, 2), 0, 0);
         ag.addView(brainInfo);
         ag.addView(segmented(this, new String[][]{{"claude", "Claude Code"}, {"codex", "Codex"}}, backend, false, v -> {
@@ -258,8 +243,8 @@ public class SetupActivity extends Screen {
                 }), full());
         ex.addView(divider(), lineParams());
         final boolean dev = Prefs.devMode(this);
-        ex.addView(switchRow(this, "Tryb programisty", "Codex i Claude Code mogą wykonywać komendy i zmieniać pliki dostępne dla Termux. "
-                + "Katalog startowy: ~/.buddy/work. Dostęp obejmuje także inne pliki i uprawnienia Termux.", dev, on -> {
+        ex.addView(switchRow(this, "Tryb programisty", "Codex i Claude Code mogą wykonywać komendy i zmieniać pliki dostępne dla androidagent. "
+                + "Katalog startowy: ~/.buddy/work. Dostęp obejmuje również inne pliki dostępne dla aplikacji.", dev, on -> {
             Prefs.setDevMode(this, on);
             render();
         }), full());
@@ -269,8 +254,8 @@ public class SetupActivity extends Screen {
             warn.setPadding(dp(this, 12), dp(this, 10), dp(this, 12), dp(this, 10));
             warn.setBackground(rounded(this, ERR_SOFT, 12));
             warn.addView(icon(this, R.drawable.ms_warning, ERR, 18));
-            TextView wt = text(this, "Komendy agentów w Termux wykonują się bez osobnego potwierdzenia. "
-                    + "Android ogranicza je do uprawnień Termux; nie są ograniczone do katalogu projektu. "
+            TextView wt = text(this, "Komendy agentów we wbudowanym środowisku wykonują się bez osobnego potwierdzenia. "
+                    + "Android ogranicza je do uprawnień androidagent; nie są ograniczone do katalogu projektu. "
                     + "Komendy narzędzia telefonu run_command wymagają zatwierdzenia dokładnej treści.", 13, ERR);
             wt.setPadding(dp(this, 10), 0, 0, 0);
             warn.addView(wt, weight1());
@@ -281,52 +266,31 @@ public class SetupActivity extends Screen {
         addCard(ex);
 
         // ------------------------------------------------------- remote control
-        list.addView(sectionLabel(this, "Remote control"));
+        list.addView(sectionLabel(this, "Zdalna kontynuacja Claude"));
         LinearLayout rc = card();
         rc.setPadding(dp(this, 16), dp(this, 14), dp(this, 16), dp(this, 14));
-        rc.addView(text(this, "Per session, never global: in a Claude Code chat, tap the phone button to reopen that chat "
-                + "in a Termux tab with Remote Control on for that session only, so you can continue it from the Claude app. "
-                + "Type /exit there when done; the tab closes.", 14, MUTED));
+        rc.addView(text(this, "Przycisk telefonu w rozmowie Claude Code otwiera tę sesję we wbudowanym terminalu "
+                + "z Remote Control. Możesz kontynuować ją w oficjalnej aplikacji Claude. Dostępność zależy od konta Claude.", 14, MUTED));
         addCard(rc);
 
-        // ---------------------------------------------------------- phone tools
-        list.addView(sectionLabel(this, "Phone tools in your own sessions"));
+        list.addView(sectionLabel(this, "Narzędzia agentów"));
         LinearLayout pt = card();
         pt.setPadding(dp(this, 16), dp(this, 14), dp(this, 16), dp(this, 16));
-        pt.addView(text(this, "Run this in Termux once. Then that agent gets the phone tools in every session, "
-                + "even without the bubble.", 14, MUTED));
-        pt.addView(segmented(this, new String[][]{{"claude", "claude"}, {"codex", "codex"}}, mcpAgent, true, v -> {
-            mcpAgent = v;
-            render();
-        }), topGap(12));
-        String token = Prefs.token(this);
-        String url = "http://127.0.0.1:" + McpServer.PORT + "/mcp";
-        final String cmd = "codex".equals(mcpAgent)
-                // Codex reads the bearer token from an environment variable, so save it in ~/.bashrc too.
-                ? "codex mcp add phone --url " + url + " --bearer-token-env-var BUDDY_TOKEN"
-                + " && echo 'export BUDDY_TOKEN=" + token + "' >> ~/.bashrc && export BUDDY_TOKEN=" + token
-                : "claude mcp add --transport http -s user phone " + url
-                + " --header \"Authorization: Bearer " + token + "\"";
-        // the token is masked on screen so screenshots never leak it
-        pt.addView(codeBlock(this, cmd.replace(token, token.substring(0, 4) + "••••••••")), topGap(12));
-        Button copy = button(this, "Copy command", false);
-        copy.setCompoundDrawablesRelativeWithIntrinsicBounds(R.drawable.ms_content_copy, 0, 0, 0);
-        copy.setCompoundDrawableTintList(android.content.res.ColorStateList.valueOf(TEXT));
-        copy.setCompoundDrawablePadding(dp(this, 8));
-        copy.setOnClickListener(v -> {
-            ClipboardManager cm = getSystemService(ClipboardManager.class);
-            cm.setPrimaryClip(ClipData.newPlainText("androidagent MCP", cmd));
-            Toast.makeText(this, "Copied. Paste it in Termux.", Toast.LENGTH_SHORT).show();
-        });
-        LinearLayout.LayoutParams cpp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, dp(this, 44));
-        cpp.topMargin = dp(this, 12);
-        pt.addView(copy, cpp);
+        pt.addView(text(this, "Most narzędzi jest konfigurowany automatycznie dla rozmów w androidagent. "
+                + "Terminal, pliki i oficjalne logowanie znajdziesz w panelu środowiska. Uprawnienia Androida pozostają pod Twoją kontrolą.", 14, MUTED));
+        Button runtimeButton = button(this, "Otwórz środowisko i klientów", false);
+        runtimeButton.setOnClickListener(v -> EmbeddedRuntime.open(this));
+        pt.addView(runtimeButton, topGap(12));
+        Button permissionsButton = button(this, "Przegląd uprawnień", false);
+        permissionsButton.setOnClickListener(v -> PermissionGuide.open(this));
+        pt.addView(permissionsButton, topGap(8));
         addCard(pt);
 
-        TextView ver = monoText(this, "buddy " + BuildInfo.VERSION + " · " + getPackageName(), 12, MUTED);
+        TextView ver = monoText(this, "androidagent " + BuildInfo.VERSION + " · " + getPackageName(), 12, MUTED);
         ver.setGravity(Gravity.CENTER);
         ver.setPadding(0, dp(this, 24), 0, 0);
         list.addView(ver, full());
+        scroll.post(() -> scroll.scrollTo(0, scrollY));
     }
 
     // ------------------------------------------------------------- setup card
@@ -358,7 +322,7 @@ public class SetupActivity extends Screen {
         LinearLayout c = card();
         c.setPadding(dp(this, 16), dp(this, 14), dp(this, 16), dp(this, 14));
         LinearLayout head = row(this);
-        head.addView(title(this, "Setup", 17));
+        head.addView(title(this, "Przygotowanie", 17));
         TextView n = monoText(this, done + "/" + required, 12, complete ? OK : ACCENT_TEXT);
         n.setTypeface(mono(this, 600));
         n.setPadding(dp(this, 8), dp(this, 2), 0, 0);
@@ -387,14 +351,14 @@ public class SetupActivity extends Screen {
         c.addView(bar, bp);
 
         if (!complete) {
-            TextView guide = text(this, "Open the step-by-step guide", 14, ACCENT_TEXT);
+            TextView guide = text(this, "Otwórz przewodnik", 14, ACCENT_TEXT);
             guide.setTypeface(sans(this, 600));
             guide.setPadding(0, dp(this, 12), 0, 0);
             guide.setOnClickListener(v -> startActivity(new Intent(this, OnboardingActivity.class)));
             c.addView(guide);
         }
         if (!open) {
-            TextView s = text(this, complete ? "All set. androidagent is ready." : "Next: " + steps[next].title, 13, MUTED);
+            TextView s = text(this, complete ? "Środowisko i konto są gotowe." : "Następny krok: " + steps[next].title, 13, MUTED);
             s.setPadding(0, dp(this, 10), 0, 0);
             c.addView(single(s));
         } else {
@@ -592,25 +556,4 @@ public class SetupActivity extends Screen {
         return p;
     }
 
-    /** Copies the Termux setup one-liner and opens Termux so the user can paste it. */
-    private void copySetupCommand() {
-        try {
-            ClipboardManager cm = getSystemService(ClipboardManager.class);
-            cm.setPrimaryClip(ClipData.newPlainText("androidagent setup", TermuxSetup.command(this)));
-        } catch (Exception e) {
-            Toast.makeText(this, "Couldn't build the setup command: " + e.getMessage(), Toast.LENGTH_LONG).show();
-            return;
-        }
-        Toast.makeText(this, "Copied. In Termux: long-press → Paste, then Enter.", Toast.LENGTH_LONG).show();
-        Intent termux = getPackageManager().getLaunchIntentForPackage(Termux.PACKAGE);
-        if (termux != null) startActivity(termux);
-    }
-
-    private void openAppInfo(String pkg) {
-        startActivity(new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:" + pkg)));
-    }
-
-    private void openUrl(String url) {
-        startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
-    }
 }

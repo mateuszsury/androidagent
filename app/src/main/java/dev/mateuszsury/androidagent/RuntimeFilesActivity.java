@@ -1,0 +1,19 @@
+package dev.mateuszsury.androidagent;
+
+import android.os.Bundle;
+import android.widget.*;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+import static dev.mateuszsury.androidagent.Ui.*;
+
+/** Small private-workspace browser; does not request broad storage permissions. */
+public final class RuntimeFilesActivity extends Screen {
+    private File boundary,directory;private LinearLayout body;private TextView path;
+    @Override protected void onCreate(Bundle state){super.onCreate(state);boundary=EmbeddedRuntime.get(this).home();directory=new File(boundary,".buddy/work");directory.mkdirs();
+        LinearLayout root=column(this);root.setBackgroundColor(BG);root.setFitsSystemWindows(true);LinearLayout bar=row(this);ImageButton back=iconButton(this,R.drawable.ms_arrow_back,"Wróć");back.setOnClickListener(v->{if(directory.equals(boundary))finish();else{directory=directory.getParentFile();render();}});bar.addView(back);bar.addView(title(this,"Pliki i projekty",22),weight1());root.addView(bar,full());path=text(this,"",12,MUTED);root.addView(path,full());ScrollView scroll=new ScrollView(this);body=column(this);body.setPadding(dp(this,16),dp(this,12),dp(this,16),dp(this,20));scroll.addView(body);root.addView(scroll,new LinearLayout.LayoutParams(-1,0,1));Button create=button(this,"+ Nowy plik",false);create.setOnClickListener(v->create());root.addView(create,full());setContentView(root);render();}
+    private boolean allowed(File file){try{return file.getCanonicalPath().equals(boundary.getCanonicalPath())||file.getCanonicalPath().startsWith(boundary.getCanonicalPath()+File.separator);}catch(IOException e){return false;}}
+    private void render(){path.setText(directory.getPath().replace(boundary.getPath(),"~"));body.removeAllViews();File[] entries=directory.listFiles();if(entries==null)return;Arrays.sort(entries,(a,b)->a.isDirectory()!=b.isDirectory()?(a.isDirectory()?-1:1):a.getName().compareToIgnoreCase(b.getName()));for(File file:entries){if(!allowed(file))continue;Button open=button(this,(file.isDirectory()?"▸ ":"")+file.getName(),false);open.setOnClickListener(v->{if(file.isDirectory()){directory=file;render();}else edit(file);});body.addView(open,full());}}
+    private void create(){EditText name=new EditText(this);name.setSingleLine(true);name.setHint("Nazwa pliku");new android.app.AlertDialog.Builder(this).setTitle("Nowy plik").setView(name).setNegativeButton("Anuluj",null).setPositiveButton("Utwórz",(d,w)->{String value=name.getText().toString().trim();if(value.isEmpty()||value.contains("/")||"..".equals(value)){Toast.makeText(this,"Nieprawidłowa nazwa",Toast.LENGTH_LONG).show();return;}File file=new File(directory,value);if(file.exists()){Toast.makeText(this,"Plik już istnieje",Toast.LENGTH_LONG).show();return;}edit(file);}).show();}
+    private void edit(File file){if(!allowed(file)||file.length()>256*1024){Toast.makeText(this,"Podgląd tekstu obsługuje pliki do 256 KB",Toast.LENGTH_LONG).show();return;}try{String value=file.exists()?new String(java.nio.file.Files.readAllBytes(file.toPath()),StandardCharsets.UTF_8):"";if(value.indexOf('\0')>=0){Toast.makeText(this,"Plik binarny · "+file.length()+" bajtów",Toast.LENGTH_LONG).show();return;}EditText editor=new EditText(this);editor.setTypeface(android.graphics.Typeface.MONOSPACE);editor.setText(value);editor.setMinLines(8);ScrollView scroll=new ScrollView(this);scroll.addView(editor);new android.app.AlertDialog.Builder(this).setTitle(file.getName()).setView(scroll).setNegativeButton("Anuluj",null).setPositiveButton("Zapisz",(dialog,which)->{try{if(!allowed(file))throw new IOException("Ścieżka poza katalogiem");try(OutputStream out=new FileOutputStream(file)){out.write(editor.getText().toString().getBytes(StandardCharsets.UTF_8));}render();}catch(Exception e){Toast.makeText(this,e.getMessage(),Toast.LENGTH_LONG).show();}}).show();}catch(Exception e){Toast.makeText(this,e.getMessage(),Toast.LENGTH_LONG).show();}}
+}

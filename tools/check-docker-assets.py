@@ -25,6 +25,14 @@ def verify(repository):
         manifest = json.loads((assets / 'manifest.json').read_text())
         if not all(name in manifest['files'] for name in GUEST_FILES):
             raise ValueError(f'{abi}: guest manifest must include disk, kernel and initramfs')
+        if manifest.get('runtime_revision') != 2:
+            raise ValueError(f'{abi}: prepare current guest runtime in initramfs first')
+        runtime = manifest.get('runtime', {}).get('files', {})
+        if not all(name in runtime for name in ('init.sh', 'agent.py', 'engine.py')):
+            raise ValueError(f'{abi}: guest runtime manifest must include init, agent and engine supervisor')
+        for name, expected in runtime.items():
+            if digest(Path(repository) / 'docker/guest' / name) != expected:
+                raise ValueError(f'{abi}: stale packaged guest runtime {name}')
         for name, expected in manifest['files'].items():
             if digest(assets / name) != expected:
                 raise ValueError(f'{abi}/{name}: SHA256 mismatch')

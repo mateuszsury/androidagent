@@ -1,61 +1,47 @@
 package dev.mateuszsury.androidagent;
 
-import android.content.ClipData;
-import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.PowerManager;
-import android.provider.Settings;
-import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
-import android.widget.FrameLayout;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import static dev.mateuszsury.androidagent.Ui.*;
 
-/**
- * First-run guide: one step per screen. Steps that happen elsewhere (Termux, Android settings) are
- * detected when the user comes back; while they're in Termux, the service checks and brings this back.
- */
+/** First-run guide for our own runtime; Android permissions and account login stay explicit. */
 public class OnboardingActivity extends Screen {
-    static final int WELCOME = 0, BRAIN = 1, TERMUX = 2, ACCESS = 3, PERMISSION = 4, CONNECT = 5, AGENTS = 6,
-            BACKGROUND = 7, TRY = 8;
+    static final int WELCOME = 0, BRAIN = 1, ENVIRONMENT = 2, PERMISSIONS = 3, TRY = 4;
     private static final int LAST = TRY;
-
     private ScrollView scroll;
     private LinearLayout body, bottom;
     private TextView progress;
     private int step;
-    private int accessTries;
-    private boolean stuckOpen;
-    /** After Back, stay on the (possibly done) step until the user moves on themselves. */
-    private boolean noAutoAdvance;
+    private String lastRuntimeState;
     private final android.os.Handler callbacks = new android.os.Handler(android.os.Looper.getMainLooper());
 
-    @Override
-    protected void onCreate(Bundle state) {
+    @Override protected void onCreate(Bundle state) {
         super.onCreate(state);
-        step = Math.min(Prefs.onboardStep(this), LAST);
-        if (state != null) {
-            noAutoAdvance = state.getBoolean("no_auto_advance");
-            accessTries = state.getInt("access_tries");
-            stuckOpen = state.getBoolean("stuck_open");
+        // Old 0.4.2 steps 2–8 described a separate Termux app. Preserve all user data and
+        // resume at the embedded environment instead of interpreting those step IDs anew.
+        android.content.SharedPreferences preferences = getSharedPreferences("buddy", MODE_PRIVATE);
+        if (!preferences.getBoolean("onboard_embedded_v1", false)) {
+            int old = Prefs.onboardStep(this);
+            if (old >= 2) Prefs.setOnboardStep(this, ENVIRONMENT);
+            preferences.edit().putBoolean("onboard_embedded_v1", true).apply();
         }
+        Prefs.setSetupWatchUntil(this, 0);
+        step = Math.max(WELCOME, Math.min(Prefs.onboardStep(this), LAST));
+        if (state != null) step = Math.max(WELCOME, Math.min(state.getInt("step", step), LAST));
         if (Build.VERSION.SDK_INT >= 33) getOnBackInvokedDispatcher().registerOnBackInvokedCallback(
                 android.window.OnBackInvokedDispatcher.PRIORITY_DEFAULT, this::goBack);
 
         LinearLayout root = column(this);
         root.setBackgroundColor(BG);
         root.setFitsSystemWindows(true);
-
         LinearLayout top = row(this);
         top.setPadding(dp(this, 20), dp(this, 12), dp(this, 8), dp(this, 4));
         progress = monoText(this, "", 12, MUTED);
@@ -63,44 +49,28 @@ public class OnboardingActivity extends Screen {
         Button skip = button(this, "Później", false);
         skip.setBackgroundResource(ripple(this, false));
         skip.setTextColor(MUTED);
-        skip.setOnClickListener(v -> confirmSheet(this, "Skip the setup guide?",
-                "You can finish setup any time in Settings. Chats won't run until it's done.", "Skip", false, this::finishGuide));
+        skip.setOnClickListener(v -> finishGuide());
         top.addView(skip);
         root.addView(top, full());
-
         scroll = new ScrollView(this);
         body = column(this);
         body.setPadding(dp(this, 24), dp(this, 16), dp(this, 24), dp(this, 24));
         scroll.addView(body);
-        root.addView(scroll, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1));
-
+        root.addView(scroll, new LinearLayout.LayoutParams(-1, 0, 1));
         bottom = column(this);
         bottom.setPadding(dp(this, 20), dp(this, 8), dp(this, 20), dp(this, 16));
         root.addView(bottom, full());
         setContentView(root);
     }
 
-    @Override
-    protected void onResume() {
+    @Override protected void onResume() {
         super.onResume();
         if (isFinishing()) return;
         render();
-        if (step == CONNECT || step == AGENTS) ping();
-        checkAdvance();
-    }
-
-    @Override
-    public void onBackPressed() {
-        goBack();
-    }
-
-    private void goBack() {
-        if (step > WELCOME) {
-            noAutoAdvance = true;
-            go(step - 1);
-        } else {
-            finish();
-        }
+        ping();
+        lastRuntimeState = runtimeState();
+        callbacks.removeCallbacks(watchRuntime);
+        callbacks.postDelayed(watchRuntime, 1000);
     }
 
     @Override protected void onPause() {
@@ -109,95 +79,62 @@ public class OnboardingActivity extends Screen {
     }
 
     @Override protected void onSaveInstanceState(Bundle out) {
-        out.putBoolean("no_auto_advance", noAutoAdvance);
-        out.putInt("access_tries", accessTries);
-        out.putBoolean("stuck_open", stuckOpen);
+        out.putInt("step", step);
         super.onSaveInstanceState(out);
     }
 
-    // ------------------------------------------------------------- state
+    @Override public void onBackPressed() { goBack(); }
 
-    /** Whether the step the guide is on is done (the service asks this after each helper answer). */
-    static boolean currentStepDone(Context c) {
-        return done(c, Prefs.onboardStep(c));
+    private void goBack() {
+        if (step > WELCOME) go(step - 1);
+        else finish();
     }
 
-    static boolean done(Context c, int step) {
-        switch (step) {
-            case TERMUX:
-                return Termux.installed(c);
-            case ACCESS:
-                return SetupState.accessibilityEnabled(c);
-            case PERMISSION:
-                return Termux.permitted(c);
-            case CONNECT:
-                return SetupState.helperCurrent(c);
-            case AGENTS:
-                if (Prefs.signedAgents(c) == null) return false;
-                for (String a : wanted(c)) if (!SetupState.agentReady(c, a)) return false;
-                return true;
-            case BACKGROUND: {
-                PowerManager pm = c.getSystemService(PowerManager.class);
-                return pm.isIgnoringBatteryOptimizations(c.getPackageName())
-                        && pm.isIgnoringBatteryOptimizations(Termux.PACKAGE);
-            }
-            default:
-                return false;
-        }
+    static boolean currentStepDone(Context context) {
+        return done(context, Prefs.onboardStep(context));
     }
 
-    static String[] wanted(Context c) {
-        String a = Prefs.agents(c);
-        if ("both".equals(a)) return new String[]{"claude", "codex"};
-        return new String[]{"codex".equals(a) ? "codex" : "claude"};
+    static boolean done(Context context, int at) {
+        if (at != ENVIRONMENT || !EmbeddedRuntime.get(context).ready()) return false;
+        for (String agent : wanted(context)) if (!SetupState.agentInstalled(context, agent)) return false;
+        return true;
     }
 
-    private void go(int s) {
-        if (s > step) noAutoAdvance = false;
-        step = Math.max(WELCOME, Math.min(LAST, s));
+    static String[] wanted(Context context) {
+        String agent = Prefs.agents(context);
+        if ("both".equals(agent)) return new String[]{"claude", "codex"};
+        return new String[]{"claude".equals(agent) ? "claude" : "codex"};
+    }
+
+    private void go(int next) {
+        step = Math.max(WELCOME, Math.min(next, LAST));
         Prefs.setOnboardStep(this, step);
-        stuckOpen = false;
-        render();
         scroll.scrollTo(0, 0);
-        if (step == CONNECT || step == AGENTS) ping();
-        checkAdvance();
+        render();
+        if (step == ENVIRONMENT) ping();
     }
 
-    /** If the current step is already done, show the check briefly and move on. */
-    private void checkAdvance() {
-        if (noAutoAdvance || !done(this, step)) return;
-        final int at = step;
-        callbacks.postDelayed(() -> {
-            if (step == at && done(this, at) && !isFinishing()) go(at + 1);
-        }, 900);
+    private String runtimeState() {
+        EmbeddedRuntime runtime = EmbeddedRuntime.get(this);
+        return runtime.ready() + ":" + runtime.busy() + ":" + runtime.status() + ":"
+                + runtime.progress() + ":" + runtime.error() + ":" + Prefs.helperCheckedAt(this);
     }
+
+    private final Runnable watchRuntime = new Runnable() {
+        @Override public void run() {
+            if (isFinishing() || isDestroyed()) return;
+            String state = runtimeState();
+            if (!state.equals(lastRuntimeState)) {
+                lastRuntimeState = state;
+                render();
+            }
+            callbacks.postDelayed(this, 1000);
+        }
+    };
 
     private void ping() {
-        if (!Termux.permitted(this) || !Termux.installed(this)) return;
-        withToolHost(this::pingReady);
-    }
-
-    private void pingReady() {
-        try {
-            Termux.run(this, "ping");
-        } catch (Exception ignored) {
-            return;
-        }
-        callbacks.postDelayed(this::refreshIfDone, 1500);
-        callbacks.postDelayed(this::refreshIfDone, 4000);
-    }
-
-    private void refreshIfDone() {
-        if (isFinishing() || isDestroyed()) return;
-        render();
-        checkAdvance();
-    }
-
-    /** The user is going to Termux: keep checking from the service and come back when the step is done. */
-    private void watchTermux() {
-        Prefs.setSetupWatchUntil(this, System.currentTimeMillis() + 15 * 60_000L);
-        BuddyService svc = BuddyService.get();
-        if (svc != null) svc.watchSetup();
+        if (!EmbeddedRuntime.get(this).ready()) return;
+        withToolHost(() -> EmbeddedRuntime.get(this).refreshAccounts());
     }
 
     private void finishGuide() {
@@ -207,486 +144,141 @@ public class OnboardingActivity extends Screen {
         finish();
     }
 
-    // ------------------------------------------------------------ render
-
     private void render() {
+        if (isFinishing() || isDestroyed()) return;
+        int scrollY = scroll.getScrollY();
         body.removeAllViews();
         bottom.removeAllViews();
-        progress.setText(step == WELCOME ? "" : "step " + step + " of " + LAST);
-        boolean ok = done(this, step);
+        progress.setText(step == WELCOME ? "" : "Krok " + step + " z " + LAST);
         switch (step) {
             case WELCOME:
-                welcome();
+                header("Poznaj androidagent", "Codex i Claude Code na Twoim telefonie.");
+                note("Jedna aplikacja zawiera własne środowisko terminalowe, pliki i narzędzia telefonu. Nie musisz instalować osobnej aplikacji Termux.");
+                note("Oficjalne klienty wymagają internetu i Twojego konta. Przygotowanie narzędzi jest automatyczne, a logowanie wykonujesz samodzielnie przez oficjalną stronę.");
+                note("Sterowanie ekranem jest opcjonalne. Uprawnienia systemowe wybierasz w ustawieniach Androida.");
+                primary("Zaczynamy", v -> go(BRAIN));
                 break;
             case BRAIN:
                 brain();
                 break;
-            case TERMUX:
-                header(R.drawable.ms_terminal, "Install Termux", ok ? "Termux is installed." :
-                        "Termux is a free terminal app. androidagent runs " + agentNames() + " inside it, on your phone.", ok);
-                if (!ok) {
-                    note("Get it from F-Droid or GitHub. The Play Store version is outdated and won't work.");
-                    primary("Get Termux from F-Droid", v -> openUrl("https://f-droid.org/packages/com.termux/"));
-                    secondary("GitHub releases instead", v -> openUrl("https://github.com/termux/termux-app/releases"));
-                    stuck("Termux from the Play Store?", "Uninstall it first (its files are removed), then install the F-Droid or GitHub build.",
-                            "Can't install the APK?", "Your browser asks to allow installing unknown apps. Allow it for this one install.");
-                }
+            case ENVIRONMENT:
+                environment();
                 break;
-            case ACCESS:
-                header(R.drawable.ms_shield_person, "Sterowanie ekranem (opcjonalne)", ok ? "Accessibility is on." :
-                        "androidagent accessibility service shows the bubble and lets the agent read the screen, tap and type, "
-                                + "only when you ask it to do something.", ok);
-                if (!ok) {
-                    note("Nothing leaves the phone except what " + agentNames() + " sends to "
-                            + ("both".equals(Prefs.agents(this)) ? "OpenAI lub Anthropic" : "codex".equals(Prefs.agents(this)) ? "OpenAI" : "Anthropic")
-                            + " to answer you. Agent ma instrukcję pytania o zgodę przed wysłaniem, zakupem lub usunięciem. Możesz zatrzymać jego pracę.");
-                    if (accessTries > 0 && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) restrictedHelp();
-                    note("In the list: Downloaded apps → androidagent · sterowanie telefonem → turn it on.");
-                    primary("Open accessibility settings", v -> {
-                        accessTries++;
-                        startActivity(new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS));
-                    });
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                        stuck("Switch greyed out?", "Android blocks this for apps installed from a file. Tap App info "
-                                + "(below), then ⋮ in the top right → Allow restricted settings, and try again.", null, null);
-                        secondary("App info", v -> openAppInfo(getPackageName()));
-                    }
-                    secondary("Kontynuuj bez sterowania ekranem", v -> withToolHost(() -> go(PERMISSION)));
-                }
-                break;
-            case PERMISSION:
-                header(R.drawable.ms_terminal, "Allow androidagent to use Termux", ok ? "Allowed." :
-                        "androidagent sends your messages to " + agentNames() + " by starting commands in Termux.", ok);
-                if (!ok) {
-                    primary("Allow", v -> requestPermissions(new String[]{Termux.PERMISSION}, 1));
-                    stuck("No prompt appeared?", "App info → Permissions → Additional permissions → "
-                            + "Run commands in Termux environment → Allow.", null, null);
-                    secondary("App info", v -> openAppInfo(getPackageName()));
-                }
-                break;
-            case CONNECT:
-                header(R.drawable.ms_content_copy, "Connect Termux", ok ? "Termux answered. Connected." :
-                        "One command installs androidagent helper in Termux. androidagent copies it for you.", ok);
-                if (!ok) {
-                    numbered(new String[]{"Tap the button: Termux opens.", "Long-press an empty spot → Paste.",
-                            "Press Enter and wait for \"Done\". androidagent comes back by itself."});
-                    primary("Copy command and open Termux", v -> {
-                        copy(this::setupCommand, "Copied. Long-press in Termux → Paste, then Enter.");
-                        watchTermux();
-                        openTermux();
-                    });
-                    secondary("Check again", v -> ping());
-                    stuck("Termux mentions allow-external-apps?", "Close Termux fully (its notification → Exit), "
-                            + "open it again and paste the command once more.",
-                            "Nothing happens after Done?", "Come back to androidagent yourself and tap Check again.");
-                }
-                break;
-            case AGENTS:
-                agents(ok);
-                break;
-            case BACKGROUND:
-                background(ok);
+            case PERMISSIONS:
+                header("Uprawnienia Androida", "Rozmowy i terminal działają bez dostępu do innych aplikacji.");
+                note("Usługa ułatwień dostępu pozwala czytać i sterować ekranem. Jej włączenie wymaga Twojej zgody w ustawieniach systemu.");
+                note("Powiadomienia pokazują postęp i przycisk Stop. Mikrofon jest potrzebny tylko do rozmów głosowych. Wyjątek optymalizacji baterii pomaga przy długich zadaniach.");
+                note("Możesz zachować inne włączone usługi ułatwień dostępu. androidagent ich nie zastępuje.");
+                primary("Przegląd uprawnień", v -> PermissionGuide.open(this));
+                secondary("Dalej", v -> go(TRY));
                 break;
             case TRY:
-                tryIt();
+                boolean account = SetupState.agentReady(this, Prefs.backend(this));
+                header(account ? "Gotowy do rozmowy" : "Zacznij od telefonu",
+                        account ? "Klient jest przygotowany i zalogowany do konta." : "Lokalny stan telefonu jest dostępny także przed logowaniem.");
+                note("Komenda /status odczytuje stan telefonu lokalnie. Ten wynik nie jest odpowiedzią modelu.");
+                if (!account) note("Aby rozmawiać z Codexem lub Claude Code, otwórz środowisko i zaloguj się do wybranego konta.");
+                primary("Sprawdź stan telefonu", v -> {
+                    Prefs.setOnboarded(this, true);
+                    Sessions.Session session = ChatHub.get(this).create(Prefs.backend(this));
+                    ChatHub.get(this).select(session);
+                    startActivity(new Intent(this, MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
+                    startActivity(new Intent(this, ChatActivity.class).putExtra("id", session.id).putExtra("draft", "/status"));
+                    finish();
+                });
+                secondary("Przejdź do rozmów", v -> finishGuide());
                 break;
-            default:
-                break;
+            default: break;
         }
-        if (ok && step != WELCOME && step != BRAIN && step != TRY) {
-            Button next = button(this, "Continue", true);
-            next.setOnClickListener(v -> {
-                noAutoAdvance = false;
-                go(step + 1);
-            });
-            bottom.addView(next, bigButton());
-        }
-    }
-
-    private void welcome() {
-        LinearLayout c = column(this);
-        c.setGravity(Gravity.CENTER_HORIZONTAL);
-        c.setPadding(0, dp(this, 40), 0, 0);
-        FrameLayout tile = new FrameLayout(this);
-        tile.setBackgroundResource(R.drawable.ic_launcher_background);
-        tile.setClipToOutline(true);
-        tile.setOutlineProvider(new android.view.ViewOutlineProvider() {
-            @Override
-            public void getOutline(View v, android.graphics.Outline o) {
-                o.setRoundRect(0, 0, v.getWidth(), v.getHeight(), dp(OnboardingActivity.this, 24));
-            }
-        });
-        ImageView face = new ImageView(this);
-        face.setImageResource(R.drawable.ic_launcher_foreground);
-        tile.addView(face, new FrameLayout.LayoutParams(dp(this, 64), dp(this, 64), Gravity.CENTER));
-        c.addView(tile, new LinearLayout.LayoutParams(dp(this, 88), dp(this, 88)));
-        TextView t = title(this, "Poznaj androidagent", 28);
-        t.setGravity(Gravity.CENTER);
-        t.setPadding(0, dp(this, 20), 0, dp(this, 6));
-        c.addView(t);
-        TextView s = text(this, "Codex i Claude Code na Twoim telefonie.", 16, MUTED);
-        s.setGravity(Gravity.CENTER);
-        c.addView(s);
-        body.addView(c, full());
-        LinearLayout list = column(this);
-        list.setPadding(0, dp(this, 28), 0, 0);
-        bullet(list, R.drawable.ms_chat_bubble, "Ask in plain words", "\"Reply to Sam that I'm late\", \"add milk to my basket\".");
-        bullet(list, R.drawable.ms_shield_person, "Twoje konto", "Uruchamia Codexa lub Claude Code w Termux z Twoim kontem. Modele wymagają połączenia z internetem.");
-        bullet(list, R.drawable.ms_check, "You stay in control", "Agent ma instrukcję pytania o zgodę przed wysłaniem, zakupem lub usunięciem. Możesz zatrzymać jego pracę.");
-        body.addView(list, full());
-        TextView time = monoText(this, "setup takes about 5 minutes", 12, MUTED);
-        time.setGravity(Gravity.CENTER);
-        time.setPadding(0, dp(this, 20), 0, 0);
-        body.addView(time, full());
-        primary("Zaczynamy", v -> go(BRAIN));
+        scroll.post(() -> scroll.scrollTo(0, scrollY));
     }
 
     private void brain() {
-        header(R.drawable.ms_forum, "Wybierz agenta", "Who answers your chats. You can add the other one later.", false);
-        String cur = Prefs.agents(this);
-        String[][] opts = {
-                {"claude", "Claude Code", "Oficjalny klient z Twoim kontem Claude lub Anthropic."},
-                {"codex", "Codex", "Uses your ChatGPT plan."},
-                {"both", "Both", "Instalacja obu agentów. Codex pozostaje domyślny."},
-        };
-        for (String[] o : opts) {
-            boolean on = o[0].equals(cur);
-            LinearLayout r = row(this);
-            r.setPadding(dp(this, 14), dp(this, 14), dp(this, 14), dp(this, 14));
-            r.setBackground(outlined(this, CARD, 16, on ? ACCENT : OUTLINE, on ? 2 : 1));
-            if ("both".equals(o[0])) {
-                LinearLayout two = row(this);
-                TextView a = agentTile(this, "claude");
-                a.setLayoutParams(new LinearLayout.LayoutParams(dp(this, 28), dp(this, 40)));
-                two.addView(a);
-                TextView b = agentTile(this, "codex");
-                LinearLayout.LayoutParams bp = new LinearLayout.LayoutParams(dp(this, 28), dp(this, 40));
-                bp.leftMargin = dp(this, 2);
-                two.addView(b, bp);
-                r.addView(two);
-            } else {
-                r.addView(agentTile(this, o[0]));
-            }
-            LinearLayout t = column(this);
-            t.setPadding(dp(this, 14), 0, dp(this, 8), 0);
-            LinearLayout tr = row(this);
-            tr.addView(title(this, o[1], 16));
-            if ("codex".equals(o[0])) {
-                TextView tag = monoText(this, "recommended", 11, ACCENT_TEXT);
-                tag.setPadding(dp(this, 6), dp(this, 1), dp(this, 6), dp(this, 1));
-                tag.setBackground(rounded(this, ACCENT_SOFT, 6));
-                LinearLayout.LayoutParams tp = wrap();
-                tp.leftMargin = dp(this, 8);
-                tr.addView(tag, tp);
-            }
-            t.addView(tr);
-            t.addView(text(this, o[2], 13, MUTED));
-            r.addView(t, weight1());
-            r.addView(radio(on));
-            r.setOnClickListener(v -> {
-                Prefs.setAgents(this, o[0]);
-                Prefs.setBackend(this, "claude".equals(o[0]) ? "claude" : "codex");
+        header("Wybierz agenta", "Możesz zmienić domyślny wybór w ustawieniach i dodać drugiego klienta.");
+        for (String[] option : new String[][]{
+                {"codex", "Codex", "Oficjalny klient z Twoim kontem ChatGPT."},
+                {"claude", "Claude Code", "Oficjalny klient z Twoim kontem Claude."},
+                {"both", "Obaj", "Codex pozostaje domyślnym agentem nowych rozmów."}}) {
+            boolean selected = option[0].equals(Prefs.agents(this));
+            LinearLayout card = column(this);
+            card.setPadding(dp(this, 16), dp(this, 14), dp(this, 16), dp(this, 14));
+            card.setBackground(outlined(this, CARD, 16, selected ? ACCENT : OUTLINE, selected ? 2 : 1));
+            card.addView(title(this, (selected ? "●  " : "○  ") + option[1], 16));
+            card.addView(text(this, option[2], 13, MUTED));
+            card.setContentDescription(option[1] + (selected ? ", wybrany" : ""));
+            card.setOnClickListener(v -> {
+                Prefs.setAgents(this, option[0]);
+                Prefs.setBackend(this, "claude".equals(option[0]) ? "claude" : "codex");
                 render();
             });
-            LinearLayout.LayoutParams p = full();
-            p.topMargin = dp(this, 10);
-            body.addView(r, p);
+            LinearLayout.LayoutParams params = full();
+            params.topMargin = dp(this, 12);
+            body.addView(card, params);
         }
-        primary("Continue", v -> go(TERMUX));
+        primary("Dalej", v -> go(ENVIRONMENT));
     }
 
-    private void agents(boolean ok) {
-        header(R.drawable.ms_terminal, ok ? "Ready" : "Install and sign in",
-                ok ? agentNames() + " is set up and signed in." : "Install " + agentNames()
-                        + " in Termux and sign in once. androidagent notices when you're done.", ok);
-        boolean first = true;
-        for (String a : wanted(this)) {
-            boolean installed = SetupState.agentInstalled(this, a), ready = SetupState.agentReady(this, a)
-                    && Prefs.signedAgents(this) != null;
-            boolean claude = "claude".equals(a);
+    private void environment() {
+        EmbeddedRuntime runtime = EmbeddedRuntime.get(this);
+        header("Wbudowane środowisko", "Terminal i oficjalni klienci działają wewnątrz androidagent.");
+        String status = runtime.ready() ? "Środowisko gotowe" : runtime.status();
+        if (runtime.busy()) status += " · " + runtime.progress() + "%";
+        note(status == null || status.isEmpty() ? "Środowisko oczekuje na przygotowanie." : status);
+        if (runtime.error() != null && !runtime.error().isEmpty()) {
+            TextView error = text(this, runtime.error(), 14, ERR);
+            error.setPadding(0, dp(this, 10), 0, 0);
+            body.addView(error);
+        }
+        note("Otwórz panel środowiska, aby zobaczyć postęp, ponowić pobieranie lub otworzyć pliki i terminal. Przygotowanie środowiska nie zastępuje logowania do konta.");
+        for (String backend : wanted(this)) {
+            boolean installed = SetupState.agentInstalled(this, backend);
+            boolean ready = SetupState.agentReady(this, backend);
+            String name = "claude".equals(backend) ? "Claude Code" : "Codex";
             LinearLayout card = column(this);
             card.setPadding(dp(this, 16), dp(this, 14), dp(this, 16), dp(this, 14));
             card.setBackground(rounded(this, CARD, 16));
-            LinearLayout r = row(this);
-            r.addView(agentTile(this, a));
-            LinearLayout t = column(this);
-            t.setPadding(dp(this, 12), 0, 0, 0);
-            t.addView(title(this, claude ? "Claude Code" : "Codex", 15));
-            t.addView(monoText(this, ready ? "installed · signed in" : installed ? "installed · not signed in" : "not installed",
-                    12, ready ? OK : MUTED));
-            r.addView(t, weight1());
-            if (ready) r.addView(icon(this, R.drawable.ms_check, OK, 22));
-            card.addView(r, full());
-            if (!ready) {
-                TextView how = text(this, installed
-                        ? (claude ? "Uruchom ~/bin/claude auth login w Termux i zaloguj się przez oficjalną stronę Claude."
-                        : "Run codex login in Termux and sign in with your ChatGPT account.")
-                        : (claude ? "Instaluje oficjalny Claude Code 2.1.296 i runtime musl dla ARM64 lub x86_64 bez roota. "
-                        + "Następnie otwiera logowanie konta Claude."
-                        : "Installs Codex with npm, then opens sign-in with your ChatGPT account."), 14, MUTED);
-                how.setPadding(0, dp(this, 10), 0, dp(this, 10));
-                card.addView(how);
-                Button b = button(this, installed ? "Copy sign-in command" : "Copy install command", first);
-                b.setOnClickListener(v -> {
-                    copy(() -> installed ? (claude ? TermuxSetup.signInClaude() : TermuxSetup.signInCodex())
-                            : (claude ? TermuxSetup.installClaude(this) : TermuxSetup.installCodex(this)),
-                            "Copied. Long-press in Termux → Paste, then Enter.");
-                    watchTermux();
-                    openTermux();
-                });
-                card.addView(b, wrap());
-                if (installed) {
-                    Button repair = button(this, "Napraw lub zaktualizuj instalację", false);
-                    repair.setOnClickListener(v -> {
-                        copy(() -> claude ? TermuxSetup.installClaude(this) : TermuxSetup.installCodex(this),
-                                "Skopiowano. Wklej polecenie w Termux i naciśnij Enter.");
-                        watchTermux();
-                        openTermux();
-                    });
-                    card.addView(repair, full());
-                }
-                first = false;
-            }
-            LinearLayout.LayoutParams p = full();
-            p.topMargin = dp(this, 12);
-            body.addView(card, p);
+            card.addView(title(this, name, 16));
+            card.addView(text(this, ready ? "Zainstalowany · zalogowany"
+                    : installed ? "Zainstalowany · wymaga logowania" : "Jeszcze nieprzygotowany", 13, ready ? OK : MUTED));
+            Button login = button(this, ready ? "Sprawdź konto" : installed ? "Zaloguj się" : "Przygotuj klienta", false);
+            login.setOnClickListener(v -> {
+                if (ready) ping();
+                else if (installed) TermuxSetup.signIn(this, backend);
+                else EmbeddedRuntime.open(this);
+            });
+            card.addView(login, full());
+            LinearLayout.LayoutParams params = full();
+            params.topMargin = dp(this, 14);
+            body.addView(card, params);
         }
-        if (!ok) {
-            secondary("Check again", v -> ping());
-            stuck("Sign-in page doesn't come back to Termux?", "Claude Code: copy the code shown in the browser and paste it into Termux. "
-                            + "Codex: run ~/bin/codex login --device-auth and enter the code at the address it shows.",
-                    "Install stopped or Termux closed?", "Open Termux and paste the same command again; it's safe to repeat.");
-        }
+        primary(runtime.busy() ? "Pokaż postęp" : "Otwórz środowisko", v -> EmbeddedRuntime.open(this));
+        secondary("Dalej", v -> go(PERMISSIONS));
     }
 
-    private void background(boolean ok) {
-        PowerManager pm = getSystemService(PowerManager.class);
-        boolean buddyBg = pm.isIgnoringBatteryOptimizations(getPackageName());
-        boolean termuxBg = pm.isIgnoringBatteryOptimizations(Termux.PACKAGE);
-        header(R.drawable.ms_build_circle, "Keep it running", ok ? "androidagent and Termux can run in the background." :
-                "So your phone doesn't stop androidagent or Termux to save battery while the agent works.", ok);
-        statusLine("androidagent", buddyBg);
-        statusLine("Termux", termuxBg);
-        if (!ok) {
-            if (!buddyBg) {
-                primary("Allow for androidagent", v -> startActivity(new Intent(
-                        Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, Uri.parse("package:" + getPackageName()))));
-            } else {
-                note("For Termux: App info → Battery → Unrestricted (the name differs a little per phone).");
-                primary("Open Termux app info", v -> openAppInfo(Termux.PACKAGE));
-            }
-            secondary("Skip for now", v -> go(TRY));
-        }
+    private void header(String heading, String subtitle) {
+        TextView title = title(this, heading, 28);
+        title.setPadding(0, dp(this, 24), 0, dp(this, 8));
+        body.addView(title);
+        body.addView(text(this, subtitle, 16, MUTED));
     }
 
-    private void tryIt() {
-        header(R.drawable.ms_check, "You're all set", "Try a first task. androidagent will open Settings and read it for you.", true);
-        TextView ex = monoText(this, "\"Open Settings and tell me my Android version\"", 13, TEXT);
-        ex.setPadding(dp(this, 14), dp(this, 12), dp(this, 14), dp(this, 12));
-        ex.setBackground(rounded(this, CARD, 12));
-        LinearLayout.LayoutParams ep = full();
-        ep.topMargin = dp(this, 16);
-        body.addView(ex, ep);
-        note("Tip: the bubble floats over other apps. Drag it onto the ✕ to hide it.");
-        primary("Try it now", v -> {
-            Prefs.setOnboarded(this, true);
-            ChatHub hub = ChatHub.get(this);
-            Sessions.Session s = hub.create(Prefs.backend(this));
-            hub.select(s);
-            startActivity(new Intent(this, MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
-            startActivity(new Intent(this, ChatActivity.class).putExtra("id", s.id)
-                    .putExtra("draft", "Open Settings and tell me my Android version"));
-            finish();
-        });
-        secondary("Go to my chats", v -> finishGuide());
+    private void note(String message) {
+        TextView note = text(this, message, 14, MUTED);
+        note.setLineSpacing(dp(this, 3), 1);
+        LinearLayout.LayoutParams params = full();
+        params.topMargin = dp(this, 16);
+        body.addView(note, params);
     }
 
-    // ------------------------------------------------------------ pieces
-
-    private void header(int iconRes, String title, String sub, boolean ok) {
-        FrameLayout ic = new FrameLayout(this);
-        ic.setBackground(oval(ok ? Theme.withAlpha(OK, 0x2E) : ACCENT_SOFT));
-        ic.addView(icon(this, ok ? R.drawable.ms_check : iconRes, ok ? OK : ACCENT_TEXT, 28),
-                new FrameLayout.LayoutParams(dp(this, 28), dp(this, 28), Gravity.CENTER));
-        LinearLayout.LayoutParams ip = new LinearLayout.LayoutParams(dp(this, 56), dp(this, 56));
-        ip.topMargin = dp(this, 8);
-        body.addView(ic, ip);
-        TextView t = title(this, title, 26);
-        t.setPadding(0, dp(this, 18), 0, dp(this, 6));
-        body.addView(t);
-        body.addView(text(this, sub, 16, MUTED));
+    private void primary(String label, View.OnClickListener listener) {
+        Button button = button(this, label, true);
+        button.setOnClickListener(listener);
+        bottom.addView(button, full());
     }
 
-    private void note(String s) {
-        TextView t = text(this, s, 14, MUTED);
-        LinearLayout.LayoutParams p = full();
-        p.topMargin = dp(this, 14);
-        body.addView(t, p);
-    }
-
-    private void numbered(String[] lines) {
-        LinearLayout box = column(this);
-        box.setPadding(dp(this, 16), dp(this, 6), dp(this, 16), dp(this, 14));
-        box.setBackground(rounded(this, CARD, 16));
-        for (int i = 0; i < lines.length; i++) {
-            LinearLayout r = row(this);
-            r.setGravity(Gravity.TOP);
-            r.setPadding(0, dp(this, 10), 0, 0);
-            TextView n = monoText(this, String.valueOf(i + 1), 12, ACCENT_TEXT);
-            n.setTypeface(mono(this, 600));
-            n.setGravity(Gravity.CENTER);
-            n.setBackground(outlined(this, 0x00000000, 11, ACCENT, 2));
-            r.addView(n, new LinearLayout.LayoutParams(dp(this, 22), dp(this, 22)));
-            TextView t = text(this, lines[i], 15, TEXT);
-            t.setPadding(dp(this, 12), dp(this, 1), 0, 0);
-            r.addView(t, weight1());
-            box.addView(r, full());
-        }
-        LinearLayout.LayoutParams p = full();
-        p.topMargin = dp(this, 18);
-        body.addView(box, p);
-    }
-
-    private void bullet(LinearLayout list, int iconRes, String title, String sub) {
-        LinearLayout r = row(this);
-        r.setGravity(Gravity.TOP);
-        r.setPadding(0, dp(this, 10), 0, dp(this, 10));
-        r.addView(icon(this, iconRes, ACCENT_TEXT, 22));
-        LinearLayout t = column(this);
-        t.setPadding(dp(this, 14), 0, 0, 0);
-        t.addView(title(this, title, 15));
-        t.addView(text(this, sub, 14, MUTED));
-        r.addView(t, weight1());
-        list.addView(r, full());
-    }
-
-    private void statusLine(String what, boolean on) {
-        LinearLayout r = row(this);
-        r.setPadding(0, dp(this, 14), 0, 0);
-        r.addView(dot(this, on ? OK : CARD2, 10));
-        TextView t = text(this, what + (on ? ": allowed" : ": not yet"), 15, on ? TEXT : MUTED);
-        t.setPadding(dp(this, 10), 0, 0, 0);
-        r.addView(t);
-        body.addView(r, full());
-    }
-
-    /** Shown after a first try at the accessibility switch on Android 13+. */
-    private void restrictedHelp() {
-        LinearLayout c = column(this);
-        c.setPadding(dp(this, 16), dp(this, 14), dp(this, 16), dp(this, 14));
-        c.setBackground(outlined(this, CARD, 16, Theme.withAlpha(ACCENT, 0x59), 1));
-        c.addView(title(this, "Switch greyed out?", 15));
-        TextView t = text(this, "1. Tap App info below.\n2. Tap ⋮ in the top right → Allow restricted settings.\n"
-                + "3. Come back and open accessibility settings again.", 14, MUTED);
-        t.setLineSpacing(0, 1.2f);
-        t.setPadding(0, dp(this, 6), 0, 0);
-        c.addView(t);
-        LinearLayout.LayoutParams p = full();
-        p.topMargin = dp(this, 16);
-        body.addView(c, p);
-    }
-
-    private void stuck(String q1, String a1, String q2, String a2) {
-        LinearLayout c = column(this);
-        LinearLayout head = row(this);
-        head.setPadding(0, dp(this, 10), 0, dp(this, 10));
-        head.setBackgroundResource(ripple(this, false));
-        TextView h = title(this, "Stuck?", 14);
-        h.setTextColor(ACCENT_TEXT);
-        head.addView(h, weight1());
-        head.addView(icon(this, stuckOpen ? R.drawable.ms_expand_less : R.drawable.ms_expand_more, ACCENT_TEXT, 20));
-        head.setOnClickListener(v -> {
-            stuckOpen = !stuckOpen;
-            render();
-        });
-        c.addView(head, full());
-        if (stuckOpen) {
-            qa(c, q1, a1);
-            if (q2 != null) qa(c, q2, a2);
-        }
-        LinearLayout.LayoutParams p = full();
-        p.topMargin = dp(this, 18);
-        body.addView(c, p);
-    }
-
-    private void qa(LinearLayout c, String q, String a) {
-        TextView qt = title(this, q, 14);
-        qt.setPadding(0, dp(this, 6), 0, dp(this, 2));
-        c.addView(qt);
-        c.addView(text(this, a, 14, MUTED));
-    }
-
-    private View radio(boolean on) {
-        FrameLayout f = new FrameLayout(this);
-        f.setBackground(outlined(this, 0x00000000, 11, on ? ACCENT : MUTED, 2));
-        if (on) {
-            View in = new View(this);
-            in.setBackground(oval(ACCENT));
-            f.addView(in, new FrameLayout.LayoutParams(dp(this, 10), dp(this, 10), Gravity.CENTER));
-        }
-        f.setLayoutParams(new LinearLayout.LayoutParams(dp(this, 22), dp(this, 22)));
-        return f;
-    }
-
-    private void primary(String label, View.OnClickListener l) {
-        Button b = button(this, label, true);
-        b.setOnClickListener(l);
-        bottom.addView(b, bigButton());
-    }
-
-    private void secondary(String label, View.OnClickListener l) {
-        Button b = button(this, label, false);
-        b.setBackgroundResource(ripple(this, false));
-        b.setTextColor(TEXT);
-        b.setOnClickListener(l);
-        LinearLayout.LayoutParams p = bigButton();
-        p.topMargin = dp(this, 4);
-        bottom.addView(b, p);
-    }
-
-    private LinearLayout.LayoutParams bigButton() {
-        return new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(this, 52));
-    }
-
-    private String agentNames() {
-        String a = Prefs.agents(this);
-        return "both".equals(a) ? "Claude Code and Codex" : "codex".equals(a) ? "Codex" : "Claude Code";
-    }
-
-    interface Cmd {
-        String get() throws Exception;
-    }
-
-    private void copy(Cmd cmd, String toast) {
-        try {
-            getSystemService(ClipboardManager.class).setPrimaryClip(ClipData.newPlainText("androidagent setup", cmd.get()));
-            Toast.makeText(this, toast, Toast.LENGTH_LONG).show();
-        } catch (Exception e) {
-            Toast.makeText(this, "Couldn't build the command: " + e.getMessage(), Toast.LENGTH_LONG).show();
-        }
-    }
-
-    private String setupCommand() throws Exception {
-        return TermuxSetup.command(this);
-    }
-
-    private void openTermux() {
-        Intent t = getPackageManager().getLaunchIntentForPackage(Termux.PACKAGE);
-        if (t != null) startActivity(t);
-    }
-
-    private void openAppInfo(String pkg) {
-        startActivity(new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:" + pkg)));
-    }
-
-    private void openUrl(String url) {
-        startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int code, String[] perms, int[] res) {
-        super.onRequestPermissionsResult(code, perms, res);
-        render();
-        checkAdvance();
+    private void secondary(String label, View.OnClickListener listener) {
+        Button button = button(this, label, false);
+        button.setOnClickListener(listener);
+        bottom.addView(button, full());
     }
 }

@@ -42,8 +42,10 @@ final class DeviceState {
         .put("uptime_seconds", SystemClock.elapsedRealtime() / 1000)
         .put("network", network)
         .put("accessibility_connected", BuddyService.get() != null)
-        .put("termux_installed", Termux.installed(c))
-        .put("termux_permission", Termux.permitted(c))
+        .put("external_termux_required", false)
+        .put("runtime_ready", EmbeddedRuntime.get(c).ready())
+        .put("runtime_busy", EmbeddedRuntime.get(c).busy())
+        .put("runtime_status", EmbeddedRuntime.get(c).status())
         .put("shell_identity", "app UID " + android.os.Process.myUid() + " (bez roota)");
   }
 
@@ -72,8 +74,9 @@ final class DeviceState {
         + j.getLong("uptime_seconds") / 60
         + " min\n\nSterowanie ekranem: "
         + (j.getBoolean("accessibility_connected") ? "aktywne" : "wyłączone")
-        + "\nTermux: "
-        + (j.getBoolean("termux_installed") ? "zainstalowany" : "brak")
+        + "\nWbudowane środowisko: "
+        + (j.getBoolean("runtime_ready") ? "gotowe"
+            : j.getBoolean("runtime_busy") ? "przygotowywanie" : "wymaga przygotowania")
         + "\n\nOdczyt lokalny · bez zapytania do modelu";
   }
 }

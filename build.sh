@@ -15,6 +15,7 @@ OUT=build
 
 python3 tools/check-docker-assets.py
 python3 tools/check-usb-assets.py
+python3 tools/check-terminal-assets.py
 
 rm -rf "$OUT"
 mkdir -p "$OUT/gen" "$OUT/classes" "$OUT/dex"
@@ -28,7 +29,7 @@ sed "s|<manifest |<manifest package=\"$PACKAGE\" |" "$SRC/AndroidManifest.xml" >
 aapt2 link -I "$SDK_JAR" --manifest "$OUT/AndroidManifest.xml" \
   --min-sdk-version 30 --target-sdk-version 36 \
   --version-code "$VERSION_CODE" --version-name "$VERSION_NAME" \
-  -A "$SRC/assets" -0 gz --java "$OUT/gen" -o "$OUT/base.apk" "$OUT/res.zip"
+  -A "$SRC/assets" -0 gz -0 zip --java "$OUT/gen" -o "$OUT/base.apk" "$OUT/res.zip"
 
 echo "3/6 Compiling Java"
 javac --release 8 -classpath "$SDK_JAR" -Xlint:-options -encoding UTF-8 \

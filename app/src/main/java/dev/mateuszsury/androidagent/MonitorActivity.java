@@ -33,6 +33,20 @@ public class MonitorActivity extends Screen implements ChatHub.MonitorListener {
         @Override
         public void run() {
             if (!visible) return;
+            if (!EmbeddedRuntime.get(MonitorActivity.this).ready()) {
+                showEnvironmentState();
+                running.postDelayed(this, REFRESH_MS);
+                return;
+            }
+            if (!McpHost.get(MonitorActivity.this).running()) {
+                withToolHost(() -> {
+                    request("recent");
+                    request("procs");
+                    running.removeCallbacks(poll);
+                    running.postDelayed(poll, REFRESH_MS);
+                });
+                return;
+            }
             request("procs");
             running.postDelayed(this, REFRESH_MS);
         }
@@ -59,7 +73,7 @@ public class MonitorActivity extends Screen implements ChatHub.MonitorListener {
         LinearLayout head = column(this);
         head.setPadding(dp(this, 20), dp(this, 8), dp(this, 20), dp(this, 4));
         head.addView(title(this, "Sessions", 28));
-        TextView sub = text(this, "Every Claude Code and Codex session on this phone.", 14, MUTED);
+        TextView sub = text(this, "Procesy i historia Codexa oraz Claude Code we wbudowanym środowisku androidagent.", 14, MUTED);
         sub.setPadding(0, dp(this, 4), 0, 0);
         head.addView(sub);
         list.addView(head, full());
@@ -110,9 +124,10 @@ public class MonitorActivity extends Screen implements ChatHub.MonitorListener {
         visible = true;
         hub.monitor = this;
         pulse.start();
-        if (!Termux.installed(this) || !Termux.permitted(this)) {
-            runningEmpty.setText("Zainstaluj Termux i zezwól na wykonywanie komend w Ustawieniach.");
-            recentEmpty.setText("Historia będzie dostępna po połączeniu Termux.");
+        running.removeCallbacks(poll);
+        if (!EmbeddedRuntime.get(this).ready()) {
+            showEnvironmentState();
+            running.postDelayed(poll, REFRESH_MS);
             return;
         }
         withToolHost(() -> {
@@ -120,6 +135,13 @@ public class MonitorActivity extends Screen implements ChatHub.MonitorListener {
             running.removeCallbacks(poll);
             running.post(poll);
         });
+    }
+
+    private void showEnvironmentState() {
+        EmbeddedRuntime runtime = EmbeddedRuntime.get(this);
+        runningEmpty.setText(!runtime.error().isEmpty() ? runtime.error() : runtime.busy() ? runtime.status()
+                : "Przygotuj wbudowane środowisko w panelu Środowisko i konta.");
+        recentEmpty.setText("Historia klientów będzie dostępna po przygotowaniu środowiska. Rozmowy androidagent pozostają zapisane.");
     }
 
     @Override

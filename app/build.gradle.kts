@@ -55,6 +55,7 @@ android {
         // The guest disks are already gzip-compressed; match build.sh and avoid
         // another decompression layer when installing the Linux environment.
         noCompress += "gz"
+        noCompress += "zip"
     }
 }
 
@@ -67,4 +68,8 @@ val verifyDockerAssets by tasks.registering(Exec::class) {
     workingDir(rootProject.projectDir)
     commandLine("python3", "tools/check-docker-assets.py")
 }
-tasks.named("preBuild") { dependsOn(verifyUsbAssets, verifyDockerAssets) }
+val verifyTerminalAssets by tasks.registering(Exec::class) {
+    workingDir(rootProject.projectDir)
+    commandLine("python3", "tools/check-terminal-assets.py")
+}
+tasks.named("preBuild") { dependsOn(verifyUsbAssets, verifyDockerAssets, verifyTerminalAssets) }

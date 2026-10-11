@@ -289,12 +289,17 @@ def dispatch(a):
     with LOCK:
         if op == 'status':
             try:
+                startup = json.loads(Path('/run/androidagent-engine.json').read_text())
+            except (OSError, ValueError):
+                startup = {'stage': 'starting', 'detail': 'Uruchamianie nadzoru silnika'}
+            try:
                 engine = engine_info()
-                ready = bool(engine.get('ServerVersion')) and Path('/var/lib/androidagent/images-ready').exists()
+                ready = bool(engine.get('ServerVersion')) and startup.get('stage') == 'ready' and Path('/var/lib/androidagent/images-ready').exists()
             except (OSError, ValueError, http.client.HTTPException) as error:
                 engine, ready = {'error': str(error)}, False
             return {'ready': ready, 'engine_version': engine.get('ServerVersion'), 'architecture': os.uname().machine,
                     'storage_driver': engine.get('Driver'), 'disk_free_bytes': os.statvfs(ROOT).f_bavail * os.statvfs(ROOT).f_frsize,
+                    'startup': startup,
                     'tasks': [task_info(p) for p in ROOT.iterdir() if (p / 'task.json').is_file()]}
         if op == 'create':
             task = uuid.uuid4().hex
