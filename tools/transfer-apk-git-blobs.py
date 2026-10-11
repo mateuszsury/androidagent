@@ -12,6 +12,13 @@ Example:
     --journal-dir /workspace/tools/usb-runtime/apk-git-blobs-v0.4.3 \
     --report artifacts/release-0.4.3.json
 
+Upload APK parts while final tests are running, then attach their final report:
+  ... --parts-only
+  ... --attach-report --report artifacts/release-0.4.3.json
+Use the same verified APK identity and journal directory in both commands.
+Parts-only never creates a manifest. Attaching a report is allowed only after
+all parts are complete and before any report or manifest upload is pending.
+
 An interrupted or failed POST leaves a pending deterministic blob SHA. A resumed
 run only GETs that pending SHA; if it is unavailable, the script stops without
 reposting. Large temporary request JSON files are always deleted. The local APK,
@@ -93,6 +100,12 @@ def describe(data, **fields):
 class Transfer:
     def __init__(self, args):
         self.args = args
+        self.parts_only = bool(getattr(args, "parts_only", False))
+        self.attach_report = bool(getattr(args, "attach_report", False))
+        if self.parts_only and (args.report is not None or self.attach_report):
+            raise TransferError("--parts-only cannot include --report or --attach-report; no GitHub request made.")
+        if self.attach_report and args.report is None:
+            raise TransferError("--attach-report requires --report; no GitHub request made.")
         self.apk = args.apk.resolve(strict=True)
         if not self.apk.is_file() or self.apk.stat().st_size != args.expected_bytes:
             raise TransferError("APK length does not match --expected-bytes; no GitHub request made.")
@@ -122,14 +135,51 @@ class Transfer:
                     "part_bytes": PART_BYTES, "report_source": report_identity}
         if self.path.exists():
             self.journal = json.loads(self.path.read_text(encoding="utf-8"))
+            if not isinstance(self.journal, dict):
+                raise TransferError("Malformed journal object; no GitHub request made.")
             for name, value in identity.items():
+                if name == "report_source":
+                    continue
                 if self.journal.get(name) != value:
                     raise TransferError("Journal identity differs for " + name + "; no GitHub request made.")
         else:
-            self.journal = dict(identity, parts=[], pending=None, first_part_verified=False)
+            if self.attach_report:
+                raise TransferError("--attach-report requires an existing completed parts journal; no GitHub request made.")
+            self.journal = dict(identity, parts=[], pending=None, first_part_verified=False, parts_complete=False)
             self.save()
         if not isinstance(self.journal.get("parts"), list):
             raise TransferError("Malformed journal parts; no GitHub request made.")
+        pending = self.journal.get("pending")
+        if pending is not None and not isinstance(pending, dict):
+            raise TransferError("Malformed pending state; no GitHub request made.")
+        if self.attach_report and self.journal.get("parts_complete") is not True:
+            raise TransferError("--attach-report requires completed parts; no GitHub request made.")
+        if self.journal.get("parts_complete") is True:
+            self.validate_completed_parts()
+        if self.parts_only and (self.journal.get("report_source") is not None
+                               or "report_blob" in self.journal or "manifest_blob" in self.journal
+                               or (self.journal.get("pending") is not None
+                                   and self.journal["pending"].get("kind") != "part")):
+            raise TransferError("--parts-only requires a journal without report or manifest state; no GitHub request made.")
+        saved_report = self.journal.get("report_source")
+        if saved_report != report_identity:
+            if not self.attach_report or saved_report is not None:
+                raise TransferError("Journal identity differs for report_source; no GitHub request made.")
+            if (self.journal.get("parts_complete") is not True or self.journal.get("pending") is not None
+                    or "report_blob" in self.journal or "manifest_blob" in self.journal):
+                raise TransferError("Report attachment requires completed parts and no pending/report/manifest blob; no GitHub request made.")
+            self.journal["report_source"] = report_identity
+            self.save()  # Bind the exact report bytes durably before any POST.
+
+    def validate_completed_parts(self):
+        expected_count = (self.args.expected_bytes + PART_BYTES - 1) // PART_BYTES
+        if (len(self.journal["parts"]) != expected_count
+                or self.journal.get("first_part_verified") is not True):
+            raise TransferError("Completed-parts journal is incomplete or unverified; no GitHub request made.")
+        with self.apk.open("rb") as source:
+            for number, entry in enumerate(self.journal["parts"]):
+                if entry != describe(source.read(PART_BYTES), part=number):
+                    raise TransferError("Completed part differs from the verified APK; no GitHub request made.")
 
     def save(self):
         atomic_write(self.path, json_bytes(self.journal))
@@ -280,6 +330,13 @@ class Transfer:
             raise TransferError("Journal does not cover the exact APK length; manifest not uploaded.")
         if transferred.hexdigest() != self.args.expected_sha256:
             raise TransferError("APK changed while reading transfer parts; manifest not uploaded.")
+        if self.journal.get("parts_complete") is not True:
+            self.journal["parts_complete"] = True
+            self.save()
+        if self.parts_only:
+            print("PARTS_COMPLETE apk_bytes", self.args.expected_bytes, "apk_sha256", self.args.expected_sha256,
+                  "parts", number, flush=True)
+            return
         if self.report_data is not None:
             entry = describe(self.report_data, name=self.journal["report_source"]["name"])
             existing = self.journal.get("report_blob")
@@ -309,7 +366,14 @@ def main():
     parser.add_argument("--repo", default="mateuszsury/androidagent")
     parser.add_argument("--journal-dir", type=Path, required=True)
     parser.add_argument("--report", type=Path)
+    phases = parser.add_mutually_exclusive_group()
+    phases.add_argument("--parts-only", action="store_true", help="Transfer only APK parts; retain journal, create no report or manifest blob.")
+    phases.add_argument("--attach-report", action="store_true", help="Bind a final --report to an existing completed parts journal, then create its manifest.")
     args = parser.parse_args()
+    if args.parts_only and args.report is not None:
+        parser.error("--parts-only cannot include --report.")
+    if args.attach_report and args.report is None:
+        parser.error("--attach-report requires --report.")
     if args.expected_bytes <= 0 or not re.fullmatch(r"[0-9a-f]{64}", args.expected_sha256):
         parser.error("Expected bytes must be positive and SHA256 must be 64 lowercase hex characters.")
     if not re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", args.repo):
