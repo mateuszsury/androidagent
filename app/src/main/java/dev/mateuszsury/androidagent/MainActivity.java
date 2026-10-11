@@ -272,7 +272,7 @@ public class MainActivity extends Screen implements ChatHub.Listener {
     setup.setOnClickListener(
         v -> {
           sheet[0].dismiss();
-          startActivity(new Intent(this, OnboardingActivity.class));
+          EmbeddedRuntime.open(this);
         });
     content.addView(setup, full());
     sheet[0] = bottomSheet(this, content);
@@ -282,6 +282,16 @@ public class MainActivity extends Screen implements ChatHub.Listener {
   @Override
   protected void onResume() {
     super.onResume();
+    EmbeddedRuntime runtime = EmbeddedRuntime.get(this);
+    // Start only after the home screen is visible. This expands bundled tools offline;
+    // client downloads and account login remain separate actions in the environment panel.
+    if (!runtime.ready() && !runtime.busy() && runtime.error().isEmpty()) {
+      try {
+        runtime.bootstrap();
+      } catch (Exception error) {
+        Toast.makeText(this, error.getMessage(), Toast.LENGTH_LONG).show();
+      }
+    }
     hub.addListener(this);
     refresh();
   }

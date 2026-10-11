@@ -46,6 +46,9 @@ public class ChatActivity extends Screen implements ChatHub.Listener {
     private static final int REQ_CAMERA = 21, REQ_PHOTOS = 22, REQ_FILES = 23;
     private boolean firstResume = true;
     private int restoreScrollY = -1;
+    private boolean waitingForHost;
+    private int sendGeneration;
+    private final android.os.Handler sendStartup = new android.os.Handler(android.os.Looper.getMainLooper());
     private final java.util.concurrent.ThreadPoolExecutor thumbnails = new java.util.concurrent.ThreadPoolExecutor(
             2, 2, 0L, java.util.concurrent.TimeUnit.MILLISECONDS,
             new java.util.concurrent.ArrayBlockingQueue<>(256),
@@ -270,6 +273,10 @@ public class ChatActivity extends Screen implements ChatHub.Listener {
         hub.select(ses);
         hub.setForegroundChat(ses, true);
         refresh();
+        paintSend();
+        // The local tool host is independent of Accessibility and may be gone after
+        // process restart. Start it from a visible chat before the first model request.
+        if (EmbeddedRuntime.get(this).ready()) withToolHost(this::refresh);
         if (follow) scrollToEnd();
         else scroll.post(() -> scroll.scrollTo(0, previousY));
         firstResume = false;
@@ -277,6 +284,9 @@ public class ChatActivity extends Screen implements ChatHub.Listener {
 
     @Override
     protected void onPause() {
+        waitingForHost = false;
+        sendGeneration++;
+        sendStartup.removeCallbacksAndMessages(null);
         if (Voice.listening()) Voice.stopListening();
         if (ses != null) {
             hub.setViewing(ses, false);
@@ -318,23 +328,49 @@ public class ChatActivity extends Screen implements ChatHub.Listener {
 
     private void paintSend() {
         boolean has = (input.getText().toString().trim().length() > 0 || !pending.isEmpty())
-                && (draftImports == null || !draftImports.importing);
+                && (draftImports == null || !draftImports.importing) && !waitingForHost;
         send.setEnabled(has);
         send.setBackground(oval(has ? ACCENT : CARD2));
         send.setImageTintList(ColorStateList.valueOf(has ? ON_ACCENT : MUTED));
     }
 
     private void send() {
-        if (draftImports != null && draftImports.importing) return;
-        String text = input.getText().toString().trim();
-        if (text.isEmpty() && pending.isEmpty()) return;
-        String err = hub.send(ses, text, pending);
+        if (waitingForHost || (draftImports != null && draftImports.importing)) return;
+        String draft = input.getText().toString();
+        String text = draft.trim();
+        java.util.List<String> files = new java.util.ArrayList<>(pending);
+        if (text.isEmpty() && files.isEmpty()) return;
+        if ("/status".equals(text) || McpHost.get(this).running()) {
+            sendReady(draft, files);
+            return;
+        }
+        waitingForHost = true;
+        int generation = ++sendGeneration;
+        paintSend();
+        withToolHost(() -> {
+            if (!waitingForHost || generation != sendGeneration) return;
+            waitingForHost = false;
+            sendStartup.removeCallbacksAndMessages(null);
+            paintSend();
+            sendReady(draft, files);
+        });
+        // Screen reports a host startup failure after 5 s. Re-enable the composer too;
+        // a failed start or leaving the screen must retain the unsent draft and files.
+        sendStartup.postDelayed(() -> {
+            if (generation != sendGeneration || !waitingForHost) return;
+            waitingForHost = false;
+            paintSend();
+        }, 5500);
+    }
+
+    private void sendReady(String draft, java.util.List<String> files) {
+        String err = hub.send(ses, draft.trim(), files);
         if (err != null) {
             Toast.makeText(this, err, Toast.LENGTH_LONG).show();
             return;
         }
-        input.setText("");
-        pending.clear();
+        if (input.getText().toString().equals(draft)) input.setText("");
+        pending.removeAll(files);
         renderTray();
         scrollToEnd();
     }
@@ -359,27 +395,21 @@ public class ChatActivity extends Screen implements ChatHub.Listener {
         }
     }
 
-    /** Opens this chat in a Termux tab with Remote Control on for this session only. */
+    /** Opens this chat in the embedded terminal with Remote Control for this session only. */
     private void handoff() {
-        confirmSheet(this, "Continue in the Claude app?",
-                "Opens this chat in a Termux tab with Remote Control on for this session only, so you can "
-                        + "continue it from the Claude app (Code). Type /exit there when done; the tab closes.",
-                "Open", false, () -> {
+        confirmSheet(this, "Kontynuować w aplikacji Claude?",
+                "Otwiera tę rozmowę we wbudowanym terminalu z Remote Control dla tej sesji. "
+                        + "Możesz kontynuować ją w oficjalnej aplikacji Claude. Dostępność zależy od konta. Wpisz /exit, aby zakończyć.",
+                "Otwórz", false, () -> {
                     if (ses.running) {
                         Toast.makeText(this, "This chat is still working. Stop it first.", Toast.LENGTH_LONG).show();
                         return;
                     }
-                    // Bring Termux to the front first: it may only open a terminal tab from the background
-                    // with "Display over other apps", so starting it from the foreground avoids that.
-                    android.content.Intent t = getPackageManager().getLaunchIntentForPackage(Termux.PACKAGE);
-                    if (t != null) startActivity(t);
-                    messages.postDelayed(() -> {
-                        try {
-                            Termux.runInTerminal(this, "handoff", ses.id, Prefs.devMode(this) ? "1" : "0", ses.model);
-                        } catch (Exception e) {
-                            Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
-                        }
-                    }, 700);
+                    try {
+                        Termux.runInTerminal(this, "handoff", ses.id, Prefs.devMode(this) ? "1" : "0", ses.model);
+                    } catch (Exception e) {
+                        Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
+                    }
                 });
     }
 
@@ -564,10 +594,14 @@ public class ChatActivity extends Screen implements ChatHub.Listener {
     private String shownApproval;
 
     private void renderApproval() {
+        ApprovedCommands commandManager = ApprovedCommands.get(getApplicationContext());
+        ApprovedCommands.Pending command = commandManager.pendingForChat(ses.id);
         BuddyService svc = BuddyService.get();
-        String ask = svc != null && svc.bubble() != null && hub.sessions.current == ses ? svc.bubble().pendingConfirmText() : null;
-        if (ask == null ? shownApproval == null : ask.equals(shownApproval)) return;
-        shownApproval = ask;
+        String ask = command != null ? command.summary
+                : svc != null && svc.bubble() != null && hub.sessions.current == ses ? svc.bubble().pendingConfirmText() : null;
+        String approvalKey = command != null ? "command:" + command.id : ask != null ? "bubble:" + ask : null;
+        if (approvalKey == null ? shownApproval == null : approvalKey.equals(shownApproval)) return;
+        shownApproval = approvalKey;
         approval.removeAllViews();
         if (ask == null) return;
         LinearLayout card = column(this);
@@ -582,13 +616,21 @@ public class ChatActivity extends Screen implements ChatHub.Listener {
         hr.addView(lab);
         card.addView(hr);
         TextView well = text(this, ask, 14, TEXT);
-        well.setMaxLines(8);
         well.setPadding(dp(this, 12), dp(this, 10), dp(this, 12), dp(this, 10));
         well.setBackground(rounded(this, BG, 12));
+        ScrollView details = new ScrollView(this) {
+            @Override protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+                int limit = dp(ChatActivity.this, 180);
+                if (View.MeasureSpec.getMode(heightMeasureSpec) != View.MeasureSpec.UNSPECIFIED)
+                    limit = Math.min(limit, View.MeasureSpec.getSize(heightMeasureSpec));
+                super.onMeasure(widthMeasureSpec, View.MeasureSpec.makeMeasureSpec(limit, View.MeasureSpec.AT_MOST));
+            }
+        };
+        details.addView(well);
         LinearLayout.LayoutParams wp = full();
         wp.topMargin = dp(this, 10);
         wp.bottomMargin = dp(this, 12);
-        card.addView(well, wp);
+        card.addView(details, wp);
         LinearLayout btns = row(this);
         Button deny = button(this, "Odrzuć", false);
         deny.setTextColor(ERR);
@@ -599,12 +641,20 @@ public class ChatActivity extends Screen implements ChatHub.Listener {
         op.leftMargin = dp(this, 10);
         btns.addView(ok, op);
         card.addView(btns, full());
-        deny.setOnClickListener(v -> answer(false));
-        ok.setOnClickListener(v -> answer(true));
+        // Bind the exact request ID, never whichever command happens to be pending
+        // when this view is clicked after a timeout, cancellation or replacement.
+        String commandId = command == null ? null : command.id;
+        deny.setOnClickListener(v -> answer(commandId, false));
+        ok.setOnClickListener(v -> answer(commandId, true));
         approval.addView(card, full());
     }
 
-    private void answer(boolean approved) {
+    private void answer(String commandId, boolean approved) {
+        if (commandId != null) {
+            ApprovedCommands.get(getApplicationContext()).answer(commandId, approved);
+            renderApproval();
+            return;
+        }
         BuddyService svc = BuddyService.get();
         if (svc != null && svc.bubble() != null) svc.bubble().answerFromApp(approved);
         renderApproval();

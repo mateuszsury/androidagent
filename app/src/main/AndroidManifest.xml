@@ -14,7 +14,6 @@
     <!-- Android 16 Live Updates: the "Buddy is using your phone" chip in the status bar -->
     <uses-permission android:name="android.permission.POST_PROMOTED_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
-    <uses-permission android:name="com.termux.permission.RUN_COMMAND" />
     <!-- Lets the setup screen ask Android to stop battery optimization for Buddy -->
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
 
@@ -24,7 +23,6 @@
             <action android:name="android.intent.action.MAIN" />
             <category android:name="android.intent.category.LAUNCHER" />
         </intent>
-        <package android:name="com.termux" />
         <intent>
             <action android:name="android.speech.RecognitionService" />
         </intent>
@@ -55,6 +53,13 @@
         </activity>
 
         <activity android:name=".DeviceActivity" android:exported="false" />
+        <activity android:name=".RuntimeActivity" android:exported="false" />
+        <activity android:name=".TerminalActivity" android:exported="false" android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".RuntimeFilesActivity" android:exported="false" />
+        <service android:name=".RuntimeService" android:exported="false" android:foregroundServiceType="specialUse">
+            <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE" android:value="User-started embedded terminal initialization and official coding clients" />
+        </service>
+        <activity android:name=".PermissionsActivity" android:exported="false" />
         <activity android:name=".UsbActivity" android:exported="false" />
         <service android:name=".UsbService" android:exported="false" android:foregroundServiceType="connectedDevice" />
         <service android:name=".AgentService" android:exported="false" android:foregroundServiceType="specialUse">

@@ -35,6 +35,7 @@ final class McpHost implements McpServer.Handler {
     void revoke(String chat){
         String owner="chat:"+chat;boolean close;
         synchronized(this){runs.values().removeIf(owner::equals);if(startingOwners.contains(owner))cancelledStarts.add(owner);release(owner);close=!stopping&&closingOwners.add(owner);}
+        ApprovedCommands.get(app).cancelOwner(owner);
         if(close)new Thread(()->{
             try{synchronized(this){while(startingOwners.contains(owner))try{wait();}catch(InterruptedException e){Thread.currentThread().interrupt();return;}}UsbSessions.get(app).closeOwner(owner);}
             finally{synchronized(this){closingOwners.remove(owner);notifyAll();}}
@@ -67,6 +68,8 @@ final class McpHost implements McpServer.Handler {
                 try{chatsStopped.await();}catch(InterruptedException e){Thread.currentThread().interrupt();}
                 synchronized(this){while(!startingOwners.isEmpty())try{wait();}catch(InterruptedException e){Thread.currentThread().interrupt();break;}}
                 cleanup(()->{BuddyService svc=BuddyService.get();if(svc!=null)svc.cancelLocalCommands();});
+                cleanup(()->EmbeddedRuntime.get(app).emergencyStop());
+                cleanup(()->ApprovedCommands.get(app).cancelAll());
                 cleanup(()->UsbJobs.get(app).cancelAll());
                 cleanup(()->UsbSessions.get(app).closeAll());
                 cleanup(()->UsbStorage.get(app).revokeAll());
@@ -85,6 +88,7 @@ final class McpHost implements McpServer.Handler {
         if(UsbTools.handles(name))return UsbTools.call(app,caller,name,a);
         if(name.startsWith("docker_")){synchronized(UsbDocker.taskAccess){requireCaller(caller);UsbSessions.get(app).authorizeTask(caller,a.optString("task"));return DockerTools.call(app,name,a);}}
         if("device_status".equals(name))return UsbTools.result(DeviceState.read(app));
+        if("run_command".equals(name))return ApprovedCommands.get(app).run(caller,a.getString("command"));
         BuddyService svc=BuddyService.get();
         if(svc==null)throw new IllegalStateException("This screen-control tool needs Accessibility. USB and Docker work without it.");
         return svc.callTool(name,a);

@@ -1,9 +1,22 @@
 {
-  "version": 1,
+  "version": 2,
   "disk_gb": 8,
   "files": {
     "base.qcow2.gz": "7399ae1c32e046f67bc5bc1de6ff2b71af4ed1329eefe3600396ab6bc67821d4",
     "vmlinuz-virt": "0431ad6e5e0296080add279573c773287b55427bf3ec94fbc2c9f985d0b79966",
-    "initramfs-virt": "947384afeab8c7622d144e1b400d81b3a18b5353252ab38f45dd982fefd45d27"
+    "initramfs-virt": "a2dffdd3132d8677bec23098e2a74af59522855f3952d14348208391fca31388"
+  },
+  "runtime_revision": 2,
+  "migration": "same-base-and-kernel-owned-runtime-in-initramfs",
+  "runtime": {
+    "revision": 2,
+    "files": {
+      "init.sh": "de9de6a3092b9cc05eb58f4f0569fa1929af64c85d312fe9e51bbb439e461637",
+      "agent.py": "eeaaaee4c4ed59ff972dadc7d527763322a038257de8ed2aa360115243ff5a1d",
+      "engine.py": "7baddb8207a675008e52bae28d1dd03ea6d4d4a005f970ed6825eaf33dde9c49",
+      "python/androidagent_serial/__init__.py": "cb9242d4e3621486d3113e13355112cfaca78762d39bf1ad22f0555442185ab8",
+      "python/androidagent_serial/protocol_androidagent.py": "cbe09281482aa483ff82559c6af58cd84721b1417d0fa5893a3236996ef7c011",
+      "python/sitecustomize.py": "7c02f4375a14b0e90f7facb9bca29e8d3248ce79e5736c5c1252a4cd19ab9d46"
+    }
   }
 }

@@ -1,6 +1,6 @@
-# Docker w androidagent 0.4.2
+# Docker w androidagent 0.4.3
 
-Aplikacja zawiera QEMU oraz obraz Alpine Linux z rzeczywistym Docker Engine. Silnik działa we własnym jądrze Linux w maszynie wirtualnej, uruchomionej z UID androidagent. Telefon nie wymaga roota, Termux ani Shizuku do tej funkcji. Termux pozostaje potrzebny do klientów Codex/Claude Code.
+Aplikacja zawiera QEMU oraz obraz Alpine Linux z rzeczywistym Docker Engine. Silnik działa we własnym jądrze Linux w maszynie wirtualnej, uruchomionej z UID androidagent. Telefon nie wymaga roota, Termux ani Shizuku do tej funkcji. Klienci Codex/Claude Code korzystają z osobnego, wbudowanego środowiska terminalowego; Docker pozostaje opcjonalny.
 
 ## Używanie
 
@@ -11,7 +11,11 @@ Aplikacja zawiera QEMU oraz obraz Alpine Linux z rzeczywistym Docker Engine. Sil
 5. **Zachowaj plik** eksportuje wynik poza maszynę wirtualną. Plik pojawia się na ekranie Docker i można przekazać go innej aplikacji przez systemowy podgląd lub udostępnianie.
 6. **Posprzątaj i usuń zadanie** usuwa jego kontener, wygenerowane obrazy i pliki robocze. Zachowane wyniki i inne zadania pozostają dostępne. Wspólny cache pozostaje; jego usunięcie wymaga zatrzymania i resetu całego dysku.
 
-Ponowne uruchomienie kontenera zastępuje wcześniejszy kontener tego samego zadania. Pliki w `/workspace` pozostają; zmiany tylko wewnątrz kontenera wymagają skopiowania do `/workspace` przed zastąpieniem lub sprzątaniem. Wersja 0.4.2 zmienia obraz bazowy, dodając utrwalenie pierwszego importu przed gotowością. Aktualizacja z 0.4.1 wymaga opisanej niżej procedury zachowania wyników i resetu. Reset całego dysku usuwa wszystkie zadania i cache po potwierdzeniu. Eksportowane pliki pozostają. Przed aktualizacją APK zmieniającą obraz bazowy zachowaj wyniki ze starego środowiska. Nowa wersja nie kasuje samoczynnie starego dysku, ale wymaga jego resetu przed uruchomieniem zmienionej bazy.
+Ponowne uruchomienie kontenera zastępuje wcześniejszy kontener tego samego zadania. Pliki w `/workspace` pozostają; zmiany tylko wewnątrz kontenera wymagają skopiowania do `/workspace` przed zastąpieniem lub sprzątaniem.
+
+Aktualizacja **0.4.2 → 0.4.3 zachowuje dysk, projekty, obrazy i eksporty**. Obraz bazowy QCOW2 oraz kernel mają identyczne SHA256 jak w 0.4.2. Zmienia się initramfs: przed `switch_root` aktualizuje wyłącznie własny kod w `/opt/androidagent`, z atomowym zastąpieniem pojedynczych plików. Android sprawdza zgodność bazy i kernela z zapisanym manifestem i aktualizuje tylko initramfs; nie przepisuje `base.qcow2` ani `user.qcow2`. Przerwany zapis kodu jest powtarzany przy kolejnym uruchomieniu. Dane projektów `/var/lib/androidagent/tasks`, warstwy `/var/lib/docker` oraz eksporty Androida nie wchodzą do payloadu migracji.
+
+Wersja 0.4.2 zmieniła bazę względem 0.4.1. Przy innej bazie aplikacja nadal odmawia rozruchu bez zachowania wyników; nie podmienia obrazu spod istniejących sektorów QCOW2 i nie kasuje dysku automatycznie. Reset całego dysku usuwa zadania i cache po potwierdzeniu. Eksporty pozostają.
 
 ## Codex i Claude Code
 
@@ -57,7 +61,17 @@ Narzędzia `usb_docker_attach`, `usb_docker_serial` i `usb_docker_detach` wymaga
 
 Obsługiwane są ARM64 i x86_64. Używany jest QEMU TCG; dłuższe buildy obciążają baterię i mogą być znacznie wolniejsze od komputera. Nie wykorzystujemy jeszcze Android Virtualization Framework. APK zawiera obrazy dla obu architektur i jest duży; nie pobiera VM przy pierwszym uruchomieniu.
 
-Na fizycznym telefonie VM korzysta ze zwykłego zegara i ma pięć minut na start. Na emulatorach Androida `ranchu`/`goldfish` używa zegara opartego na liczbie instrukcji (`icount shift=3`) i dziesięciu minut czasu Androida na start: emulacja wewnątrz emulacji wymaga tej korekty. Czasy testów na emulatorze bez KVM nie określają wydajności telefonu.
+Na fizycznym telefonie VM korzysta ze zwykłego zegara. Na emulatorach Androida `ranchu`/`goldfish` używa zegara opartego na liczbie instrukcji (`icount shift=3`): emulacja wewnątrz emulacji wymaga tej korekty. Czasy testów emulatora bez KVM nie określają wydajności telefonu.
+
+### Nadzorowany rozruch od 0.4.3
+
+Fizyczny Lenovo TB336FU z Androidem 16 odtworzył w 0.4.2 dwukrotnie błąd `failed to start containerd: timeout waiting for containerd to start`: przy 1 i 2 GB RAM dockerd zamykał się około 15 sekund po uruchomieniu managed containerd. Linux, dysk i sieć działały. Dostarczony dziennik nie zawierał wyjścia samego containerd, więc nie rozstrzygał, którą część inicjalizacji opóźnił TCG. Większa pamięć nie naprawiała tego mechanizmu.
+
+Nowy supervisor uruchamia containerd samodzielnie, zapisując osobny `/var/log/containerd.log`. Zachowuje dotychczasowe persistent root/state oraz przestrzenie nazw `moby` i `plugins.moby`. Konfiguracja containerd 2.2 wyłącza zbędne CRI/CNI. Dopiero prawdziwa odpowiedź `Version` gRPC przez prywatny socket pozwala uruchomić `dockerd --containerd=...`; samo pojawienie się pliku socketu nie oznacza gotowości. Probe używa Pythonowego, ograniczonego żądania HTTP/2/protobuf do `containerd.services.version.v1.Version/Version`, bez dodatkowego `ctr` lub równolegle startowanych klientów Go.
+
+Gotowość aplikacji wymaga następnie rzeczywistych Docker `_ping` i `/info`, sprawdzenia obrazu `alpine:3.23`, ewentualnego rzeczywistego importu oraz `sync`. Stary plik `images-ready` sam nie wystarcza. Etapy i czas rozruchu są dostępne w `docker_status.guest.startup` i interfejsie telefonu. Supervisor zapisuje `/var/log/engine.log`, a konsola pokazuje logi containerd, Dockera, importu i kontrolera.
+
+Limity są jawne: do 150 sekund na containerd RPC, 120 sekund na Docker ping/info, po 150 sekund na komendy importu/tagowania. Jedna ponowna próba containerd jest dopuszczana wyłącznie po potwierdzonym zakończeniu procesu; timeout żywego procesu nie tworzy kolejnej kopii i nie usuwa danych. Po błędzie API zwraca etap `error`, Android zatrzymuje VM i pokazuje szczegół; nie publikuje fikcyjnego `ready`. Cały rozruch ma dodatkowy limit 10 minut na fizycznym Androidzie i 15 minut na emulatorze. Są to górne granice, a nie stałe oczekiwanie.
 
 Obrazy OCI i narzędzia kompilacji muszą obsługiwać architekturę Linux gościa. Nie ma emulacji innych architektur kontenerów przez binfmt. Dotyczy to także Android SDK: część oficjalnych narzędzi Linux jest tylko x86_64, więc dowolnego desktopowego obrazu do budowania APK nie można automatycznie obiecać na ARM64. Można budować projekty z odpowiednim zestawem narzędzi; eksport APK jest obsługiwany, a instalację wykonuje zwykły instalator Androida.
 
@@ -65,7 +79,7 @@ Dockerfile może pobierać zależności przez internet. Stan sieci, DNS, dostęp
 
 ## Budowanie środowiska
 
-Wymagane na gospodarzu Linux: działający Docker, Python 3.9+, `dpkg-deb`, `readelf`, `patchelf` i moduł Python `pyelftools`. Pełny APK 0.4.2 wymaga też JNI USB z Android NDK 29.0.14206865. Oprócz standardowego SDK/JDK z README:
+Wymagane na gospodarzu Linux: działający Docker, Python 3.9+, `dpkg-deb`, `readelf`, `patchelf` i moduł Python `pyelftools`. Pełny APK 0.4.3 wymaga też JNI USB z Android NDK 29.0.14206865. Oprócz standardowego SDK/JDK z README:
 
 ```sh
 python3 tools/prepare-qemu.py
@@ -86,7 +100,7 @@ Pochodzenie i licencje: [docker/SOURCES.md](../docker/SOURCES.md), inwentarze pa
 ## Testowanie
 
 ```sh
-adb install -r artifacts/androidagent-0.4.2.apk
+adb install -r artifacts/androidagent-0.4.3.apk
 bash tools/test-docker.sh
 ```
 
@@ -95,3 +109,7 @@ Uruchamiaj wyłącznie na dedykowanym emulatorze: zestaw **resetuje dysk Dockera
 `--reuse-cache` pomija początkowy reset przy ponawianiu przebiegu z tą samą bazą VM; końcowy przypadek nadal resetuje dysk. Nie używaj tej opcji do końcowej weryfikacji po nagłej awarii VM: zachowany cache może być uszkodzony. `--ui-only` sprawdza motywy, obrót i zatrzymanie w trakcie rozruchu, również na dedykowanym emulatorze z resetem. Dodatkowe `start-arm-guest-test.sh` i `test-arm-guest.py` sprawdzają prawdziwego gościa ARM64 pod QEMU gospodarza Linux. Opcja `--host-clock` w obu skryptach wybiera zwykły zegar, zamiast trybu instrukcji. Nie są to testy telefonu Android ARM64.
 
 Wyniki i faktyczne granice weryfikacji opisuje [TESTING.md](TESTING.md).
+
+`python3 tools/prepare-docker-runtime.py` aktualizuje payload initramfs obu ABI, zachowując istniejące obrazy bazowe i kernele. Użyj tego trybu dla wydania 0.4.3 zachowującego zgodność dysku 0.4.2; pełny `build-docker-guest.sh` pobiera bieżące pakiety Alpine i może zmienić bazę. Build gate odrzuca manifest z nieaktualnym kodem supervisora.
+
+`python3 tools/test-docker-startup.py` uruchamia dedykowany, rzeczywisty gość ARM64 na hoście x86_64: tworzy projekt/obraz/kontener w dokładnym runtime 0.4.2, wykonuje migrację na tym samym inode QCOW2, wstrzymuje nowy start containerd o 20 sekund, a następnie sprawdza pełny cykl build/run/exec/HTTP/export/cancel/cleanup, zachowanie projektu po kolejnym restarcie oraz cold boot czystego dysku z importem obrazu. Test pracuje na zwykłym zegarze, 1 GB RAM i limicie gospodarza 0,5 CPU (legacy seed: 1 CPU). Limit CPU powoduje kontrolowane spowolnienie; nie jest skalibrowanym benchmarkiem Lenovo. Raport: `artifacts/docker/arm-startup-migration-results.json`; dzienniki faz: `artifacts/docker/arm-*.log`. Interakcję JavaScript sprawdza osobny zestaw Android WebView — sam test HTTP nie wykonuje JS. Końcową weryfikację fizycznego Androida ARM64 wykonuje użytkownik na tablecie.

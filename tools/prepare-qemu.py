@@ -144,7 +144,7 @@ def package(abi, packages):
         fix_version_dependencies(output, aliases)
         done.add(name)
     for f in dest.glob("*.so"):
-        if f.name not in done and f.name != "libaausb.so":
+        if f.name not in done and f.name != "libaausb.so" and not f.name.startswith("libaaterm_"):
             f.unlink()
     notices = ROOT / 'docker/licenses/termux'
     for doc in (prefix / 'share/doc').glob('*/*'):

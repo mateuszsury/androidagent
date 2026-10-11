@@ -57,7 +57,7 @@ final class Tools {
         JSONArray docker = DockerTools.list();
         for (int i = 0; i < docker.length(); i++) t.put(docker.get(i));
         t.put(tool("device_status", "Read live Android version, battery, RAM, storage, connectivity and granted capabilities.", props()));
-        t.put(tool("run_command", "Run an Android shell command under the androidagent app UID (not root, not Termux). Requires developer mode and an explicit user approval for this exact command. Timeout 10 seconds; output 32 KB. Working directory is the app workspace.", props().put("command", strProp("Exact shell command")), "command"));
+        t.put(tool("run_command", "Run an Android shell command under the androidagent app UID (not root). Requires developer mode and explicit approval of this exact command in its chat. Works without Accessibility. Timeout 10 seconds; output 32 KB. Working directory is the app workspace.", props().put("command", strProp("Exact shell command")), "command"));
         t.put(tool("read_screen",
                 "Read what is on the phone screen as a list of UI elements with ids, text, and tap coordinates. "
                         + "Call this first and after every action to see the result. Element ids are only valid until the next read_screen.",
@@ -165,19 +165,7 @@ final class Tools {
         switch (name) {
             case "device_status": return text(DeviceState.read(svc).toString(2));
             case "run_command": {
-                if (!Prefs.devMode(svc)) throw new IllegalStateException("Włącz tryb programisty w ustawieniach androidagent.");
-                String command = a.getString("command");
-                String approval = svc.askConfirm("Wykonać komendę w lokalnym katalogu androidagent?\n\n" + command);
-                if (!approval.startsWith("APPROVED")) return text("DENIED. Command was not executed.");
-                McpHost.get(svc).requireCaller(McpServer.caller());
-                if (svc.controlRevoked() != null) return text("Control stopped. Command was not executed.");
-                LocalShell shell = new LocalShell();
-                synchronized (commands) {
-                    if (svc.controlRevoked() != null) return text("Control stopped.");
-                    commands.add(shell);
-                }
-                try { return text(shell.run(svc, command).display()); }
-                finally { synchronized (commands) { commands.remove(shell); } }
+                return ApprovedCommands.get(svc).run(McpServer.caller(), a.getString("command"));
             }
             case "read_screen": return text(readScreen());
             case "tap": return text(tap(a, false));
@@ -567,7 +555,7 @@ final class Tools {
             if (installerOnScreen()) lastSeen = System.currentTimeMillis();
             else if (System.currentTimeMillis() - lastSeen > 12000) {
                 return "Not installed yet, and the installer is no longer on screen (the user may have closed it or "
-                        + "switched apps). Bring Termux to the front and open the installer again, then call wait_for_install again.";
+                        + "switched apps). Return to androidagent and reopen the installer, then call wait_for_install again.";
             }
             Thread.sleep(1000);
         }

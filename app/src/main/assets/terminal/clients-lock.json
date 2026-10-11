@@ -1,0 +1,36 @@
+{
+  "codex": {
+    "version": "0.162.1",
+    "targets": {
+      "arm64-v8a": {
+        "url": "https://registry.npmjs.org/@openai/codex/-/codex-0.162.1-linux-arm64.tgz",
+        "sha256": "a355051d0c296ed50e42e55aceabf74f017f2f96e223fc7ee2199ea8a60cad4b",
+        "bytes": 157869533,
+        "binary": "package/vendor/aarch64-unknown-linux-musl/bin/codex"
+      },
+      "x86_64": {
+        "url": "https://registry.npmjs.org/@openai/codex/-/codex-0.162.1-linux-x64.tgz",
+        "sha256": "7417711678b464eee70664126e39e88bb3c84c2928da0e71f14b56e04ff5c09f",
+        "bytes": 165453522,
+        "binary": "package/vendor/x86_64-unknown-linux-musl/bin/codex"
+      }
+    }
+  },
+  "claude": {
+    "version": "2.1.296",
+    "targets": {
+      "arm64-v8a": {
+        "url": "https://registry.npmjs.org/@anthropic-ai/claude-code-linux-arm64-musl/-/claude-code-linux-arm64-musl-2.1.296.tgz",
+        "sha256": "7895ef5b714e675152a18058e83cbf9d5f01d758dee97c2e40969f71f2c884f3",
+        "bytes": 112659894,
+        "binary": "package/claude"
+      },
+      "x86_64": {
+        "url": "https://registry.npmjs.org/@anthropic-ai/claude-code-linux-x64-musl/-/claude-code-linux-x64-musl-2.1.296.tgz",
+        "sha256": "88fcfa54fdb0ea24594111378908d6488fb975da8b139f5fb5e38d8256ffba5b",
+        "bytes": 112639151,
+        "binary": "package/claude"
+      }
+    }
+  }
+}

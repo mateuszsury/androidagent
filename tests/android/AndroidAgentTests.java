@@ -127,109 +127,12 @@ public class AndroidAgentTests extends Instrumentation {
     }
   }
 
-  /** Real cross-UID integration, after the official Termux APK and helper are installed. */
+  /** Compatibility flag now runs the genuine embedded-runtime bootstrap. Full coverage is separate. */
   private void termuxSuite() {
-    final Sessions.Session[] claude = {null};
-    final String[] nativeSession = {null};
-    test(
-        "Termux: installed and RUN_COMMAND granted",
-        () -> {
-          check(Termux.installed(app), "Install official Termux first");
-          shell("pm grant dev.mateuszsury.androidagent com.termux.permission.RUN_COMMAND");
-          check(Termux.permitted(app), "RUN_COMMAND not granted");
-        });
-    test(
-        "Termux: accessibility callback server bound",
-        () -> {
-          shell("settings put secure enabled_accessibility_services ''");
-          shell("settings put secure accessibility_enabled 0");
-          shell(
-              "settings put secure enabled_accessibility_services"
-                  + " dev.mateuszsury.androidagent/dev.mateuszsury.androidagent.BuddyService");
-          shell("settings put secure accessibility_enabled 1");
-          long until = SystemClock.elapsedRealtime() + 30000;
-          while (BuddyService.get() == null && SystemClock.elapsedRealtime() < until)
-            SystemClock.sleep(250);
-          check(BuddyService.get() != null, "Callback server did not bind");
-          launch(MainActivity.class);
-        });
-    test(
-        "Termux: bundled helper setup starts through RUN_COMMAND",
-        () -> {
-          Intent install = new Intent("com.termux.RUN_COMMAND");
-          install.setClassName("com.termux", "com.termux.app.RunCommandService");
-          install.putExtra(
-              "com.termux.RUN_COMMAND_PATH", "/data/data/com.termux/files/usr/bin/bash");
-          install.putExtra(
-              "com.termux.RUN_COMMAND_ARGUMENTS", new String[] {"-c", TermuxSetup.command(app)});
-          install.putExtra("com.termux.RUN_COMMAND_WORKDIR", Termux.HOME);
-          install.putExtra("com.termux.RUN_COMMAND_BACKGROUND", true);
-          try {
-            app.startService(install);
-          } catch (IllegalStateException backgroundRestricted) {
-            app.startForegroundService(install);
-          }
-          SystemClock.sleep(3000);
-        });
-    test(
-        "Termux: real helper sends authenticated callback",
-        () -> {
-          long before = Prefs.helperCheckedAt(app);
-          Termux.run(app, "ping");
-          long until = SystemClock.elapsedRealtime() + 30000;
-          while (Prefs.helperCheckedAt(app) <= before && SystemClock.elapsedRealtime() < until)
-            SystemClock.sleep(250);
-          check(Prefs.helperCheckedAt(app) > before, "No callback from Termux helper");
-          check(SetupState.helperCurrent(app), "Outdated helper version");
-          check(SetupState.agentInstalled(app, "codex"), "Helper cannot find Codex");
-          check(Prefs.signedAgents(app) != null, "Missing real login status");
-          check(
-              new SetupState(app).canRun() == SetupState.agentReady(app, "codex"),
-              "App readiness does not match actual login state");
-          shot("01-runtime-setup");
-        });
-    test(
-        "Termux Claude: actual CLI authentication status stays unsigned",
-        () -> {
-          check(
-              SetupState.agentInstalled(app, "claude"),
-              "Helper cannot find official Claude runtime");
-          check(!SetupState.agentReady(app, "claude"), "Use an emulator without a model account");
-          main(() -> claude[0] = ChatHub.get(app).create("claude"));
-        });
-    test(
-        "Termux Claude: real headless CLI connects all phone tools and reports no login",
-        () -> {
-          runUnsignedClaude(claude[0], false);
-          check(
-              claude[0].phoneConnected && claude[0].phoneToolCount == McpHost.get(app).listTools().length(),
-              "Native Claude MCP handshake failed: connected="
-                  + claude[0].phoneConnected
-                  + ", tools="
-                  + claude[0].phoneToolCount);
-          check(
-              !claude[0].agentTools.contains("Bash") && !claude[0].agentTools.contains("Edit"),
-              "Normal mode exposes mutation tools");
-          check(!claude[0].agentSessionId.isEmpty(), "Native session id missing");
-          nativeSession[0] = claude[0].agentSessionId;
-          check(
-              claude[0].messages.stream().noneMatch(m -> m.kind == Bubble.Kind.BUDDY),
-              "Authentication error shown as model reply");
-          launch(new Intent(app, ChatActivity.class).putExtra("id", claude[0].id));
-          shot("02-claude-auth-error");
-        });
-    test(
-        "Termux Claude: native resume and developer code tools work without logging in",
-        () -> {
-          runUnsignedClaude(claude[0], true);
-          check(claude[0].phoneConnected && claude[0].phoneToolCount == McpHost.get(app).listTools().length(), "Resume lost MCP");
-          check(
-              claude[0].agentTools.contains("Bash") && claude[0].agentTools.contains("Edit"),
-              "Developer mode lacks real code tools");
-          check(
-              nativeSession[0].equals(claude[0].agentSessionId), "Native session was not resumed");
-          check(!claude[0].running, "Failed auth leaves running chat");
-        });
+    test("Embedded terminal: genuine in-app initialization", () -> {
+      EmbeddedRuntime.get(app).initializeBlocking();
+      check(EmbeddedRuntime.get(app).ready(), "Embedded runtime failed initialization");
+    });
   }
 
   private void runUnsignedClaude(Sessions.Session session, boolean dev) throws Exception {
@@ -500,6 +403,15 @@ public class AndroidAgentTests extends Instrumentation {
   }
 
   private void suite() throws Exception {
+    test("permissions: real state and native consent routes", () -> PermissionRegressionChecks.readOnlyStateAndNativeRoutes(app));
+    test("permissions: FlowMesh is never mistaken for our service", () -> PermissionRegressionChecks.accessibilityRecognitionIsScoped(app));
+    test("permissions: screen refresh preserves existing consent", () -> {launch(PermissionsActivity.class);PermissionRegressionChecks.screenRefreshAndNativeAccessibilityRoute(this,current);});
+    test("commands: native approval works without Accessibility", () -> {launch(new Intent(app,ChatActivity.class).putExtra("id",ChatHub.get(app).sessions.current.id));ApprovedCommandsChecks.inlineApprovalShowsAndExecutesExactCommand(this,current);});
+    test("commands: native denial never executes the command", () -> ApprovedCommandsChecks.inlineDenialDoesNotExecuteCommand(this,current));
+    test("commands: stale consent cannot approve a replacement", () -> ApprovedCommandsChecks.staleButtonCannotApproveReplacement(this,current));
+    test("commands: a revoked run cannot inherit consent", () -> ApprovedCommandRuntimeChecks.revokedRunCannotInheritApproval(app));
+    test("commands: cancellation stops the approved shell", () -> ApprovedCommandRuntimeChecks.cancellationStopsApprovedShell(app));
+    test("commands: a cancelled shell cannot spawn", () -> ApprovedCommandRuntimeChecks.cancelledShellCannotSpawn(app));
     test(
         "home: conversation-first UI",
         () -> {
@@ -964,13 +876,11 @@ public class AndroidAgentTests extends Instrumentation {
                             "run_command",
                             new JSONObject().put("command", "touch should-not-exist.txt")));
             long until = SystemClock.elapsedRealtime() + 10000;
-            while (BuddyService.get().bubble().pendingConfirmText() == null
+            while (ApprovedCommands.get(app).pendingForChat(session[0].id) == null
                 && SystemClock.elapsedRealtime() < until) SystemClock.sleep(100);
-            check(BuddyService.get().bubble().pendingConfirmText() != null, "Approval missing");
+            check(ApprovedCommands.get(app).pendingForChat(session[0].id) != null, "Approval missing");
             check(
-                BuddyService.get()
-                    .bubble()
-                    .pendingConfirmText()
+                ApprovedCommands.get(app).pendingForChat(session[0].id).summary
                     .contains("touch should-not-exist.txt"),
                 "Approval does not identify exact command");
             click("Odrzuć");
@@ -993,9 +903,9 @@ public class AndroidAgentTests extends Instrumentation {
                         tool(
                             "run_command", new JSONObject().put("command", "printf MCP_APPROVED")));
             long until = SystemClock.elapsedRealtime() + 10000;
-            while (BuddyService.get().bubble().pendingConfirmText() == null
+            while (ApprovedCommands.get(app).pendingForChat(session[0].id) == null
                 && SystemClock.elapsedRealtime() < until) SystemClock.sleep(100);
-            check(BuddyService.get().bubble().pendingConfirmText() != null, "Approval missing");
+            check(ApprovedCommands.get(app).pendingForChat(session[0].id) != null, "Approval missing");
             main(
                 () ->
                     check(

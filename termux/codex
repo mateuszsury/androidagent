@@ -7,12 +7,17 @@ case "$(uname -m)" in
   x86_64) PLATFORM=linux-x64; TRIPLE=x86_64-unknown-linux-musl ;;
   *) echo 'androidagent supports 64-bit ARM and x86 Android only.' >&2; exit 1 ;;
 esac
-ROOT=$(npm root -g)
-BIN=$ROOT/@openai/codex/node_modules/@openai/codex-$PLATFORM/vendor/$TRIPLE/bin/codex
-# Some npm versions hoist the optional platform package.
-[ -x "$BIN" ] || BIN=$ROOT/@openai/codex-$PLATFORM/vendor/$TRIPLE/bin/codex
+if [ "${ANDROIDAGENT_EMBEDDED:-0}" = 1 ]; then
+  BIN=$HOME/.androidagent/clients/codex/package/vendor/$TRIPLE/bin/codex
+else
+  ROOT=$(npm root -g)
+  BIN=$ROOT/@openai/codex/node_modules/@openai/codex-$PLATFORM/vendor/$TRIPLE/bin/codex
+  # Some npm versions hoist the optional platform package.
+  [ -x "$BIN" ] || BIN=$ROOT/@openai/codex-$PLATFORM/vendor/$TRIPLE/bin/codex
+fi
 if [ ! -x "$BIN" ]; then
   echo "Missing Codex binary. Install the matching @openai/codex-$PLATFORM package, then retry." >&2
   exit 1
 fi
+if [ "${ANDROIDAGENT_EMBEDDED:-0}" = 1 ]; then exec "$BIN" "$@"; fi
 exec proot -b "$P/etc/resolv.conf:/etc/resolv.conf" -b "$P/etc/tls:/etc/ssl" "$BIN" "$@"

@@ -47,9 +47,12 @@ final class LocalShell {
     pb.redirectErrorStream(true);
     Process p = null;
     try {
-      p = pb.start();
+      synchronized (this) {
+        if (cancelled) return new Result("Control stopped. Command was not executed.", 130, false);
+        p = pb.start();
+        process = p;
+      }
       final Process running = p;
-      process = p;
       p.getOutputStream().close();
       if (cancelled) stop();
       ByteArrayOutputStream bytes = new ByteArrayOutputStream();
@@ -89,9 +92,11 @@ final class LocalShell {
     }
   }
 
+  void requestStop() { synchronized (this) { cancelled = true; } }
+
   void stop() {
-    cancelled = true;
-    Process p = process;
+    Process p;
+    synchronized (this) { cancelled = true; p = process; }
     if (p != null) {
       try (BufferedReader r = new BufferedReader(new FileReader(pidFile))) {
         int parent = Integer.parseInt(r.readLine());

@@ -1,0 +1,138 @@
+{
+  "schema": 1,
+  "checked_at": "2026-10-11T22:01:58.295214+00:00",
+  "host_platform": "Linux x86_64",
+  "scope": "Pinned terminal assets and native executable dependency closure; not an Android execution test",
+  "checks": [
+    "runtime ZIP bytes/SHA256",
+    "safe and unique ZIP paths",
+    "required terminal tools and X modes",
+    "both 64-bit ELF architectures",
+    "userspace ELF DT_NEEDED closure",
+    "JNI bytes/SHA256 and isolated DT_NEEDED closure/RPATH",
+    "exact bundled client/runtime locks",
+    "103 pinned entry recipe Git hash/SHA256 verifications",
+    "x86_64 full preparation reproduced identical runtime ZIP bytes/SHA256"
+  ],
+  "abis": {
+    "arm64-v8a": {
+      "archive_bytes": 95351692,
+      "archive_sha256": "506698689774710ca603b52ef2db43e66bd6eba8be2a2d332021099bb4fca9bd",
+      "selected_packages": 72,
+      "bootstrap_packages": 83,
+      "native": {
+        "libaaterm_android-shmem.so": {
+          "bytes": 14432,
+          "sha256": "428f148ee25677823bc01d0e49c49934fa9189dd34034d1b96ad73b6da08b5a5",
+          "load_segment_alignments": [
+            16384,
+            16384,
+            16384
+          ]
+        },
+        "libaaterm_loader.so": {
+          "bytes": 18136,
+          "sha256": "cbdef0e652c2b78af25d867e1719fdebbb0915e25aae2dd35b3b5c1835f6b551",
+          "load_segment_alignments": [
+            16384,
+            16384
+          ]
+        },
+        "libaaterm_proot.so": {
+          "bytes": 331041,
+          "sha256": "49ce4da3b3fb0bcb278472850aa41ba0f06534b5c63e9a0adb5732fc3882d42f",
+          "load_segment_alignments": [
+            16384,
+            16384,
+            16384,
+            65536,
+            65536
+          ]
+        },
+        "libaaterm_talloc.so": {
+          "bytes": 69153,
+          "sha256": "7c9509585fb56095bd1fb3e2a291e8efd5ac3dd6e444de88c0970c00842311fe",
+          "load_segment_alignments": [
+            16384,
+            16384,
+            16384,
+            65536
+          ]
+        }
+      },
+      "node": "24.18.0-1",
+      "npm": "11.20.0",
+      "python": "3.14.6-1",
+      "pip": "26.2.1",
+      "proot": "5.1.107.96",
+      "musl": {
+        "musl": "1.2.5-r23",
+        "libgcc": "15.2.0-r2",
+        "libstdc++": "15.2.0-r2"
+      }
+    },
+    "x86_64": {
+      "archive_bytes": 94985335,
+      "archive_sha256": "7c78885d92e9cb8769c3c8b855c6fd6de0c80bb108b6e4248c8f56c67157248f",
+      "selected_packages": 72,
+      "bootstrap_packages": 83,
+      "native": {
+        "libaaterm_android-shmem.so": {
+          "bytes": 14368,
+          "sha256": "e0cae86f6457fac1f7182af527b98c0b56ec00c367c27f0c3884e7f27eacab25",
+          "load_segment_alignments": [
+            16384,
+            16384,
+            16384
+          ]
+        },
+        "libaaterm_loader.so": {
+          "bytes": 18368,
+          "sha256": "a836b0569c84b1661333d16bacf6b396ff08fea816a5c936a82e08ddeeca8341",
+          "load_segment_alignments": [
+            16384,
+            16384,
+            16384
+          ]
+        },
+        "libaaterm_proot.so": {
+          "bytes": 298257,
+          "sha256": "765dea9a71015a0a98c56def9a59d0623896496ce37e48aa3e673ca3a3ab8c6f",
+          "load_segment_alignments": [
+            16384,
+            16384,
+            16384,
+            16384,
+            16384
+          ]
+        },
+        "libaaterm_talloc.so": {
+          "bytes": 36385,
+          "sha256": "272676cf5ae5dc0303d4a2420bad282c5a84f8204d4d0b54e7f6444ea543610c",
+          "load_segment_alignments": [
+            16384,
+            16384,
+            16384,
+            16384
+          ]
+        }
+      },
+      "node": "24.18.0-1",
+      "npm": "11.20.0",
+      "python": "3.14.6-1",
+      "pip": "26.2.1",
+      "proot": "5.1.107.96",
+      "musl": {
+        "musl": "1.2.5-r23",
+        "libgcc": "15.2.0-r2",
+        "libstdc++": "15.2.0-r2"
+      }
+    }
+  },
+  "limits": [
+    "PRoot SELinux compatibility and first initialization require app-UID Android tests",
+    "No authenticated model conversation was tested here",
+    "No physical Android ARM device was tested here",
+    "Runtime package configuration scripts execute on-device, not on the build host"
+  ]
+}

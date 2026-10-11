@@ -150,9 +150,9 @@ final class ChatHub {
             changed();
             return null;
         }
-        if (!McpHost.get(app).running()) return "Włącz dostęp agentów w panelu USB lub sterowanie ekranem w konfiguracji.";
+        if (!McpHost.get(app).running()) return "Otwórz wbudowane środowisko, aby uruchomić most narzędzi. Sterowanie ekranem jest opcjonalne.";
         if (!SetupState.helperCurrent(app) || !SetupState.agentReady(app, ses.backend))
-            return "Skonfiguruj i zaloguj " + ses.brainName() + " w Termux. /status działa bez logowania.";
+            return "Przygotuj " + ses.brainName() + " we wbudowanym środowisku i zaloguj się do własnego konta. /status działa lokalnie bez modelu.";
         boolean hasFiles = files != null && !files.isEmpty();
         if (text.isEmpty() && !hasFiles) return null;
         String forAgent = text.isEmpty() && hasFiles ? "Have a look at what I attached." : text;
@@ -177,7 +177,7 @@ final class ChatHub {
         main.postDelayed(() -> {
             if (ses.running && id == ses.runId && !ses.runAcknowledged) {
                 stop(ses);
-                add(ses, Bubble.Kind.ERROR, "No response from Termux. Open androidagent settings and check the Termux helper step.");
+                add(ses, Bubble.Kind.ERROR, "Brak odpowiedzi klienta. Otwórz panel środowiska w androidagent i sprawdź jego stan oraz logowanie.");
                 changed();
             }
         }, NO_RESPONSE_MS);
@@ -209,8 +209,8 @@ final class ChatHub {
         ses.running = false;
         ses.status = "";
         if (deliveryError == null) add(ses, Bubble.Kind.STEP, "Stopped.");
-        else add(ses, Bubble.Kind.ERROR, "Phone tool access ended, but the Stop command could not reach Termux: "
-                + deliveryError + " Check Termux for any process still running.");
+        else add(ses, Bubble.Kind.ERROR, "Dostęp do narzędzi telefonu został zakończony, ale polecenie Stop nie dotarło do klienta: "
+                + deliveryError + " Sprawdź procesy we wbudowanym środowisku.");
         changed();
     }
 
@@ -330,13 +330,13 @@ final class ChatHub {
                 add(ses, Bubble.Kind.ERROR, ev.optString("text", "Something went wrong."));
                 String activeRun = ev.optString("active_run");
                 if (activeRun.matches("[A-Za-z0-9_-]{1,64}") && !activeRun.equals(ses.callbackRun)) {
-                    // The app process may have restarted while its Termux helper survived.
+                    // The app process may have restarted while its helper survived.
                     // Cancel that exact old run; its late callbacks cannot finish this one.
                     try {
                         commands.run("stop", ses.id, activeRun);
-                        add(ses, Bubble.Kind.STEP, "Asked Termux to stop the earlier request. Send your message again when it has stopped.");
+                        add(ses, Bubble.Kind.STEP, "Poproszono klienta o zatrzymanie poprzedniego zadania. Wyślij wiadomość ponownie po jego zakończeniu.");
                     } catch (Exception e) {
-                        add(ses, Bubble.Kind.ERROR, "Could not stop the earlier Termux request: " + e.getMessage());
+                        add(ses, Bubble.Kind.ERROR, "Nie udało się zatrzymać poprzedniego zadania klienta: " + e.getMessage());
                     }
                 }
                 break;

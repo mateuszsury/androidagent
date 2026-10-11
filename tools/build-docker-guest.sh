@@ -70,4 +70,5 @@ from pathlib import Path
 p=Path(sys.argv[1]); files=['base.qcow2.gz','vmlinuz-virt','initramfs-virt']
 (p/'manifest.json').write_text(json.dumps({'version':1,'disk_gb':8,'files':{f:hashlib.sha256((p/f).read_bytes()).hexdigest() for f in files}},indent=2)+'\n')
 PY
+python3 tools/prepare-docker-runtime.py "$ABI"
 echo "Built Docker guest: $ABI"

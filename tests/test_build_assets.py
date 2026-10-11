@@ -32,13 +32,18 @@ class BuildAssetsTests(unittest.TestCase):
         self.write(self.source, b'pinned source')
         self.json('usb/source-manifest.json', {'usb/source.c': self.sha(self.source)})
         native = {}
+        runtime = {}
+        for name in ('init.sh', 'agent.py', 'engine.py'):
+            source = self.root / 'docker/guest' / name
+            self.write(source, ('owned runtime ' + name).encode())
+            runtime[name] = self.sha(source)
         for abi in ('arm64-v8a', 'x86_64'):
             assets = self.root / 'app/src/main/assets/docker' / abi
             files = {}
             for name in DOCKER.GUEST_FILES:
                 self.write(assets / name, name.encode())
                 files[name] = self.sha(assets / name)
-            self.json(assets / 'manifest.json', {'files': files})
+            self.json(assets / 'manifest.json', {'files': files, 'runtime_revision': 2, 'runtime': {'files': runtime}})
             for name in ('bios-256k.bin', 'kvmvapic.bin', 'linuxboot_dma.bin'):
                 self.write(assets / 'qemu' / name, b'firmware')
             libraries = {}
@@ -74,7 +79,7 @@ class BuildAssetsTests(unittest.TestCase):
             DOCKER.verify(self.root)
 
     def test_manifest_cannot_omit_guest_files(self):
-        self.json('app/src/main/assets/docker/arm64-v8a/manifest.json', {'files': {}})
+        self.json('app/src/main/assets/docker/arm64-v8a/manifest.json', {'files': {}, 'runtime_revision': 2})
         with self.assertRaisesRegex(ValueError, 'disk, kernel and initramfs'):
             DOCKER.verify(self.root)
 
@@ -86,6 +91,11 @@ class BuildAssetsTests(unittest.TestCase):
     def test_runtime_must_be_pinned(self):
         self.json('docker/qemu-libraries-x86_64.json', {})
         with self.assertRaisesRegex(ValueError, 'Missing pinned runtime'):
+            DOCKER.verify(self.root)
+
+    def test_guest_supervisor_source_change_requires_repack(self):
+        self.write(self.root / 'docker/guest/engine.py', b'changed supervisor')
+        with self.assertRaisesRegex(ValueError, 'stale packaged guest runtime engine.py'):
             DOCKER.verify(self.root)
 
     def test_native_manifest_cannot_omit_supported_abi(self):
