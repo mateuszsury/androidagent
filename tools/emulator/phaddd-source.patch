@@ -1,0 +1,17 @@
+--- a/target/i386/ops_sse.h
++++ b/target/i386/ops_sse.h
+@@ -1417,6 +1417,10 @@ void glue(helper_phaddd, SUFFIX)(CPUX86State *env, Reg *d, Reg *s)
+ {
+-    d->L(0) = (int32_t)d->L(0) + (int32_t)d->L(1);
+-    XMM_ONLY(d->L(1) = (int32_t)d->L(2) + (int32_t)d->L(3));
+-    d->L((1 << SHIFT) + 0) = (int32_t)s->L(0) + (int32_t)s->L(1);
+-    XMM_ONLY(d->L(3) = (int32_t)s->L(2) + (int32_t)s->L(3));
++    uint32_t d0 = d->L(0) + d->L(1);
++    XMM_ONLY(uint32_t d1 = d->L(2) + d->L(3));
++    uint32_t s0 = s->L(0) + s->L(1);
++    XMM_ONLY(uint32_t s1 = s->L(2) + s->L(3));
++    d->L(0) = d0;
++    XMM_ONLY(d->L(1) = d1);
++    d->L((1 << SHIFT) + 0) = s0;
++    XMM_ONLY(d->L(3) = s1);
+ }

@@ -1,6 +1,6 @@
 {
   "version": "0.4.2",
-  "verified_at_utc": "2026-10-11T08:21:43.571189+00:00",
+  "verified_at_utc": "2026-10-11T19:39:20.397694+00:00",
   "apk": {
     "path": "artifacts/androidagent-0.4.2.apk",
     "bytes": 460925925,
@@ -103,11 +103,41 @@
           "passed": 8,
           "failed": 0,
           "ram_mb": 2048
+        },
+        {
+          "name": "docker",
+          "report": "artifacts/api36/docker/results.json",
+          "sha256": "5f7a6f363027af2328edffe2e8607955ae6fe0c022c96a92d80183b1976b9e11",
+          "run_id": "2673d9a2-94e8-4b2f-bdaf-75a9a9d2c642",
+          "passed": 27,
+          "failed": 0,
+          "ram_mb": 4096,
+          "emulator_engine_sha256": "76e6ac08ca9ed3618da600acd5516802686615509c073ebc28fc9a6ded3e7eae",
+          "custom_webview_flags": false,
+          "started_at_utc": "2026-10-11T17:41:04.908253+00:00",
+          "completed_at_utc": "2026-10-11T19:32:58.534308+00:00",
+          "cache_reused": false
+        },
+        {
+          "name": "webview",
+          "report": "artifacts/api36/webview/results.json",
+          "sha256": "b1fdd8529ccf5aa08ef8dcfd468ca686104d618aa3fa7f13a9dc72bcf3faafa8",
+          "run_id": "0c44a47d-7ff2-4fac-8977-43adde3ce265",
+          "passed": 8,
+          "failed": 0,
+          "ram_mb": 4096,
+          "emulator_engine_sha256": "76e6ac08ca9ed3618da600acd5516802686615509c073ebc28fc9a6ded3e7eae",
+          "custom_webview_flags": false,
+          "started_at_utc": "2026-10-11T19:36:37.300046+00:00",
+          "completed_at_utc": "2026-10-11T19:39:18.758691+00:00",
+          "native_toolbar_frame_verified": true
         }
       ],
-      "passed": 124,
+      "passed": 159,
       "failed": 0,
-      "crash_buffer_empty_after_completed_suites": true
+      "crash_buffer_empty_after_completed_suites": true,
+      "additional_run_ram_mb": 4096,
+      "additional_run_environment": "Isolated emulator engine with verified PHADDD aliasing fix; installed SDK, system image, WebView provider and APK unchanged"
     }
   ],
   "host": {
@@ -116,13 +146,13 @@
     "passed": 64,
     "failed": 0
   },
-  "total_current_checks": 357,
+  "total_current_checks": 392,
   "incomplete_attempts": [
     {
       "report": "artifacts/api36/webview-environment.json",
-      "sha256": "ff3b22b776ed02e82328927579b9f16329db48f18ae6a50ca9b02533fd1fbc61",
+      "sha256": "c2533bbd31516a9be24c00a05623f09fd34cc9175d6ff3cdaa712f7db2a2a58a",
       "counted_in_current_total": false,
-      "reason": "Native WebView decoder crash independently reproduced in system browser"
+      "reason": "Historical failed run; PHADDD aliasing bug in the host emulator resolved by a separate engine; successful fresh full suite recorded separately"
     },
     {
       "report": "artifacts/api30/art-runtime-interruption.json",
@@ -182,7 +212,10 @@
     "Physical Android USB descriptor transport through usbredirhost into Docker",
     "Signed-in model conversation",
     "Android API 35 and physical 16 KiB page runtime",
-    "Termux and official clients on API 36",
-    "Full Docker cycle and native WebView preview on API 36; system WebView failure blocks this environment"
-  ]
+    "Termux and official clients on API 36"
+  ],
+  "webview_resolution": {
+    "report": "artifacts/api36/webview-resolution.json",
+    "sha256": "579569e79b4c7642a4888092d2abf2bc21bb782eb3292bccec38564bae5c4158"
+  }
 }

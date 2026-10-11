@@ -4,4 +4,5 @@
 <instrumentation android:name="dev.mateuszsury.androidagent.AndroidAgentTests" android:targetPackage="dev.mateuszsury.androidagent" android:functionalTest="true" />
 <instrumentation android:name="dev.mateuszsury.androidagent.DockerRuntimeTests" android:targetPackage="dev.mateuszsury.androidagent" android:functionalTest="true" />
 <instrumentation android:name="dev.mateuszsury.androidagent.UsbRuntimeTests" android:targetPackage="dev.mateuszsury.androidagent" android:functionalTest="true" />
+<instrumentation android:name="dev.mateuszsury.androidagent.WebViewRenderingTests" android:targetPackage="dev.mateuszsury.androidagent" android:functionalTest="true" />
 </manifest>

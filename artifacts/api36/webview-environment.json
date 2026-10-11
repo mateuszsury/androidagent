@@ -2,7 +2,7 @@
   "version": "0.4.2",
   "api": 36,
   "abi": "x86_64",
-  "status": "environment_blocked",
+  "status": "resolved_in_followup",
   "suite": "full Docker Engine and native preview",
   "completed_before_abort": 10,
   "counted_in_release_total": false,
@@ -37,7 +37,7 @@
     "dimensions": "16x16 RGBA",
     "host_crc_and_zlib_and_pil_checks": "passed"
   },
-  "conclusion": "Failure reproduces outside androidagent and Docker. Precise cause inside the emulator WebView decoder remains unresolved. No product workaround or test bypass applied.",
+  "conclusion": "Follow-up isolated a PHADDD aliasing bug in the host emulator TCG engine. A guarded separate engine fixes the instruction; unchanged final APK passed native preview and full Docker on API36. Earlier aborted run remains excluded.",
   "emulator": "37.2.12-16428233, software TCG, swiftshader_indirect",
   "fallback_validation": "Full Docker suite on API30 uses the final APK after guest bootstrap durability hardening (SHA256 5300a530810554f5f693e5757e34e4683734b92c647b192f247c7f747aad80a0). Preview implementation and system WebView provider are unchanged; see release index for final result.",
   "apk_sha256": "31a4f49ed69bebc2fca1154db526a0d09668c89a97c866c2ce3acd4dd963249f",
@@ -49,5 +49,8 @@
     "passed": 27,
     "failed": 0,
     "cache_reused": false
-  }
+  },
+  "conclusion_at_failed_attempt": "Failure reproduces outside androidagent and Docker. Precise cause inside the emulator WebView decoder remains unresolved. No product workaround or test bypass applied.",
+  "original_status": "environment_blocked",
+  "resolution_report": "artifacts/api36/webview-resolution.json"
 }

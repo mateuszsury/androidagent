@@ -1,6 +1,6 @@
 # Testy androidagent 0.4.2
 
-Weryfikacja po [dodatkowym przeglądzie](REVIEW_0.4.2.md), bez logowania do modeli. Końcowy APK i obraz Linux ARM64 mają **357/357 zaliczonych sprawdzeń w ukończonych zestawach**. [Indeks wydania](../artifacts/release-0.4.2.json) wiąże wyniki z sumą konkretnego APK i identyfikatorami przebiegów. Przerwane i nieudane wcześniejsze próby opisano osobno poniżej; nie wchodzą do tej sumy.
+Weryfikacja po [dodatkowym przeglądzie](REVIEW_0.4.2.md), bez logowania do modeli. Końcowy APK i obraz Linux ARM64 mają **392/392 zaliczonych sprawdzeń w ukończonych zestawach**. [Indeks wydania](../artifacts/release-0.4.2.json) wiąże wyniki z sumą konkretnego APK i identyfikatorami przebiegów. Przerwane i nieudane wcześniejsze próby opisano osobno poniżej; nie wchodzą do tej sumy.
 
 | Zestaw | Android 11 / API 30 | Android 16 / API 36 |
 | --- | ---: | ---: |
@@ -8,13 +8,14 @@ Weryfikacja po [dodatkowym przeglądzie](REVIEW_0.4.2.md), bez logowania do mode
 | USB | [40/40](../artifacts/usb/results.json) | [41/41](../artifacts/api36/usb/results.json) |
 | Termux i oficjalne klienty | [7/7](../artifacts/termux/results.json) | Nie testowano |
 | Panel Dockera i regresje | [8/8](../artifacts/docker-ui/results.json) | [8/8](../artifacts/api36/docker-ui/results.json) |
-| Pełny Docker, USB i UART | [27/27](../artifacts/docker/results.json) | Blokada systemowego WebView |
+| Pełny Docker, USB i UART | [27/27](../artifacts/docker/results.json) | [27/27](../artifacts/api36/docker/results.json) |
+| WebView bez silnika Docker | W ramach pełnego Dockera | [8/8](../artifacts/api36/webview/results.json) |
 
 Poza Androidem: [64/64 testy hosta](../artifacts/host-tests.txt) oraz [13/13 dla aktualnego Linuxa ARM64 pod QEMU gospodarza](../artifacts/docker/arm-guest-host-clock-results.json). Suma obejmuje wykonania tych samych scenariuszy na różnych platformach; nie jest liczbą unikalnych funkcji.
 
 ## Zakres USB
 
-Dwa emulatory AOSP x86_64: Android 11/API 30 z 4 GiB RAM oraz Android 16/API 36 z 2 GiB RAM. Wcześniejsze próby przed poprawką trwałości używały 2 GiB na API 30 dla krótkich zestawów, 4 GiB dla pełnego Dockera oraz 4 GiB na API 36. Oba mają rozdzielczość 720 × 1480, 300 dpi i działają bez KVM. Testy mają osobny APK i nie są pakowane w produkt. Wyniki zawierają identyfikator bieżącego przebiegu; skrypty odrzucają stare raporty.
+Dwa emulatory AOSP x86_64: Android 11/API 30 z 4 GiB RAM oraz Android 16/API 36 z 2 GiB RAM dla aplikacji, USB i panelu Dockera. Ukończone pełny Docker oraz osobny WebView na API 36 używają 4 GiB i osobnej kopii emulatora z poprawką TCG. Pozostałe ukończone zestawy API 36 wykonano na oryginalnym silniku. Wcześniejsze próby przed poprawką trwałości używały 2 GiB na API 30 dla krótkich zestawów, 4 GiB dla pełnego Dockera oraz 4 GiB na API 36. Oba mają rozdzielczość 720 × 1480, 300 dpi i działają bez KVM. Testy mają osobny APK i nie są pakowane w produkt. Wyniki zawierają identyfikator bieżącego przebiegu; skrypty odrzucają stare raporty.
 
 APK: `artifacts/androidagent-0.4.2.apk`, 460925925 bajty. SHA256: `5300a530810554f5f693e5757e34e4683734b92c647b192f247c7f747aad80a0`. Podpis APK v3 i suma pliku zostały zweryfikowane.
 
@@ -35,13 +36,17 @@ Osobno poprawiono przygotowanie i sprzątanie fixture: QEMU 11 usuwa własny cha
 
 Aktualny obraz gościa Linux ARM64 przeszedł [13/13 sprawdzeń pod natywnym QEMU gospodarza](../artifacts/docker/arm-guest-host-clock-results.json): rzeczywisty build, podgląd HTTP, kontener non-root, limit pamięci, eksport, scoped cleanup i shutdown oraz wirtualne USB i odebranie przydziału. Gość używa 512 MiB RAM i zwykłego zegara gospodarza. Wynik zawiera manifest nowego obrazu z synchronizacją pierwszego importu. [Porównanie zawartości obu ABI](../artifacts/guest-bootstrap-durability.json) potwierdza zmianę wyłącznie `init.sh`. Ten zestaw nie jest testem Androida ARM64 ani fizycznego USB.
 
-Regresje aplikacji obejmują metryki Androida, powłokę z UID aplikacji, timeout i procesy potomne, anulowanie, Unicode, trwałe pliki/rozmowy/szkice, renderer, oba motywy, konfigurację, prawdziwe Accessibility/MCP i sterowanie Androidowymi ekranami. Timeout terminala oczekuje teraz na zakończenie procesów po SIGKILL; test `/proc` rozpoznaje także proces znikający podczas odczytu. Fixture strumienia Claude nie zastępuje rozmowy z modelem. Zestaw Termux na API 30 sprawdza rzeczywiste oficjalne klienty i poprawne blokady bez logowania. Termux nie był testowany na API 36 w tym przebiegu. Pełny zestaw kontenerów przeszedł 27/27 na API 30; panel Dockera i jego regresje przeszły po 8/8 na obu wersjach.
+Regresje aplikacji obejmują metryki Androida, powłokę z UID aplikacji, timeout i procesy potomne, anulowanie, Unicode, trwałe pliki/rozmowy/szkice, renderer, oba motywy, konfigurację, prawdziwe Accessibility/MCP i sterowanie Androidowymi ekranami. Timeout terminala oczekuje teraz na zakończenie procesów po SIGKILL; test `/proc` rozpoznaje także proces znikający podczas odczytu. Fixture strumienia Claude nie zastępuje rozmowy z modelem. Zestaw Termux na API 30 sprawdza rzeczywiste oficjalne klienty i poprawne blokady bez logowania. Termux nie był testowany na API 36 w tym przebiegu. Pełny zestaw kontenerów przeszedł po 27/27 na API 30 i API 36; panel Dockera i jego regresje przeszły po 8/8 na obu wersjach.
 
-## Przerwany przebieg Docker na API 36
+## Naprawa WebView i powtórzenie pełnego Dockera na API 36
 
-Pełny zestaw wykonał 10 sprawdzeń, w tym rzeczywisty build obrazu, po czym otwarcie podglądu wywołało natywny `SIGTRAP` w systemowym WebView 133.0.6943.137. Następujący po nim ANR przerwał instrumentation. Tego przebiegu nie zaliczamy do ukończonych testów.
+Wcześniejszy pełny zestaw wykonał 10 sprawdzeń, w tym rzeczywisty build obrazu, po czym otwarcie podglądu wywołało natywny `SIGTRAP` w systemowym WebView 133.0.6943.137. Następujący po nim ANR przerwał instrumentation. Tego przebiegu nie zaliczamy do ukończonych testów. Awarię zdiagnozowano na pakiecie sprzed zmiany synchronizacji pierwszego importu; podgląd i provider WebView pozostały bez zmian. [Zapis wcześniejszej próby](../artifacts/api36/webview-environment.json) zachowuje jej kontekst i odsyła do naprawy.
 
-Ten sam błąd odtworzono na `about:blank` w systemowym `org.chromium.webview_shell`, bez androidagent i bez Dockera; wyłączenie Vulkana nie pomogło. Ślad prowadzi do `ResourceBundle::LoadBitmap`: dekoder providera odrzuca własny PNG 16×16, którego CRC i dekodowanie na hoście są poprawne. To potwierdza problem środowiska WebView, lecz dokładna przyczyna w dekoderze pozostaje nierozwiązana. Nie dodano obejścia w produkcie ani pominięcia testu. [Zapis diagnostyczny](../artifacts/api36/webview-environment.json) oddziela ten wynik od ukończonych zestawów. Podgląd i pełny cykl Dockera na API 36 pozostają niepotwierdzone. Awarię zdiagnozowano na pakiecie sprzed zmiany synchronizacji pierwszego importu; podgląd i provider WebView pozostały bez zmian. Pełny cykl Dockera aktualnego APK przeszedł na API 30.
+Błąd odtworzono również na `about:blank` w systemowym `org.chromium.webview_shell`, bez androidagent i bez Dockera. Ustalono przyczynę w software TCG emulatora 37.2.12: instrukcja `PHADDD xmm0, xmm0` dla `[1, 2, 3, 4]` dawała `[3, 7, 10, 14]`, zamiast `[3, 7, 3, 7]`. Uszkadzało to sumy Adler-32 obliczane przez SIMD Chromium, przez co provider odrzucał własny poprawny PNG oraz snapshot V8. Wyłączenie Vulkana, PCLMUL i zmiana zegara nie usuwały przyczyny; eksperymenty cofnięto.
+
+Launcher przygotowuje osobny silnik z poprawioną funkcją TCG tylko dla dokładnie rozpoznanego SHA256. Oryginalny SDK, obraz Androida, systemowy WebView i APK 0.4.2 są bez zmian. Po naprawie 8192 wektory instrukcji oraz domyślny dekoder PNG Chromium dają poprawne wyniki. Wektory diagnostyczne nie powiększają liczby sprawdzeń aplikacji. [Opis i odtwarzanie poprawki](WEBVIEW.md) zawierają jej źródła i ograniczenia.
+
+Końcowy APK przeszedł [8/8 osobnych testów WebView](../artifacts/api36/webview/results.json): HTML, JavaScript, PNG/canvas, storage po odświeżeniu, odtworzenie Activity, stronę błędu, powrót serwera oraz ponowne otwarcie. Sprawdzono także pełną widoczność i namalowanie natywnego tytułu oraz przycisków Wróć/Odśwież w [rzeczywistym zrzucie ekranu](../artifacts/api36/webview/preview.png). Nowy pełny przebieg na świeżym dysku przeszedł [27/27](../artifacts/api36/docker/results.json), w tym rzeczywisty build i interaktywny [podgląd kontenera](../artifacts/api36/docker/03-docker-web-preview.png), wirtualne USB, UART, restart i sprzątanie. Systemowy reproducer `about:blank` pozostał uruchomiony. Bufor awarii po obu ukończonych zestawach jest pusty. Nie zastosowano niestandardowych flag WebView ani roota dla aplikacji. [Raport rozwiązania](../artifacts/api36/webview-resolution.json) wiąże te wyniki z silnikiem, providerem i niezmienionym APK.
 
 ## Przerwany przebieg ART na API 30
 
@@ -82,6 +87,7 @@ bash tools/test-usb.sh
 bash tools/test-termux.sh
 bash tools/test-docker.sh
 bash tools/test-docker.sh --ui-only
+bash tools/test-webview.sh
 ```
 
 Ustaw `JAVA_HOME`, `ANDROID_SDK_ROOT` i `KEYSTORE` zgodnie z README. `ANDROID_SERIAL` wybiera emulator również przy kilku aktywnych urządzeniach. Zestaw USB oblicza port hostowego adbd z numeru emulatora; nietypowy port można podać w `ANDROIDAGENT_ADBD_PORT`. Na API 33+ zestaw aplikacji wymaga świeżej instalacji, aby sprawdzić systemowy dialog powiadomień. Przed powtórzeniem tego zestawu na przeznaczonym do testów emulatorze wyczyść dane androidagent przez `adb shell pm clear dev.mateuszsury.androidagent`; usuwa to jego rozmowy, ustawienia i zadania, więc nie wykonuj tego na urządzeniu z potrzebnymi danymi. Termux i klienty muszą być przygotowane na przeznaczonym do testów emulatorze. Testy tworzą i usuwają dane fixture, włączają Accessibility, instalują minimalny pakiet ADB oraz resetują dysk zadań VM. Testy hosta: `python3 -m unittest discover -s tests -p 'test_*.py' -v`, z zainstalowanym pyserial 3.5. Zegar emulowany nie daje miarodajnego porównania wydajności telefonu.
