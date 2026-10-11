@@ -1,0 +1,18 @@
+{
+  "stage": "pre-foreground-fix prototype",
+  "run_id": "3ef91be4-226c-4ea4-9b81-a1c1f8527d5d",
+  "tested_apk": {
+    "name": "androidagent-0.4.3.apk",
+    "bytes": 653533571,
+    "sha256": "26d0f5d756815bac4ecbcf791b39e730b8d6e6180ee70d55793e8c253d07da92"
+  },
+  "api": 30,
+  "abi": "x86_64",
+  "completed_checks_before_interruption": 2,
+  "included_in_final_pass_counts": false,
+  "signal": "SIGTRAP / TRAP_TRACE",
+  "location": "libart.so art_quick_imt_conflict_trampoline+63 while org.json.JSONStringer serializes JSONArray",
+  "diagnosis": "Native ART interruption under software TCG, similar to documented historical API30 interruption. Exact cause remains unresolved; no application-native frame occurs in the recorded stack. This is not a passed suite or a proven product fix.",
+  "evidence": "usb-native-interruption.log",
+  "next_validation": "Repeat complete USB suite on the final exact APK; retain interruption evidence independently."
+}

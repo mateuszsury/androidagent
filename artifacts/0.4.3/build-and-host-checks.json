@@ -1,0 +1,33 @@
+{
+  "version": "0.4.3",
+  "version_code": 403,
+  "tested_apk": {
+    "name": "androidagent-0.4.3.apk",
+    "bytes": 653533571,
+    "sha256": "92edfd2974159fd523cfa6a7d0a6bd3235deb0cdfe62ab5df42a3c3567ae7537",
+    "source_commit": "db41298e352a28f0b4e2a4b6a4ccdc504777e10b"
+  },
+  "certificate_sha256": "b0fe60ab6fb41c33051f1fe9c16b2d24e476fdf66be225870db831cd7e2fb66b",
+  "signing_certificate_matches_0_4_2": true,
+  "build": "Local Android SDK tools35.0.0, platform36, JDK21.0.12.1+1; release minSDK30 targetSDK36; terminal assets and both ABI verified before packaging",
+  "host_tests": {
+    "checks": 95,
+    "failures": 0,
+    "elapsed_seconds": 7.045,
+    "completed_utc": "2026-10-11T23:16:43.229419+00:00",
+    "log_sha256": "e02627b803a423d19c29e5c218267d8610cf6568802c7e8d210af599c389050e",
+    "dependency": "pyserial3.5 in isolated test venv",
+    "scope": "79 product/protocol/source checks plus 16 offline Git blob transfer phase tests; no owner model account"
+  },
+  "model_authentication": "No owner account or token; no model conversation performed",
+  "scope": "Host unit/protocol/source checks. Device/runtime and ARM guest results are separate.",
+  "source_commit": "db41298e352a28f0b4e2a4b6a4ccdc504777e10b",
+  "instrumentation_apk": {
+    "bytes": 156187,
+    "sha256": "c252d5ef081f919467cb6ef1e9b3648f95f4f3f69b32d792fce8c6d705b2de19",
+    "test_only": true,
+    "bundled_in_product": false
+  },
+  "diff_check": "Own source diff passes; copied upstream licenses and recipes retain original whitespace.",
+  "instrumentation_source_commit": "5dfb3bf68e783af9820711b40794b182b2faf95b"
+}

@@ -1,0 +1,8 @@
+{
+  "stage": "prototype 3; not final release",
+  "name": "androidagent-043-proto3.apk",
+  "bytes": 653525379,
+  "sha256": "fa0177364fd61b83774b8cba70305036d08a1267badabd5efb4452f6f2faf55b",
+  "recorded_utc": "2026-10-11T22:11:04.194617+00:00",
+  "device": "emulator-5554"
+}

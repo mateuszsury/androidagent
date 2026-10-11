@@ -15,13 +15,32 @@ Ukończony zestaw [Linux ARM64: start i migracja](../artifacts/docker/arm-startu
 
 Raport potwierdza identyczne bajty bazy i kernela 0.4.2, zachowany inode dysku, projekty/obrazy/kontenery/logi po migracji i restarcie, rzeczywisty ping/info, import Alpine, build `RUN`/`COPY`, run, exec, UID 1000, limit cgroup 128 MiB, logi, eksport, anulowanie, sprzątanie wybranego zadania oraz zsynchronizowane zatrzymanie QEMU. Gotowość containerd jest weryfikowana rzeczywistym RPC przed startem dockerd z jawnym socketem. Serwer kontenera zwraca prawdziwy interaktywny HTML; wykonanie jego JavaScript wymaga osobnego testu Android WebView. Logi i identyfikator `8f904ef1-c107-4f96-8b5a-51403c7cc05d` są w raporcie.
 
-Testy bieżącego APK wbudowanego środowiska, czystej instalacji bez Termux i aktualizacji z dokładnej opublikowanej APK 0.4.2 są w trakcie weryfikacji. Liczb z historycznych raportów 0.4.2 nie przypisujemy nowemu APK. Końcowy indeks wydania powinien wiązać ukończone przebiegi z SHA256, rozmiarem i certyfikatem nowej APK.
+Dokładna podpisana APK 0.4.3 (`653533571` bajtów, SHA256 `92edfd2974159fd523cfa6a7d0a6bd3235deb0cdfe62ab5df42a3c3567ae7537`) ukończyła po **28/28 sprawdzeń czystej instalacji** bez `com.termux` oraz **30/30 po aktualizacji** na API 30 i 36. Każda aktualizacja zaczęła się od instalacji dokładnej opublikowanej APK 0.4.2 i utworzenia rozmowy/pliku przez jej rzeczywisty UID. Dane były zachowane przed i po nowym bootstrapie. Certyfikat SHA256 `b0fe60ab6fb41c33051f1fe9c16b2d24e476fdf66be225870db831cd7e2fb66b` jest identyczny z 0.4.2. Wszystkie końcowe zestawy zostały ukończone. [Indeks wydania](../artifacts/release-0.4.3.json) wiąże każdą sumę raportu i identyfikator przebiegu z tymi samymi bajtami APK, źródłem `db41298e352a28f0b4e2a4b6a4ccdc504777e10b` i osobną wersją instrumentation `5dfb3bf68e783af9820711b40794b182b2faf95b`. Historyczne wyniki 0.4.2 są opisane osobno.
+
+| Zestaw końcowy 0.4.3 | Android 11 / API 30 | Android 16 / API 36 |
+| --- | ---: | ---: |
+| Czysta instalacja bez Termux | [28/28](../artifacts/0.4.3/api30/embedded-runtime/clean/results.json) | [28/28](../artifacts/0.4.3/api36/embedded-runtime/clean/results.json) |
+| Utworzenie danych w dokładnej 0.4.2 | [1/1](../artifacts/0.4.3/api30/embedded-runtime/upgrade-seed/results.json) | [1/1](../artifacts/0.4.3/api36/embedded-runtime/upgrade-seed/results.json) |
+| Aktualizacja i środowisko w 0.4.3 | [30/30](../artifacts/0.4.3/api30/embedded-runtime/upgrade/results.json) | [30/30](../artifacts/0.4.3/api36/embedded-runtime/upgrade/results.json) |
+| Aplikacja, zgody i MCP | [83/83](../artifacts/0.4.3/api30/app/results.json) | [84/84](../artifacts/0.4.3/api36/app/results.json) |
+| Migracja manifestu i zachowanie danych VM w Androidzie | [4/4](../artifacts/0.4.3/api30/docker-migration/results.json) | [4/4](../artifacts/0.4.3/api36/docker-migration/results.json) |
+| USB: transporty fixture i rzeczywisty adbd | [40/40](../artifacts/0.4.3/api30/usb/results.json) | [41/41](../artifacts/0.4.3/api36/usb/results.json) |
+| Panel Dockera, UART HTTP i start/Stop QEMU | [8/8](../artifacts/0.4.3/api30/docker-ui/results.json) | [8/8](../artifacts/0.4.3/api36/docker-ui/results.json) |
+| Interaktywny WebView bez silnika Docker | [8/8](../artifacts/0.4.3/api30/webview/results.json) | [8/8](../artifacts/0.4.3/api36/webview/results.json) |
+
+Łącznie **541/541 ukończonych sprawdzeń**: 404 na nowej APK, dwa przygotowania fixture pod 0.4.2, 95 na gospodarzu, 34 w gościu Linux ARM64 i sześć oficjalnych klientów ARM64 pod QEMU user. Suma obejmuje powtórzenia na dwóch API i 16 testów skryptu transferu; nie oznacza tylu unikalnych funkcji ani zalogowanego zadania modelu. Androidowe testy panelu Dockera nie wykonują pełnego cyklu silnika: rzeczywisty pełny cykl i zachowanie istniejącego QCOW2 potwierdza osobny raport gościa ARM64.
+
+Oba emulatory x86_64 miały 4 GiB RAM, dwa vCPU, strony 4 KiB, ekran 720 × 1480 przy 300 dpi i software TCG bez KVM. Zastosowano izolowaną poprawkę PHADDD dla rozpoznanego Emulator 37.2.12 opisaną w [WEBVIEW.md](WEBVIEW.md); APK i provider WebView nie wymagają zmiany. Zegary gości mogą dryfować, więc raporty zapisują także czas gospodarza. Pełny zestaw czystej instalacji trwał 603,661 s na API 30 i 608,151 s na API 36; zestaw po aktualizacji 614,692 s i 600,044 s. To czasy całych zestawów na software emulatorze, nie czas uruchomienia telefonu. Native toolbar WebView został sprawdzony w rzeczywistych klatkach obu API.
+
+[Wcześniejsze regresje](../artifacts/0.4.3/prototype-regressions.json) zachowują błąd Stop i brak trwałego właściciela foreground, poprawione w finalnej APK. Zachowano także wcześniejszy błąd precondition fixture powiadomień i [przerwaną próbę USB na API 30](../artifacts/0.4.3/prototypes/pre-foreground-fix/api30/usb-native-interruption.json) z natywnym SIGTRAP/TRAP_TRACE w ART. Dokładna przyczyna ART pozostaje nierozstrzygnięta; ukończony końcowy USB zaliczył 40/40. Te próby nie są dodawane do końcowej sumy. Nowy test foreground tworzy tymczasowego właściciela MCP, uruchamia rzeczywisty terminal, potwierdza trwałą usługę foreground, zwalnia tymczasowego właściciela i wykonuje prawdziwe stdin/stdout.
 
 Zestaw `EmbeddedRuntimeTests` sprawdza pod UID niedebugowalnej aplikacji rzeczywisty bootstrap, Bash/Node/Python/Git/jq/curl, shebang i procesy potomne, zegar, anulowanie PRoot, PTY poprzez `script`, wejście z natywnego terminala, pliki w HOME, powtórne przygotowanie, zachowanie danych z 0.4.2, uszkodzone archiwum, oficjalne klienty i stan niezalogowanego konta. Raport zapisuje API, ABI, UID, rozmiar strony, `targetSdk`, wersje, identyfikator oraz czas każdego sprawdzenia. Zweryfikowane archiwa klientów w tym zestawie trafiają przez lokalny transport `adb reverse`; **nie potwierdza to pobierania przez HTTPS z Androida**. Pierwsze uruchomienie binariów jest rzeczywiste, a konto właściciela nie jest podmieniane ani kopiowane.
 
+[Oficjalne binaria ARM64](../artifacts/terminal-arm-clients-userspace-results.json) przeszły **6/6 sprawdzeń** `--version`, `--help` i stanu niezalogowanego konta: Codex 0.162.1 oraz Claude Code 2.1.296. Użyto rzeczywistych ELF AArch64, dołączonego musl oraz QEMU user 10.0.11 z CPU Cortex-A72 na Linux x86_64; nie jest to Android ani tablet. Zestaw hosta zaliczył **95/95 testów**: 79 testów produktu/protokołów oraz 16 offline skryptu transferu Git Blobs. Żaden z tych przebiegów nie korzystał z konta właściciela.
+
 Nowe regresje [uprawnień](PERMISSIONS.md) nie nadają zgód i nie zastępują listy istniejących usług Accessibility, w tym FlowMesh. Brak Accessibility, odmowa powiadomień i aktywna optymalizacja baterii nie blokują lokalnego środowiska ani rozmów po zalogowaniu. MCP `run_command` działa bez Accessibility; wymagane pozostają tryb programisty, pełna dokładna komenda w karcie zgody i ważne poświadczenie konkretnego przebiegu. Dodatkowe testy sprawdzają wykonanie dopiero po kliknięciu, odmowę, stare ID/przycisk po zastąpieniu prośby, odebranie poświadczeń, przerwanie aktywnej powłoki i anulowanie przed utworzeniem procesu.
 
-Fizyczny Lenovo TB336FU (Android 16/API36, arm64-v8a, strony 4 KiB) miał osobną weryfikację **0.4.2**: diagnostyka i krótkie komendy działały, lecz Docker powtarzalnie zatrzymywał się przy 15-sekundowym limicie managed containerd przy 1 i 2 GB RAM. [Raport i log fizycznego testu są assetami v0.4.2](https://github.com/mateuszsury/androidagent/releases/tag/v0.4.2). To jest wynik poprzedniej APK, a nie ukończony test poprawki. Końcowa instalacja i weryfikacja 0.4.3 na tablecie pozostają osobną walidacją sprzętową.
+Fizyczny Lenovo TB336FU (Android 16/API36, arm64-v8a, strony 4 KiB) miał osobną weryfikację **0.4.2**: diagnostyka i krótkie komendy działały, lecz Docker powtarzalnie zatrzymywał się przy 15-sekundowym limicie managed containerd przy 1 i 2 GB RAM. [Raport i log fizycznego testu są assetami v0.4.2](https://github.com/mateuszsury/androidagent/releases/tag/v0.4.2). To jest wynik poprzedniej APK, a nie ukończony test poprawki. Końcowa instalacja i weryfikacja 0.4.3 na tablecie pozostają osobną walidacją sprzętową. [Ostatnie CI](../artifacts/0.4.3/ci-validation.json) dla zaktualizowanej macierzy 30/35/36 nie rozpoczęło jobów z powodu limitu/rozliczeń GitHub. Podane wyniki pochodzą z lokalnych testów; nie deklarujemy wykonanego API 35 ani kompletnego uruchomienia CI.
 
 ### Odtwarzanie bieżącej wersji
 
@@ -33,13 +52,15 @@ python3 tools/check-terminal-assets.py
 bash tools/build-local.sh
 bash tools/test-embedded-runtime.sh --clean artifacts/androidagent-0.4.3.apk
 bash tools/test-embedded-runtime.sh --upgrade artifacts/androidagent-0.4.2.apk artifacts/androidagent-0.4.3.apk
-bash tools/test-android.sh
+ANDROIDAGENT_NOTIFICATION_FIXTURE=true bash tools/test-android.sh
 bash tools/test-usb.sh
-bash tools/test-docker.sh
+bash tools/test-docker.sh --ui-only
 bash tools/test-webview.sh
+# Pełny silnik na dedykowanym emulatorze: bash tools/test-docker.sh
+python3 tools/test-docker-startup.py
 ```
 
-Tryby `--clean` i `--upgrade` usuwają instalację i dane testowe, a skrypt wymaga emulatora. Nie uruchamiaj pełnego zbiorczego zestawu na telefonie z potrzebnymi danymi: historyczne scenariusze Accessibility zmieniają jego ustawienia, a testy Dockera resetują dyski fixture. Sam ekran Uprawnień nie wykonuje takich zmian. Nowe raporty środowiska są eksportowane do dedykowanego `Download/androidagent-embedded-tests/` i kopiowane pod `artifacts/api<API>/embedded-runtime/{clean,upgrade}`; skrypt odrzuca stary `run_id`, niewłaściwą wersję i niekompletny zestaw. Test gościa ARM64 można odtworzyć przez `python3 tools/test-docker-startup.py`; korzysta z odrębnego dysku testowego gospodarza i oryginalnego initramfs 0.4.2.
+Tryby `--clean` i `--upgrade` usuwają instalację i dane testowe, a skrypt wymaga emulatora. Nie uruchamiaj pełnego zbiorczego zestawu na telefonie z potrzebnymi danymi: historyczne scenariusze Accessibility zmieniają jego ustawienia, a testy Dockera resetują dyski fixture. Sam ekran Uprawnień nie wykonuje takich zmian. Nowe raporty środowiska są eksportowane do dedykowanego `Download/androidagent-embedded-tests/` i kopiowane pod `artifacts/api<API>/embedded-runtime/{clean,upgrade}`; skrypt odrzuca stary `run_id`, niewłaściwą wersję i niekompletny zestaw. CI używa zmiennych `ANDROIDAGENT_*_EVIDENCE_DIR`, aby zapisać dowody pod `artifacts/<wersja>/api<API>`; opublikowane bieżące dowody są pod `artifacts/0.4.3`. Test gościa ARM64 można odtworzyć przez `python3 tools/test-docker-startup.py`; korzysta z odrębnego dysku testowego gospodarza i oryginalnego initramfs 0.4.2.
 
 ## Historyczne wydanie 0.4.2
 
