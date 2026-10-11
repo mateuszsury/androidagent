@@ -1,0 +1,183 @@
+{
+  "version": "0.4.2",
+  "status": "resolved",
+  "api": 36,
+  "abi": "x86_64",
+  "verified_at_utc": "2026-10-11T19:39:20.397694+00:00",
+  "root_cause": "Android Emulator Linux x86_64 software TCG helper_phaddd_xmm overwrites aliased input before reading it, corrupting Chromium SIMD Adler-32 checksums for PNG and V8 data",
+  "instruction_probe": {
+    "instruction": "PHADDD xmm0, xmm0",
+    "input": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "stock_result": [
+      3,
+      7,
+      10,
+      14
+    ],
+    "expected_and_fixed_result": [
+      3,
+      7,
+      3,
+      7
+    ],
+    "independent_vectors": 8192,
+    "host_passed": true,
+    "fixed_android_passed": true,
+    "counted_as_app_checks": false
+  },
+  "png_probe": {
+    "resource_id": 52878,
+    "dimensions": "16x16 RGBA",
+    "png_bytes": 350,
+    "crc32": "b565c01a",
+    "inflated_bytes": 1040,
+    "expected_adler32": "905e2606",
+    "system_and_scalar_adler32": "905e2606",
+    "stock_chromium_simd_adler32": "7ea7bdda",
+    "fixed_default_chromium_simd_adler32": "905e2606",
+    "fixed_skcodec_get_pixels_result": 0,
+    "fixed_full_bitmap_non_null": true
+  },
+  "emulator_fix": {
+    "emulator": "37.2.12-16428233",
+    "host": "Linux x86_64",
+    "scope": "headless software TCG; helper_phaddd_xmm only",
+    "original_sha256": "23b788a3b87b3228558924de4cb5477e2818b3b9415d6ce27d6438cf3e462b98",
+    "patched_sha256": "76e6ac08ca9ed3618da600acd5516802686615509c073ebc28fc9a6ded3e7eae",
+    "offset": "0x908630",
+    "original_hex": "f30f6f06660f70c8ed660f70c0e8660ffec1660fd6068b420403028946088b420c03420889460cc30f1f840000000000",
+    "replacement_hex": "f30f6f06f30f6f0a660f6fd0660f70c0b1660ffec2660f70d1b1660ffeca0fc6c188f30f7f06c3909090909090909090",
+    "source": "https://android.googlesource.com/platform/external/qemu/+/ae9d18d2b6261179fbd57fffec720a04f7bfb053/target/i386/ops_sse.h",
+    "sdk_changed": false,
+    "android_image_changed": false,
+    "apk_changed": false
+  },
+  "environment": {
+    "fingerprint": "Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys",
+    "ram_mb": 4096,
+    "resolution": "720x1480",
+    "dpi": 300,
+    "acceleration": "software TCG; no KVM",
+    "outer_clock": "-icount shift=0,align=off,sleep=on",
+    "gpu": "swiftshader_indirect",
+    "shell_uid": 2000,
+    "custom_webview_flags": false,
+    "provider": {
+      "package": "com.android.webview",
+      "version": "133.0.6943.137",
+      "version_code": 694313707
+    }
+  },
+  "apk": {
+    "path": "artifacts/androidagent-0.4.2.apk",
+    "sha256": "5300a530810554f5f693e5757e34e4683734b92c647b192f247c7f747aad80a0",
+    "installed_copy_sha256_verified": true,
+    "changed_for_this_fix": false
+  },
+  "independent_about_blank": {
+    "package": "org.chromium.webview_shell",
+    "page": "about:blank",
+    "alive_after_30_host_seconds": true,
+    "crash_buffer_empty": true
+  },
+  "completed_suites": [
+    {
+      "name": "docker",
+      "report": "artifacts/api36/docker/results.json",
+      "sha256": "5f7a6f363027af2328edffe2e8607955ae6fe0c022c96a92d80183b1976b9e11",
+      "run_id": "2673d9a2-94e8-4b2f-bdaf-75a9a9d2c642",
+      "passed": 27,
+      "failed": 0,
+      "ram_mb": 4096,
+      "emulator_engine_sha256": "76e6ac08ca9ed3618da600acd5516802686615509c073ebc28fc9a6ded3e7eae",
+      "custom_webview_flags": false,
+      "started_at_utc": "2026-10-11T17:41:04.908253+00:00",
+      "completed_at_utc": "2026-10-11T19:32:58.534308+00:00",
+      "cache_reused": false
+    },
+    {
+      "name": "webview",
+      "report": "artifacts/api36/webview/results.json",
+      "sha256": "b1fdd8529ccf5aa08ef8dcfd468ca686104d618aa3fa7f13a9dc72bcf3faafa8",
+      "run_id": "0c44a47d-7ff2-4fac-8977-43adde3ce265",
+      "passed": 8,
+      "failed": 0,
+      "ram_mb": 4096,
+      "emulator_engine_sha256": "76e6ac08ca9ed3618da600acd5516802686615509c073ebc28fc9a6ded3e7eae",
+      "custom_webview_flags": false,
+      "started_at_utc": "2026-10-11T19:36:37.300046+00:00",
+      "completed_at_utc": "2026-10-11T19:39:18.758691+00:00",
+      "native_toolbar_frame_verified": true
+    }
+  ],
+  "earlier_attempt": {
+    "report": "artifacts/api36/webview-environment.json",
+    "counted_in_release_total": false
+  },
+  "limits": [
+    "Only the exact verified Linux x86_64 headless emulator engine is patched",
+    "No physical Android phone or OTG hardware validation",
+    "No signed-in model conversation",
+    "Other TCG instructions and emulator versions have not been audited"
+  ],
+  "preview_frame": {
+    "path": "artifacts/api36/webview/preview.png",
+    "sha256": "4336e04770de3efd8a4694eebe8b19fe4a4e0ff1163122490149aefc63f283f4",
+    "native_toolbar_frame_verified": true
+  },
+  "docker_preview_frame": {
+    "path": "artifacts/api36/docker/03-docker-web-preview.png",
+    "sha256": "928333608dafc308de1acdff7d5fc51f503bfa4bd6f7b9de5bf6641097dabe1e",
+    "visually_inspected": true,
+    "native_title_and_back_refresh_visible": true,
+    "dom_button_result": "Działa!"
+  },
+  "saved_frame_pixel_check": {
+    "decoder": "Pillow on host; independent of Android Bitmap pixel reads",
+    "regions": {
+      "back": {
+        "bounds": [
+          0,
+          45,
+          90,
+          135
+        ],
+        "min_brightness": 33,
+        "max_brightness": 255,
+        "dark_pixels": 198,
+        "light_pixels": 7847
+      },
+      "refresh": {
+        "bounds": [
+          552,
+          52,
+          720,
+          127
+        ],
+        "min_brightness": 33,
+        "max_brightness": 255,
+        "dark_pixels": 733,
+        "light_pixels": 11652
+      },
+      "title": {
+        "bounds": [
+          90,
+          64,
+          552,
+          115
+        ],
+        "min_brightness": 33,
+        "max_brightness": 255,
+        "dark_pixels": 3055,
+        "light_pixels": 19830
+      }
+    },
+    "passed": true,
+    "visually_inspected_under_unique_path": true
+  }
+}

@@ -75,6 +75,8 @@ adb install -r artifacts/androidagent-0.4.2.apk
 
 Testy mają osobne APK, podpisane tym samym kluczem co aplikacja. Uruchamiaj wyłącznie na przeznaczonym do testów emulatorze: włączają Accessibility, tworzą pliki i rozmowy testowe oraz otwierają Ustawienia. Testowy APK eksportuje raport i zrzuty przez MediaStore do `Download/androidagent-tests/`; skrypt kopiuje je do `artifacts/emulator/`. Raport musi mieć identyfikator bieżącego przebiegu, aby starszy wynik nie został uznany za nowy. Wyniki bieżącego wydania, testy USB i granice weryfikacji zawiera [raport testów](docs/TESTING.md). Oficjalny Codex **0.162.1** i Claude Code **2.1.296** uruchomiono w Termux na emulatorze. Szczegóły oraz granice weryfikacji opisuje [raport testów](docs/TESTING.md). Bez KVM można uruchomić istniejący AVD przez `./tools/start-software-emulator.sh nazwa-avd`; emulowany zegar jest wolniejszy od zegara gospodarza, więc wyniki nie są pomiarem wydajności telefonu.
 
+Launcher automatycznie naprawia rozpoznany błąd TCG w Android Emulator 37.2.12 dla Linux x86_64, przygotowując osobną kopię silnika. Przyczynę awarii WebView, zakres poprawki i osobny test `tools/test-webview.sh` opisuje [WEBVIEW.md](docs/WEBVIEW.md).
+
 ## Pochodzenie i kierunek
 
 Porównanie projektów i decyzje: [architektura](docs/ARCHITECTURE.md). Oryginalna instrukcja Buddy: [UPSTREAM-README](docs/UPSTREAM-README.md). Zachowano licencję oraz [NOTICE](NOTICE). Wewnętrzne nazwy `buddy-run` i `~/.buddy` pozostają dla małego zakresu zmian względem upstream; uruchamianie jednocześnie obu helperów wymaga osobnego profilu Termux.
