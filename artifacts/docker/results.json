@@ -1,6 +1,6 @@
 {
-  "version": "0.4.1",
-  "run_id": "5b822e71-f8a1-4ec3-847a-24663e7cbc21",
+  "version": "0.4.2",
+  "run_id": "758694e8-f5d5-4639-a138-5a0fb1f368d3",
   "tests": [
     {
       "name": "QEMU: actual Android binary and app UID",
@@ -24,6 +24,11 @@
     },
     {
       "name": "VM: user starts real Linux Docker Engine",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "VM: forced stop after readiness restarts the same disk",
       "pass": true,
       "detail": ""
     },

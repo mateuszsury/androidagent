@@ -303,7 +303,7 @@ final class DockerVm {
             synchronized (lifecycle) {
                 // Keep start disabled until every old shutdown request completes.
                 // Otherwise a late HTTP shutdown could reach a new VM on this port.
-                if(epoch==generation) {kill();guest=new JSONObject();detail="Środowisko zatrzymane; zadania zapisane";}
+                if(epoch==generation) {kill();guest=new JSONObject();detail="Środowisko zatrzymane";}
                 if(--pendingStops==0)state="stopped";
             }
         }

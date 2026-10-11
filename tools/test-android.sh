@@ -28,6 +28,9 @@ if [ "${1:-}" = --build-only ]; then
 fi
 "$ADB" install --no-incremental -r "$OUT/tests.apk"
 export ANDROIDAGENT_TEST_RUN_ID="$(python3 -c 'import uuid; print(uuid.uuid4())')"
+# Clearing app data changes MediaStore ownership; otherwise it may rename new
+# reports to results (1).json and leave the previous run at results.json.
+"$ADB" shell rm -rf /sdcard/Download/androidagent-tests
 "$ADB" shell am instrument -w -e run_id "$ANDROIDAGENT_TEST_RUN_ID" dev.mateuszsury.androidagent.tests/dev.mateuszsury.androidagent.AndroidAgentTests
 mkdir -p artifacts/emulator
 "$ADB" pull /sdcard/Download/androidagent-tests/. artifacts/emulator/

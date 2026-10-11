@@ -1,0 +1,51 @@
+{
+  "version": "0.4.2",
+  "api": 30,
+  "status": "interrupted_attempt",
+  "suite": "full Docker Engine",
+  "completed_before_abort": 6,
+  "counted_in_release_total": false,
+  "failure": {
+    "thread": "docker-exports",
+    "signal": "SIGTRAP",
+    "code": "TRAP_TRACE",
+    "library": "libart.so",
+    "pc": "0x183c4f",
+    "function": "art_quick_imt_conflict_trampoline+63",
+    "instruction": "jne after ordinary cmp; no int3 or ud2",
+    "build_id": "1dfb27162fe62a7ac7a10ea361233369"
+  },
+  "inputs": {
+    "export_metadata_count": 10,
+    "all_valid_json": true,
+    "sizes_bytes": [
+      218,
+      220
+    ],
+    "live_heap_mib_before_failure": 3
+  },
+  "independent_probe": {
+    "description": "Standalone app_process, ordinary shell UID, no androidagent classes or native libraries; same file inputs",
+    "file_reads_and_json_decodes": 20000,
+    "result": "passed"
+  },
+  "conclusion": "Unexpected native ART trace exception. No confirmed product defect in file reading; precise platform cause unresolved and not reproduced by an independent 20000-read probe. The reused VM disk later exposed unsynchronized image data; bootstrap persistence was hardened before the final APK and the final full suite passed 27/27 on a fresh disk.",
+  "fixture_retry": {
+    "failure": "Public enabled-service list was empty while Android retained Crashed BuddyService; immediate off/on could coalesce",
+    "fix": "Wait for empty Bound/Enabled/Binding/Crashed sets for the current Android user and a null previous service; then require fresh service plus listening MCP",
+    "verified_from_actual_crashed_state": true,
+    "scenario": "MCP: real accessibility server connected",
+    "log": "review2-docker-api30-verified-reset.log",
+    "product_changed": false
+  },
+  "apk_sha256": "31a4f49ed69bebc2fca1154db526a0d09668c89a97c866c2ce3acd4dd963249f",
+  "build_stage": "0.4.2 before bootstrap durability hardening",
+  "final_retry": {
+    "report": "artifacts/docker/results.json",
+    "run_id": "758694e8-f5d5-4639-a138-5a0fb1f368d3",
+    "apk_sha256": "5300a530810554f5f693e5757e34e4683734b92c647b192f247c7f747aad80a0",
+    "passed": 27,
+    "failed": 0,
+    "cache_reused": false
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "version": "0.4.2",
+  "api": 36,
+  "abi": "x86_64",
+  "status": "environment_blocked",
+  "suite": "full Docker Engine and native preview",
+  "completed_before_abort": 10,
+  "counted_in_release_total": false,
+  "trigger": "Opening DockerPreviewActivity after a successful real Dockerfile build and container start",
+  "primary_failure": {
+    "process": "dev.mateuszsury.androidagent",
+    "signal": "SIGTRAP",
+    "code": "128 (SI_KERNEL)",
+    "followup": "Focus-event ANR interrupted instrumentation"
+  },
+  "independent_reproduction": {
+    "package": "org.chromium.webview_shell",
+    "page": "about:blank",
+    "same_native_crash": true,
+    "vulkan_disabled_also_crashes": true
+  },
+  "system_image": {
+    "fingerprint": "Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys",
+    "provider": "com.android.webview",
+    "version": "133.0.6943.137",
+    "version_code": 694313707
+  },
+  "native_evidence": {
+    "library": "libwebviewchromium.so",
+    "build_id": "3fed08901ee0e6620bf486e4e9e34fba0a577d62",
+    "reported_pc": "0x249c840",
+    "trap_pc": "0x249c83f",
+    "source": "ui::ResourceBundle::LoadBitmap; NOTREACHED after failed PNG and JPEG decode",
+    "resource_id": 52878,
+    "apk_resource_offset": "0x680d",
+    "png_bytes": 350,
+    "dimensions": "16x16 RGBA",
+    "host_crc_and_zlib_and_pil_checks": "passed"
+  },
+  "conclusion": "Failure reproduces outside androidagent and Docker. Precise cause inside the emulator WebView decoder remains unresolved. No product workaround or test bypass applied.",
+  "emulator": "37.2.12-16428233, software TCG, swiftshader_indirect",
+  "fallback_validation": "Full Docker suite on API30 uses the final APK after guest bootstrap durability hardening (SHA256 5300a530810554f5f693e5757e34e4683734b92c647b192f247c7f747aad80a0). Preview implementation and system WebView provider are unchanged; see release index for final result.",
+  "apk_sha256": "31a4f49ed69bebc2fca1154db526a0d09668c89a97c866c2ce3acd4dd963249f",
+  "build_stage": "0.4.2 before bootstrap durability hardening",
+  "api30_final_result": {
+    "report": "artifacts/docker/results.json",
+    "run_id": "758694e8-f5d5-4639-a138-5a0fb1f368d3",
+    "apk_sha256": "5300a530810554f5f693e5757e34e4683734b92c647b192f247c7f747aad80a0",
+    "passed": 27,
+    "failed": 0,
+    "cache_reused": false
+  }
+}

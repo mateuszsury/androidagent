@@ -37,11 +37,15 @@ public class ChatActivity extends Screen implements ChatHub.Listener {
     private EditText input;
     private int maxBubble;
     private ToolLog log; // the tool-call group being appended to, if the last message was a step
-    private final java.util.List<String> pending = new java.util.ArrayList<>(); // attachments for the next message
+    private final java.util.ArrayDeque<Runnable> renderedMessages = new java.util.ArrayDeque<>();
+    private java.util.List<String> pending = new java.util.ArrayList<>(); // attachments for the next message
+    private DraftImports draftImports;
+    private TextView importStatus;
     private android.widget.HorizontalScrollView trayScroll;
     private LinearLayout tray;
     private static final int REQ_CAMERA = 21, REQ_PHOTOS = 22, REQ_FILES = 23;
     private boolean firstResume = true;
+    private int restoreScrollY = -1;
     private final java.util.concurrent.ThreadPoolExecutor thumbnails = new java.util.concurrent.ThreadPoolExecutor(
             2, 2, 0L, java.util.concurrent.TimeUnit.MILLISECONDS,
             new java.util.concurrent.ArrayBlockingQueue<>(256),
@@ -58,6 +62,11 @@ public class ChatActivity extends Screen implements ChatHub.Listener {
             finish();
             return;
         }
+        Object retained = getLastNonConfigurationInstance();
+        draftImports = retained instanceof DraftImports && ses.id.equals(((DraftImports) retained).sessionId)
+                ? (DraftImports) retained : new DraftImports(getApplicationContext(), ses.id);
+        draftImports.owner = new java.lang.ref.WeakReference<>(this);
+        pending = draftImports.pending;
         maxBubble = (int) (getResources().getDisplayMetrics().widthPixels * 0.82f);
 
         LinearLayout root = column(this);
@@ -137,6 +146,10 @@ public class ChatActivity extends Screen implements ChatHub.Listener {
         root.addView(approval, ap);
 
         // composer
+        importStatus = text(this, "Importowanie załączników…", 12, MUTED);
+        importStatus.setPadding(dp(this, 16), dp(this, 4), dp(this, 16), dp(this, 4));
+        importStatus.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
+        root.addView(importStatus, full());
         trayScroll = new android.widget.HorizontalScrollView(this);
         trayScroll.setHorizontalScrollBarEnabled(false);
         tray = row(this);
@@ -158,11 +171,13 @@ public class ChatActivity extends Screen implements ChatHub.Listener {
         input.setTextColor(TEXT);
         input.setTextSize(15);
         input.setTypeface(sans(this, 400));
-        input.setMaxLines(6);
+        input.setMaxLines(getResources().getConfiguration().screenHeightDp < 480 ? 2 : 6);
         input.setBackground(null);
         input.setPadding(0, dp(this, 10), 0, dp(this, 10));
         input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE
                 | InputType.TYPE_TEXT_FLAG_CAP_SENTENCES | InputType.TYPE_TEXT_FLAG_AUTO_CORRECT);
+        input.setImeOptions(android.view.inputmethod.EditorInfo.IME_FLAG_NO_FULLSCREEN
+                | android.view.inputmethod.EditorInfo.IME_FLAG_NO_EXTRACT_UI);
         pill.addView(input, weight1());
         mic = button(this, "", false);
         mic.setContentDescription("Dyktuj");
@@ -214,10 +229,16 @@ public class ChatActivity extends Screen implements ChatHub.Listener {
         }
         if (state != null) {
             input.setText(state.getString("draft_text", ""));
+            int length = input.length();
+            input.setSelection(Math.max(0, Math.min(length, state.getInt("selection_start", length))),
+                    Math.max(0, Math.min(length, state.getInt("selection_end", length))));
             java.util.ArrayList<String> restored = state.getStringArrayList("draft_files");
-            if (restored != null) pending.addAll(restored);
-            renderTray();
+            if (retained != draftImports && restored != null) pending.addAll(restored);
+            if (!state.getBoolean("scroll_at_end", true)) restoreScrollY = state.getInt("scroll_y");
+            if (retained != draftImports && state.getBoolean("importing"))
+                Toast.makeText(this, "Import został przerwany. Wybierz niedodane pliki ponownie.", Toast.LENGTH_LONG).show();
         }
+        renderTray();
         if (log != null && !ses.running) log.finish();
         String draft = getIntent().getStringExtra("draft");
         if (draft != null && state == null) {
@@ -233,12 +254,14 @@ public class ChatActivity extends Screen implements ChatHub.Listener {
     protected void onResume() {
         super.onResume();
         if (ses == null || isFinishing()) return;
-        final int previousY = scroll.getScrollY();
-        boolean follow = firstResume || nearEnd();
+        final int previousY = firstResume && restoreScrollY >= 0 ? restoreScrollY : scroll.getScrollY();
+        boolean follow = firstResume ? restoreScrollY < 0 : nearEnd();
         if (!ses.messages.isEmpty()) {
             thumbnails.getQueue().clear();
+            renderTray();
             removeStreaming();
             messages.removeAllViews();
+            renderedMessages.clear();
             log = null;
             for (Sessions.Msg m : ses.messages) show(m);
         }
@@ -265,12 +288,25 @@ public class ChatActivity extends Screen implements ChatHub.Listener {
 
     @Override protected void onDestroy() {
         thumbnails.shutdownNow();
+        if (draftImports != null) {
+            if (draftImports.owner.get() == this) draftImports.owner.clear();
+            if (!isChangingConfigurations()) draftImports.close();
+        }
         super.onDestroy();
     }
 
+    @Override public Object onRetainNonConfigurationInstance() { return draftImports; }
+
     @Override protected void onSaveInstanceState(Bundle out) {
-        if (input != null) out.putString("draft_text", input.getText().toString());
+        if (input != null) {
+            out.putString("draft_text", input.getText().toString());
+            out.putInt("selection_start", input.getSelectionStart());
+            out.putInt("selection_end", input.getSelectionEnd());
+            out.putInt("scroll_y", scroll.getScrollY());
+            out.putBoolean("scroll_at_end", nearEnd());
+        }
         out.putStringArrayList("draft_files", new java.util.ArrayList<>(pending));
+        out.putBoolean("importing", draftImports != null && draftImports.importing);
         super.onSaveInstanceState(out);
     }
 
@@ -281,12 +317,15 @@ public class ChatActivity extends Screen implements ChatHub.Listener {
     }
 
     private void paintSend() {
-        boolean has = input.getText().toString().trim().length() > 0 || !pending.isEmpty();
+        boolean has = (input.getText().toString().trim().length() > 0 || !pending.isEmpty())
+                && (draftImports == null || !draftImports.importing);
+        send.setEnabled(has);
         send.setBackground(oval(has ? ACCENT : CARD2));
         send.setImageTintList(ColorStateList.valueOf(has ? ON_ACCENT : MUTED));
     }
 
     private void send() {
+        if (draftImports != null && draftImports.importing) return;
         String text = input.getText().toString().trim();
         if (text.isEmpty() && pending.isEmpty()) return;
         String err = hub.send(ses, text, pending);
@@ -598,6 +637,7 @@ public class ChatActivity extends Screen implements ChatHub.Listener {
             LinearLayout.LayoutParams p = full();
             p.topMargin = dp(this, 12);
             messages.addView(col, p);
+            trackMessage(() -> messages.removeView(col));
             return;
         }
         show(m.kind, m.text);
@@ -642,6 +682,10 @@ public class ChatActivity extends Screen implements ChatHub.Listener {
     }
 
     private void pick(int which) {
+        if (draftImports.importing) {
+            Toast.makeText(this, "Poczekaj na zakończenie importu załączników.", Toast.LENGTH_SHORT).show();
+            return;
+        }
         try {
             if (which == 0) {
                 android.content.Intent i = new android.content.Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
@@ -675,7 +719,7 @@ public class ChatActivity extends Screen implements ChatHub.Listener {
     @Override
     protected void onActivityResult(int code, int result, android.content.Intent data) {
         super.onActivityResult(code, result, data);
-        if (result != RESULT_OK) return;
+        if (result != RESULT_OK || (code != REQ_CAMERA && code != REQ_PHOTOS && code != REQ_FILES)) return;
         final java.util.List<android.net.Uri> uris = new java.util.ArrayList<>();
         if (code == REQ_CAMERA) {
             if (FilesProvider.captureFile(this).length() > 0) uris.add(FilesProvider.captureUri());
@@ -687,28 +731,11 @@ public class ChatActivity extends Screen implements ChatHub.Listener {
             }
         }
         if (uris.isEmpty()) return;
-        Toast.makeText(this, uris.size() == 1 ? "Adding…" : "Adding " + uris.size() + " files…", Toast.LENGTH_SHORT).show();
-        new Thread(() -> {
-            java.util.List<String> ids = new java.util.ArrayList<>();
-            String err = null;
-            for (android.net.Uri u : uris) {
-                try {
-                    ids.add(Attachments.importUri(this, u));
-                } catch (Exception e) {
-                    err = e.getMessage();
-                }
-            }
-            final String error = err;
-            runOnUiThread(() -> {
-                if (isFinishing() || isDestroyed()) return;
-                pending.addAll(ids);
-                renderTray();
-                if (error != null) Toast.makeText(this, error, Toast.LENGTH_LONG).show();
-            });
-        }).start();
+        draftImports.start(uris);
     }
 
     private void renderTray() {
+        importStatus.setVisibility(draftImports.importing ? View.VISIBLE : View.GONE);
         tray.removeAllViews();
         trayScroll.setVisibility(pending.isEmpty() ? View.GONE : View.VISIBLE);
         for (final String id : new java.util.ArrayList<>(pending)) {
@@ -735,6 +762,54 @@ public class ChatActivity extends Screen implements ChatHub.Listener {
         paintSend();
     }
 
+    /** Imports belong to the draft, so rotation cannot drop a completed file or retain an Activity. */
+    private static final class DraftImports {
+        final android.content.Context app;
+        final String sessionId;
+        final java.util.List<String> pending = new java.util.ArrayList<>();
+        final android.os.Handler main = new android.os.Handler(android.os.Looper.getMainLooper());
+        java.lang.ref.WeakReference<ChatActivity> owner = new java.lang.ref.WeakReference<>(null);
+        boolean importing;
+        volatile boolean closed;
+
+        DraftImports(android.content.Context app, String sessionId) { this.app = app; this.sessionId = sessionId; }
+
+        void start(java.util.List<android.net.Uri> selection) {
+            if (importing || closed) return;
+            importing = true;
+            ChatActivity screen = owner.get();
+            if (screen != null) screen.renderTray();
+            java.util.List<android.net.Uri> uris = new java.util.ArrayList<>(selection);
+            new Thread(() -> {
+                java.util.List<String> ids = new java.util.ArrayList<>();
+                String error = null;
+                for (android.net.Uri uri : uris) {
+                    if (closed) break;
+                    try { ids.add(Attachments.importUri(app, uri)); }
+                    catch (Exception e) { error = e.getMessage(); }
+                }
+                final String message = error;
+                main.post(() -> {
+                    importing = false;
+                    if (closed) {
+                        for (String id : ids) {
+                            java.io.File file = Attachments.file(app, id);
+                            if (file != null) file.delete();
+                        }
+                        return;
+                    }
+                    pending.addAll(ids);
+                    ChatActivity current = owner.get();
+                    if (current == null || current.isDestroyed() || current.isFinishing()) return;
+                    current.renderTray();
+                    if (message != null) Toast.makeText(current, message, Toast.LENGTH_LONG).show();
+                });
+            }, "chat-attachment-import").start();
+        }
+
+        void close() { closed = true; owner.clear(); }
+    }
+
     /** A photo thumbnail (rounded) or a file chip; tapping opens it in another app. */
     private View attachmentView(final String id, boolean inThread) {
         View v;
@@ -756,7 +831,7 @@ public class ChatActivity extends Screen implements ChatHub.Listener {
                 android.graphics.Bitmap bitmap = Attachments.thumb(getApplicationContext(), id, side);
                 if (bitmap == null) return;
                 runOnUiThread(() -> {
-                    if (isDestroyed() || iv.getParent() == null) { bitmap.recycle(); return; }
+                    if (isDestroyed() || !iv.isAttachedToWindow()) { bitmap.recycle(); return; }
                     iv.setImageBitmap(bitmap);
                 });
             });
@@ -797,7 +872,9 @@ public class ChatActivity extends Screen implements ChatHub.Listener {
                 lp.topMargin = dp(this, 12);
                 messages.addView(log.view, lp);
             }
-            log.add(text);
+            final ToolLog group = log;
+            final View step = group.add(text);
+            trackMessage(() -> group.remove(step));
             log.setLive(ses.running);
             return;
         }
@@ -839,7 +916,12 @@ public class ChatActivity extends Screen implements ChatHub.Listener {
             }
         }
         messages.addView(v, p);
-        while (messages.getChildCount() > Sessions.MAX_MESSAGES) messages.removeViewAt(0);
+        trackMessage(() -> messages.removeView(v));
+    }
+
+    private void trackMessage(Runnable remove) {
+        renderedMessages.addLast(remove);
+        while (renderedMessages.size() > Sessions.MAX_MESSAGES) renderedMessages.removeFirst().run();
     }
 
     private void copyOnLongPress(View v, String text) {
@@ -889,7 +971,7 @@ public class ChatActivity extends Screen implements ChatHub.Listener {
             setOpen(false);
         }
 
-        void add(String step) {
+        View add(String step) {
             n++;
             count.setText(n + (n == 1 ? " tool call" : " tool calls"));
             if (lastMark != null) swapToCheck(lastMark);
@@ -921,6 +1003,14 @@ public class ChatActivity extends Screen implements ChatHub.Listener {
             rows.addView(r, full());
             lastMark = mark;
             paintLast();
+            return r;
+        }
+
+        void remove(View step) {
+            rows.removeView(step);
+            n = rows.getChildCount();
+            count.setText(n + (n == 1 ? " tool call" : " tool calls"));
+            if (n == 0) messages.removeView(view);
         }
 
         private void swapToCheck(View mark) {

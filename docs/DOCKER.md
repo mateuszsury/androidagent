@@ -1,4 +1,4 @@
-# Docker w androidagent 0.4.1
+# Docker w androidagent 0.4.2
 
 Aplikacja zawiera QEMU oraz obraz Alpine Linux z rzeczywistym Docker Engine. Silnik działa we własnym jądrze Linux w maszynie wirtualnej, uruchomionej z UID androidagent. Telefon nie wymaga roota, Termux ani Shizuku do tej funkcji. Termux pozostaje potrzebny do klientów Codex/Claude Code.
 
@@ -11,7 +11,7 @@ Aplikacja zawiera QEMU oraz obraz Alpine Linux z rzeczywistym Docker Engine. Sil
 5. **Zachowaj plik** eksportuje wynik poza maszynę wirtualną. Plik pojawia się na ekranie Docker i można przekazać go innej aplikacji przez systemowy podgląd lub udostępnianie.
 6. **Posprzątaj i usuń zadanie** usuwa jego kontener, wygenerowane obrazy i pliki robocze. Zachowane wyniki i inne zadania pozostają dostępne. Wspólny cache pozostaje; jego usunięcie wymaga zatrzymania i resetu całego dysku.
 
-Ponowne uruchomienie kontenera zastępuje wcześniejszy kontener tego samego zadania. Pliki w `/workspace` pozostają; zmiany tylko wewnątrz kontenera wymagają skopiowania do `/workspace` przed zastąpieniem lub sprzątaniem. Reset całego dysku usuwa wszystkie zadania i cache po potwierdzeniu. Eksportowane pliki pozostają. Przed aktualizacją APK zmieniającą obraz bazowy zachowaj wyniki ze starego środowiska. Nowa wersja nie kasuje samoczynnie starego dysku, ale wymaga jego resetu przed uruchomieniem zmienionej bazy.
+Ponowne uruchomienie kontenera zastępuje wcześniejszy kontener tego samego zadania. Pliki w `/workspace` pozostają; zmiany tylko wewnątrz kontenera wymagają skopiowania do `/workspace` przed zastąpieniem lub sprzątaniem. Wersja 0.4.2 zmienia obraz bazowy, dodając utrwalenie pierwszego importu przed gotowością. Aktualizacja z 0.4.1 wymaga opisanej niżej procedury zachowania wyników i resetu. Reset całego dysku usuwa wszystkie zadania i cache po potwierdzeniu. Eksportowane pliki pozostają. Przed aktualizacją APK zmieniającą obraz bazowy zachowaj wyniki ze starego środowiska. Nowa wersja nie kasuje samoczynnie starego dysku, ale wymaga jego resetu przed uruchomieniem zmienionej bazy.
 
 ## Codex i Claude Code
 
@@ -51,6 +51,7 @@ Narzędzia `usb_docker_attach`, `usb_docker_serial` i `usb_docker_detach` wymaga
 - Plik tekstowy: 256 KiB. Kontekst budowania: 512 MiB, bez linków symbolicznych. Zachowany plik: 128 MiB. Wynik operacji: ostatnie 64 tys. znaków. Limit czasu operacji: 15 minut zegara Linuxa gościa. Domyślny kontener: 512 MB RAM, 1 CPU, 256 PID; limit RAM można zmienić do 2 GB. Log Dockera rotuje 2 × 5 MB.
 - VM: 512 MB, 1 GB lub 2 GB RAM; jeden CPU w interfejsie. Dysk ma 8 GB pojemności wirtualnej, zajmuje miejsce stopniowo. Rzeczywisty limit zależy także od wolnego miejsca telefonu. Pierwsze rozpakowanie wymaga co najmniej 1 GB wolnego miejsca poza instalacją APK. Duże projekty wymagają więcej.
 - Środowisko działa w usłudze pierwszoplanowej z powiadomieniem. Android i producent telefonu mogą zakończyć proces; stan operacji po nieoczekiwanym restarcie otrzymuje `interrupted`. Zapisany dysk pozostaje. Globalny **Stop** odbiera agentowi kontrolę i kończy QEMU; zwykłe zatrzymanie z panelu najpierw synchronizuje dysk.
+- Nagłe zakończenie VM może utracić niezapisane dane i uszkodzić cache obrazów. Podczas testów po awarii ART znaleziono pusty plik wykonywalny w warstwie Dockera, mimo poprawnego obrazu bazowego. Przed resetem zachowaj dostępne pliki projektów i eksporty; reset usuwa wszystkie zadania. Aplikacja nie resetuje dysku automatycznie po takim błędzie.
 
 ## Możliwości i ograniczenia
 
@@ -64,7 +65,7 @@ Dockerfile może pobierać zależności przez internet. Stan sieci, DNS, dostęp
 
 ## Budowanie środowiska
 
-Wymagane na gospodarzu Linux: działający Docker, Python 3.9+, `dpkg-deb`, `readelf`, `patchelf` i moduł Python `pyelftools`. Pełny APK 0.4.1 wymaga też JNI USB z Android NDK 29.0.14206865. Oprócz standardowego SDK/JDK z README:
+Wymagane na gospodarzu Linux: działający Docker, Python 3.9+, `dpkg-deb`, `readelf`, `patchelf` i moduł Python `pyelftools`. Pełny APK 0.4.2 wymaga też JNI USB z Android NDK 29.0.14206865. Oprócz standardowego SDK/JDK z README:
 
 ```sh
 python3 tools/prepare-qemu.py
@@ -85,12 +86,12 @@ Pochodzenie i licencje: [docker/SOURCES.md](../docker/SOURCES.md), inwentarze pa
 ## Testowanie
 
 ```sh
-adb install -r artifacts/androidagent-0.4.1.apk
+adb install -r artifacts/androidagent-0.4.2.apk
 bash tools/test-docker.sh
 ```
 
 Uruchamiaj wyłącznie na dedykowanym emulatorze: zestaw **resetuje dysk Dockera**, tworzy i usuwa projekty, włącza testową usługę Accessibility. Nie loguje modelu i nie zastępuje Dockera atrapą. Raport oraz zrzuty trafiają przez MediaStore do `Download/androidagent-docker-tests/`, następnie do `artifacts/docker/`. Skrypt sprawdza identyfikator bieżącego przebiegu i kończy się błędem przy niepowodzeniu lub braku aktualnego raportu.
 
-`--reuse-cache` pomija początkowy reset przy ponawianiu przerwanego przebiegu z tą samą bazą VM; końcowy przypadek nadal resetuje dysk. `--ui-only` sprawdza motywy, obrót i zatrzymanie w trakcie rozruchu, również na dedykowanym emulatorze z resetem. Dodatkowe `start-arm-guest-test.sh` i `test-arm-guest.py` sprawdzają prawdziwego gościa ARM64 pod QEMU gospodarza Linux. Opcja `--host-clock` w obu skryptach wybiera zwykły zegar, zamiast trybu instrukcji. Nie są to testy telefonu Android ARM64.
+`--reuse-cache` pomija początkowy reset przy ponawianiu przebiegu z tą samą bazą VM; końcowy przypadek nadal resetuje dysk. Nie używaj tej opcji do końcowej weryfikacji po nagłej awarii VM: zachowany cache może być uszkodzony. `--ui-only` sprawdza motywy, obrót i zatrzymanie w trakcie rozruchu, również na dedykowanym emulatorze z resetem. Dodatkowe `start-arm-guest-test.sh` i `test-arm-guest.py` sprawdzają prawdziwego gościa ARM64 pod QEMU gospodarza Linux. Opcja `--host-clock` w obu skryptach wybiera zwykły zegar, zamiast trybu instrukcji. Nie są to testy telefonu Android ARM64.
 
 Wyniki i faktyczne granice weryfikacji opisuje [TESTING.md](TESTING.md).

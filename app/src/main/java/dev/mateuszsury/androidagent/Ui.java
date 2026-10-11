@@ -254,7 +254,9 @@ final class Ui {
         l.setPadding(dp(c, 8), dp(c, 3), dp(c, 4), dp(c, 3));
         l.setBackground(outlined(c, 0x00000000, 8, OUTLINE, 1));
         TextView t = single(monoText(c, s, 12, MUTED));
-        l.addView(t);
+        // Shrink long/custom model labels before clipping the dropdown affordance.
+        l.addView(t, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT, 1));
         ImageView i = icon(c, R.drawable.ms_expand_more, MUTED, 16);
         l.addView(i);
         return l;

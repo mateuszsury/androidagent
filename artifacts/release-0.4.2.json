@@ -1,0 +1,188 @@
+{
+  "version": "0.4.2",
+  "verified_at_utc": "2026-10-11T08:21:43.571189+00:00",
+  "apk": {
+    "path": "artifacts/androidagent-0.4.2.apk",
+    "bytes": 460925925,
+    "sha256": "5300a530810554f5f693e5757e34e4683734b92c647b192f247c7f747aad80a0",
+    "signature_scheme": "v3",
+    "built_at_utc": "2026-10-11T06:03:58.307930+00:00"
+  },
+  "model_login_used": false,
+  "android_emulators": [
+    {
+      "api": 30,
+      "abi": "x86_64",
+      "ram_mb": 4096,
+      "resolution": "720x1480",
+      "dpi": 300,
+      "acceleration": "software TCG; no KVM",
+      "checks": [
+        {
+          "name": "emulator",
+          "report": "artifacts/emulator/results.json",
+          "sha256": "57292c70e415815188848b9e9940502c39f72d287b77c9021944fc7dbb733eb1",
+          "run_id": "e5f7f49f-60a2-416b-a282-c9c7549a2bed",
+          "passed": 74,
+          "failed": 0,
+          "ram_mb": 4096
+        },
+        {
+          "name": "usb",
+          "report": "artifacts/usb/results.json",
+          "sha256": "d74b9eb314b9b228e5a5dd64d0c51d8afb33a1792b54afe7706c95ceb8be06ba",
+          "run_id": "ca4e62d8-cf50-426f-8c8c-38009fdfb460",
+          "passed": 40,
+          "failed": 0,
+          "ram_mb": 4096
+        },
+        {
+          "name": "termux",
+          "report": "artifacts/termux/results.json",
+          "sha256": "5d476271176bccfebfd2b70a7477e580db740c5b83b2275244cdbc0d0b959b12",
+          "run_id": "cd47d037-e9fb-4758-be78-f1eae0aba655",
+          "passed": 7,
+          "failed": 0,
+          "ram_mb": 4096
+        },
+        {
+          "name": "docker-ui",
+          "report": "artifacts/docker-ui/results.json",
+          "sha256": "d84dafeb77eae4dfddb47b3c519e0f7466a7522b4f7e773a1735fdf29a9c2eed",
+          "run_id": "b3acaef9-af3e-40a7-b572-067aef01333b",
+          "passed": 8,
+          "failed": 0,
+          "ram_mb": 4096
+        },
+        {
+          "name": "docker",
+          "report": "artifacts/docker/results.json",
+          "sha256": "bb39020c279242e22ef340c6be3f89d1e70919e0defd528f598d7a91c21b0200",
+          "run_id": "758694e8-f5d5-4639-a138-5a0fb1f368d3",
+          "passed": 27,
+          "failed": 0,
+          "ram_mb": 4096,
+          "cache_reused": false
+        }
+      ],
+      "passed": 156,
+      "failed": 0,
+      "crash_buffer_empty_after_completed_suites": true
+    },
+    {
+      "api": 36,
+      "abi": "x86_64",
+      "ram_mb": 2048,
+      "resolution": "720x1480",
+      "dpi": 300,
+      "acceleration": "software TCG; no KVM",
+      "checks": [
+        {
+          "name": "emulator",
+          "report": "artifacts/api36/emulator/results.json",
+          "sha256": "091fa5258a90eb581f06fb36b6c186638ebf61c86c005e3c7fb89ea2f55a2677",
+          "run_id": "4eafc8a2-cfd5-424c-8bf7-506a0b6cb94e",
+          "passed": 75,
+          "failed": 0,
+          "ram_mb": 2048
+        },
+        {
+          "name": "usb",
+          "report": "artifacts/api36/usb/results.json",
+          "sha256": "e4d9cc0ef0a14e7e2356489a1828aabf83f2fb9d11ed176d419d4c07d5a2ad59",
+          "run_id": "87a82dfe-9579-4b9c-b3e5-31d63436b3d8",
+          "passed": 41,
+          "failed": 0,
+          "ram_mb": 2048
+        },
+        {
+          "name": "docker-ui",
+          "report": "artifacts/api36/docker-ui/results.json",
+          "sha256": "0376bc4876c7e8b55ceb78a6312f3f3e106f53b71c70c5e2235469a7b4e89088",
+          "run_id": "620e2723-76e1-4345-ad76-1d7be32bdd05",
+          "passed": 8,
+          "failed": 0,
+          "ram_mb": 2048
+        }
+      ],
+      "passed": 124,
+      "failed": 0,
+      "crash_buffer_empty_after_completed_suites": true
+    }
+  ],
+  "host": {
+    "report": "artifacts/host-tests.txt",
+    "sha256": "e07b59aee097a4ea2ac9df88e16532241fac1116f0f382a3efee65bf43acfd40",
+    "passed": 64,
+    "failed": 0
+  },
+  "total_current_checks": 357,
+  "incomplete_attempts": [
+    {
+      "report": "artifacts/api36/webview-environment.json",
+      "sha256": "ff3b22b776ed02e82328927579b9f16329db48f18ae6a50ca9b02533fd1fbc61",
+      "counted_in_current_total": false,
+      "reason": "Native WebView decoder crash independently reproduced in system browser"
+    },
+    {
+      "report": "artifacts/api30/art-runtime-interruption.json",
+      "sha256": "4489057bb6b41a5025be853d378aaeecc710399fb81f6fac495bf456d2864792",
+      "counted_in_current_total": false,
+      "reason": "Native ART trace exception; independent 20000 file reads passed; full suite rerun"
+    },
+    {
+      "report": "artifacts/api30/docker-cache-interruption.json",
+      "sha256": "a78aadb06e85d5c659b8e52241ff22692d0c4c7913dd66bfa2858bea372e1774",
+      "counted_in_current_total": false,
+      "reason": "Reused disk after abrupt termination contained empty busybox in Docker layer; full suite rerun on fresh disk"
+    },
+    {
+      "report": "artifacts/api36/settings-test-timing.json",
+      "sha256": "b69b9c3fecd870e85c97fcb3d3246616ec2625c1acce870e707e131f38c1dea7",
+      "counted_in_current_total": false,
+      "reason": "Settings rendered after 1727ms, exceeding fixed 1500ms fixture delay; replaced by bounded screen condition wait"
+    }
+  ],
+  "linux_arm64_under_host_qemu": {
+    "report": "artifacts/docker/arm-guest-host-clock-results.json",
+    "sha256": "1de905f9590d86d163e0c843d1651119d10def7bac993bc98a8c22cf456412fd",
+    "passed": 13,
+    "failed": 0,
+    "ram_mb": 512,
+    "clock_mode": "host",
+    "environment": "Linux guest under native host QEMU; not Android ARM"
+  },
+  "runtime_manifests": {
+    "x86_64": {
+      "version": 1,
+      "disk_gb": 8,
+      "files": {
+        "base.qcow2.gz": "81d9210c3418b6e6113f030b928a39ad2af6674ebc741acdfb4c17491a168906",
+        "vmlinuz-virt": "2d76a33ca6a22b3f1620d09b1462f13a528e44eb37ef35643aabe0dffcb24049",
+        "initramfs-virt": "35b7a334f086dad379cb2547935f2f8b8d5c46e205c977f66e544b805fcf808c"
+      }
+    },
+    "arm64-v8a": {
+      "version": 1,
+      "disk_gb": 8,
+      "files": {
+        "base.qcow2.gz": "7399ae1c32e046f67bc5bc1de6ff2b71af4ed1329eefe3600396ab6bc67821d4",
+        "vmlinuz-virt": "0431ad6e5e0296080add279573c773287b55427bf3ec94fbc2c9f985d0b79966",
+        "initramfs-virt": "947384afeab8c7622d144e1b400d81b3a18b5353252ab38f45dd982fefd45d27"
+      }
+    }
+  },
+  "guest_repack_evidence": {
+    "report": "artifacts/guest-bootstrap-durability.json",
+    "sha256": "55722c11bb3ac9b22547347ebc009d292b3de76355db2e21ea279d3fa045cbf1"
+  },
+  "unverified": [
+    "Physical Android ARM64 device and phone performance",
+    "Physical OTG UART/ESP/ADB AUTH/storage and adapter compatibility",
+    "Physical Android USB descriptor transport through usbredirhost into Docker",
+    "Signed-in model conversation",
+    "Android API 35 and physical 16 KiB page runtime",
+    "Termux and official clients on API 36",
+    "Full Docker cycle and native WebView preview on API 36; system WebView failure blocks this environment"
+  ]
+}

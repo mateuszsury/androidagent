@@ -1,0 +1,50 @@
+{
+  "version": "0.4.2",
+  "run_id": "620e2723-76e1-4345-ad76-1d7be32bdd05",
+  "tests": [
+    {
+      "name": "Docker cancel: malformed task cannot close unrelated USB leases",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "UART Docker: cannot attach a second caller to an owned task",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "UART Docker: failed attachment closes its generation before retry (HTTP fixture)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "UART Docker: Stop stays responsive and late attachment is rolled back (HTTP fixture)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "UI: readable memory selector in light theme",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "UI: memory selection survives rotation",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "UI: readable memory selector in dark theme",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "QEMU: final APK clock arguments and stop during boot",
+      "pass": true,
+      "detail": ""
+    }
+  ],
+  "failures": 0,
+  "api": 36,
+  "abi": "x86_64",
+  "cache_reused": false
+}

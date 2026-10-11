@@ -1,4 +1,4 @@
-# USB w androidagent 0.4.1
+# USB w androidagent 0.4.2
 
 USB jest modułem aplikacji: panel oraz narzędzia MCP dla Codexa i Claude Code działają bez Dockera, roota, Shizuku i Termux. Uruchomienie samych klientów Codex/Claude nadal wymaga skonfigurowanego Termux. Testy tej wersji nie używają zalogowanych modeli.
 
@@ -76,4 +76,4 @@ Gradle i lokalny builder wymagają zgodnych sum źródeł/JNI. JNI wykorzystuje 
 
 `tools/test-usb.sh` uruchamia testy urządzenia i rzeczywistego `adbd` emulatora przez testową trasę `adb reverse` do portu gospodarza. SAF korzysta z testowego DocumentsProvider chronionego wymaganym Androidowym `MANAGE_DOCUMENTS`; Activity testowego APK przekazuje aplikacji rzeczywiste zgody URI na drzewa. Aplikacja produkcyjna nie przyjmuje uprawnień systemowych. UART jest syntetycznym portem z prawdziwą warstwą SerialTransport. Testy Docker dodają przez QMP wirtualne urządzenie HID, sprawdzają jego prawdziwy węzeł w kontenerze oraz rzeczywistą trasę kontener–QEMU–aplikacja dla UART fixture. Testy hosta korzystają z pyserial 3.5.
 
-Emulator nie potwierdza zgodności fizycznego USB, kabla, zasilania ani transportu JNI usbredirhost z prawdziwym urządzeniem. Profile sprzętowe nie są jeszcze certyfikowane. Pozostają testy telefonu ARM64: CP210x/CH340 loopback, ESP (adapter i CDC), drugi Android z akceptacją/odmową RSA, FAT32/exFAT oraz fizyczne USB przekierowane do kontenera. Dostępność i zasilanie OTG zależą od gospodarza. Wyniki emulatora i ograniczenia wydania zapisujemy w `artifacts/usb` i raporcie testów 0.4.1.
+Emulator nie potwierdza zgodności fizycznego USB, kabla, zasilania ani transportu JNI usbredirhost z prawdziwym urządzeniem. Profile sprzętowe nie są jeszcze certyfikowane. Pozostają testy telefonu ARM64: CP210x/CH340 loopback, ESP (adapter i CDC), drugi Android z akceptacją/odmową RSA, FAT32/exFAT oraz fizyczne USB przekierowane do kontenera. Dostępność i zasilanie OTG zależą od gospodarza. Wyniki emulatora i ograniczenia wydania zapisujemy w `artifacts/usb` i raporcie testów 0.4.2.

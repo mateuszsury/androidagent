@@ -62,6 +62,8 @@ public class SetupActivity extends Screen {
     private static final long PING_WAIT_MS = 4000;
     private long pingSentAt;
 
+    @Override protected void onNotificationPermissionChanged() { render(); }
+
     /** Ask the Termux helper to answer; re-render as the answer arrives (or doesn't). */
     private void ping() {
         withToolHost(this::pingReady);
@@ -185,6 +187,18 @@ public class SetupActivity extends Screen {
                         : "Finish the steps above first.",
                 replied ? Boolean.TRUE : null, null, null, null, null);
         setupCard(steps);
+
+        list.addView(sectionLabel(this, "Powiadomienia"));
+        LinearLayout notifications = card();
+        notifications.setPadding(dp(this, 16), dp(this, 14), dp(this, 16), dp(this, 16));
+        notifications.addView(title(this, NotificationPermission.enabled(this)
+            ? "Powiadomienia aplikacji włączone" : "Powiadomienia aplikacji wyłączone", 15));
+        notifications.addView(text(this, "Pokazują pracę agentów, USB i Dockera oraz przycisk Stop. "
+            + "Zgoda jest opcjonalna — funkcje działają także bez powiadomień.", 13, MUTED), topGap(6));
+        Button notificationSettings = button(this, "Ustawienia powiadomień", false);
+        notificationSettings.setOnClickListener(v -> startActivity(NotificationPermission.settingsIntent(this)));
+        notifications.addView(notificationSettings, topGap(12));
+        addCard(notifications);
 
         // ----------------------------------------------------------- appearance
         list.addView(sectionLabel(this, "Appearance"));

@@ -29,6 +29,12 @@ if '--data-binary' in sys.argv:
     with (root/'events').open('a') as stream: stream.write(sys.stdin.read().strip()+'\n')
 else:
     (root/'downloading').write_text(str(os.getpid()))
+    if os.environ.get('ANDROIDAGENT_TEST_DOWNLOAD_FAILURE') == '1':
+        pathlib.Path(sys.argv[sys.argv.index('-o')+1]).write_text('partial download')
+        sys.exit(18)
+    if os.environ.get('ANDROIDAGENT_TEST_DOWNLOAD_SUCCESS') == '1':
+        pathlib.Path(sys.argv[sys.argv.index('-o')+1]).write_text('complete download')
+        sys.exit(0)
     time.sleep(120)
 ''')
         self.write_binary("codex", r'''#!/usr/bin/python3
@@ -95,6 +101,7 @@ print(json.dumps({'type':'item.completed','item':{'type':'agent_message','text':
         self.invoke("stop", "chat-one", "run-one")
         self.assertEqual(process.wait(timeout=5), -9)
         self.assertFalse((self.root / "invoked").exists())
+        self.assertEqual(list((self.root / ".buddy/sessions/chat-one").glob(".attachment.*")), [])
         stat = pathlib.Path(f"/proc/{download}/stat")
         if stat.exists():
             self.assertEqual(stat.read_text().split(")", 1)[1].split()[0], "Z")
@@ -125,6 +132,100 @@ print(json.dumps({'type':'item.completed','item':{'type':'agent_message','text':
         self.assertEqual((self.root / "invoked").read_text(), original)
         duplicate = [event for event in self.events() if event["buddy_run"] == "run-two"]
         self.assertEqual([event["type"] for event in duplicate], ["buddy_error", "buddy_done"])
+        self.assertEqual(duplicate[0]["active_run"], "run-one")
+
+    def test_nonzero_cli_exit_without_stderr_is_reported(self):
+        self.write_binary("codex", "#!/bin/sh\nexit 23\n")
+        self.ask()
+        errors = [event for event in self.events() if event["type"] == "buddy_error"]
+        self.assertTrue(errors, "CLI crash was silently treated as completion")
+        self.assertIn("23", errors[-1]["text"])
+
+    def test_model_not_found_does_not_delete_resume_state_or_retry(self):
+        state = self.root / ".buddy/sessions/chat-one"
+        state.mkdir(parents=True)
+        (state / "codex-thread").write_text("saved-thread")
+        self.write_binary("codex", r'''#!/usr/bin/python3
+import os,pathlib,sys
+root=pathlib.Path(os.environ['ANDROIDAGENT_TEST_ROOT'])
+with (root/'invocations').open('a') as stream: stream.write('called\n')
+print('requested model not found', file=sys.stderr)
+sys.exit(1)
+''')
+        self.ask()
+        self.assertTrue((state / "codex-thread").exists(), "Unrelated CLI error destroyed the saved conversation")
+        self.assertEqual((state / "codex-thread").read_text(), "saved-thread")
+        self.assertEqual((self.root / "invocations").read_text().splitlines(), ["called"])
+
+    def test_failed_attachment_does_not_start_agent_or_expose_partial_file(self):
+        self.env["ANDROIDAGENT_TEST_DOWNLOAD_FAILURE"] = "1"
+        self.ask(files="fixture.txt")
+        self.assertFalse((self.root / "invoked").exists(), "Agent started without the requested file")
+        self.assertFalse((self.root / ".buddy/sessions/chat-one/files/fixture.txt").exists(), "Partial download became an attachment")
+        self.assertTrue(any(event["type"] == "buddy_error" for event in self.events()))
+
+    def test_invalid_attachment_identifier_is_reported_without_launch(self):
+        self.ask(files="../outside.txt")
+        self.assertFalse((self.root / "invoked").exists(), "Invalid attachment was silently ignored")
+        self.assertTrue(any(event["type"] == "buddy_error" for event in self.events()))
+
+    def test_failed_attachment_preserves_previous_completed_copy(self):
+        target = self.root / ".buddy/sessions/chat-one/files/fixture.txt"
+        target.parent.mkdir(parents=True)
+        target.write_text("previous complete bytes")
+        self.env["ANDROIDAGENT_TEST_DOWNLOAD_FAILURE"] = "1"
+        self.ask(files="fixture.txt")
+        self.assertEqual(target.read_text(), "previous complete bytes")
+        self.assertEqual(list(target.parent.parent.glob(".attachment.*")), [])
+
+    def test_leading_dash_filename_is_downloaded_as_a_literal_name(self):
+        self.env["ANDROIDAGENT_TEST_DOWNLOAD_SUCCESS"] = "1"
+        self.ask(files="-literal.txt")
+        self.assertEqual((self.root / ".buddy/sessions/chat-one/files/-literal.txt").read_text(), "complete download")
+        self.assertTrue((self.root / "invoked").exists())
+
+    def test_attachment_target_directory_is_rejected_without_starting_cli(self):
+        target = self.root / ".buddy/sessions/chat-one/files/fixture.txt"
+        target.mkdir(parents=True)
+        (target / "existing").write_text("keep this file")
+        self.env["ANDROIDAGENT_TEST_DOWNLOAD_SUCCESS"] = "1"
+        self.ask(files="fixture.txt")
+        self.assertFalse((self.root / "invoked").exists(), "Directory was passed to the agent as an attachment")
+        self.assertEqual([entry.name for entry in target.iterdir()], ["existing"])
+        self.assertEqual((target / "existing").read_text(), "keep this file")
+        self.assertEqual(list(target.parent.parent.glob(".attachment.*")), [])
+        self.assertTrue(any(event["type"] == "buddy_error" for event in self.events()))
+
+    def test_attachment_replaces_directory_symlink_without_writing_through_it(self):
+        target = self.root / ".buddy/sessions/chat-one/files/fixture.txt"
+        target.parent.mkdir(parents=True)
+        outside = self.root / "other-directory"
+        outside.mkdir()
+        (outside / "existing").write_text("keep this file")
+        target.symlink_to(outside, target_is_directory=True)
+        self.env["ANDROIDAGENT_TEST_DOWNLOAD_SUCCESS"] = "1"
+        self.ask(files="fixture.txt")
+        self.assertFalse(target.is_symlink(), "Attachment followed a pre-existing directory symlink")
+        self.assertEqual(target.read_text(), "complete download")
+        self.assertEqual([entry.name for entry in outside.iterdir()], ["existing"])
+        self.assertEqual((outside / "existing").read_text(), "keep this file")
+        self.assertTrue((self.root / "invoked").exists())
+
+    def test_failed_claude_resume_preserves_conversation_identity(self):
+        state = self.root / ".buddy/sessions/chat-one"
+        state.mkdir(parents=True)
+        (state / "claude-session").write_text("saved-session")
+        self.write_binary("claude", r'''#!/usr/bin/python3
+import os,pathlib,sys
+root=pathlib.Path(os.environ['ANDROIDAGENT_TEST_ROOT'])
+with (root/'invocations').open('a') as stream: stream.write('called\n')
+print('No conversation found with session ID saved-session', file=sys.stderr)
+sys.exit(1)
+''')
+        self.invoke("ask", "chat-one", "claude", "0", "test", "", "", "test-run-credential", "run-one")
+        self.assertEqual((state / "claude-session").read_text(), "saved-session")
+        self.assertEqual((self.root / "invocations").read_text().splitlines(), ["called"])
+        self.assertTrue(any(event["type"] == "buddy_error" for event in self.events()))
 
 
 if __name__ == "__main__":

@@ -10,6 +10,7 @@ UI_ONLY=false
 REUSE_CACHE=false
 if [ "${1:-}" = --ui-only ]; then NAME=docker-ui; UI_ONLY=true; fi
 if [ "${1:-}" = --reuse-cache ]; then REUSE_CACHE=true; fi
+"$ADB" shell rm -rf "/sdcard/Download/androidagent-$NAME-tests"
 "$ADB" shell am instrument -w -e run_id "$RUN_ID" -e ui_only "$UI_ONLY" -e reuse_cache "$REUSE_CACHE" dev.mateuszsury.androidagent.tests/dev.mateuszsury.androidagent.DockerRuntimeTests
 mkdir -p "artifacts/$NAME"
 "$ADB" pull "/sdcard/Download/androidagent-$NAME-tests/." "artifacts/$NAME/"

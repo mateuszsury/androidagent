@@ -1,12 +1,14 @@
 # androidagent
 
-Natywna aplikacja Android do pracy z Codexem i Claude Code na telefonie: rozmowy, narzędzia telefonu i lokalne komendy. Wersja **0.4.1**, lokalny fork [Buddy](https://github.com/ghorbelhamdi/buddy-android), Apache-2.0. Niezależny projekt, niezwiązany z OpenAI ani Anthropic.
+Natywna aplikacja Android do pracy z Codexem i Claude Code na telefonie: rozmowy, narzędzia telefonu i lokalne komendy. Wersja **0.4.2**, lokalny fork [Buddy](https://github.com/ghorbelhamdi/buddy-android), Apache-2.0. Niezależny projekt, niezwiązany z OpenAI ani Anthropic.
 
-Zmiany stabilności i interfejsu: [przegląd 0.4.1](docs/REVIEW_0.4.1.md). Wyniki oraz zakres weryfikacji: [raport testów](docs/TESTING.md).
+Zmiany stabilności i interfejsu: [przegląd 0.4.2](docs/REVIEW_0.4.2.md). Wyniki oraz zakres weryfikacji: [raport testów](docs/TESTING.md).
 
 ## Uruchomienie
 
-1. Zainstaluj `artifacts/androidagent-0.4.1.apk` na 64-bitowym Androidzie 11 lub nowszym (ARM64 albo x86_64).
+Przy aktualizacji z 0.4.1 wyeksportuj potrzebne wyniki Dockera przed instalacją: poprawiony obraz Linuxa wymaga resetu starego dysku VM. Reset usuwa zadania i cache, lecz zachowuje wcześniejsze eksporty. Rozmowy i bezpośrednie USB nie wymagają resetu.
+
+1. Zainstaluj `artifacts/androidagent-0.4.2.apk` na 64-bitowym Androidzie 11 lub nowszym (ARM64 albo x86_64).
 2. Panel **Sprawdź telefon** i **Uruchom komendę** działają od razu. `/status` w rozmowie również działa bez modelu.
 3. Dotknij selektora agenta u góry i wybierz **Codex** albo **Claude Code**. **Konfiguruj agentów** prowadzi przez Termux, zgodę `RUN_COMMAND`, instalację pomocnika i wybranych klientów. Accessibility jest opcjonalne i służy do sterowania ekranem. Można zainstalować obu agentów.
 4. Zaloguj się przez oficjalny klient: `~/bin/codex login --device-auth` lub `~/bin/claude auth login`. Dane logowania pozostają w Termux. Modele wymagają internetu.
@@ -38,7 +40,7 @@ Moduł [USB](docs/USB.md) obejmuje bezpośredni UART/ESP, ADB do drugiego Androi
 | Termux / agenci | Zwykły tryb: powłoka Codexa wyłączona; Claude ma WebSearch/WebFetch/Read z dostępem do załączników oraz MCP telefonu. Tryb programisty: komendy i pliki dostępne dla UID Termux, z katalogiem startowym `~/.buddy/work` |
 | Docker | Oddzielny Linux VM i kontener z katalogiem wyłącznie swojego zadania; bez katalogów telefonu i kont agentów |
 | USB | Wybrane urządzenie po zgodzie Androida i przydziale do aktywnej rozmowy; osobne katalogi SAF z odczytem lub zapisem |
-| Shizuku | Opcja następnego etapu, nieimplementowana w 0.4.1 |
+| Shizuku | Opcja następnego etapu, nieimplementowana w 0.4.2 |
 | Model | Usługa zewnętrzna; lokalnie działają klienci Codex/Claude i narzędzia, nie wagi modelu |
 
 Nowe narzędzie MCP `run_command` wymaga trybu programisty i zatwierdzenia dokładnej komendy. Terminal otwierany przez użytkownika wykonuje komendę po naciśnięciu przycisku. Odziedziczone narzędzia gestów opierają zgodę na instrukcjach agenta; nie jest to twarda blokada wszystkich możliwych operacji w innych aplikacjach. Ekrany chronione, ekran blokady i ograniczenia Androida nie są obchodzone.
@@ -61,13 +63,13 @@ export JAVA_HOME=/ścieżka/do/jdk-21
 ./tools/build-local.sh
 ```
 
-Powstaje `artifacts/androidagent-0.4.1.apk`. Skrypt tworzy lokalny klucz deweloperski w `~/.androidagent-keys`; zachowaj go do instalowania aktualizacji. Kluczy nie dodajemy do Git. Alternatywna konfiguracja Android Studio/Gradle pochodzi z upstream; zweryfikowana ścieżka tej iteracji to `aapt2 → javac → d8 → apksigner`.
+Powstaje `artifacts/androidagent-0.4.2.apk`. Skrypt tworzy lokalny klucz deweloperski w `~/.androidagent-keys`; zachowaj go do instalowania aktualizacji. Kluczy nie dodajemy do Git. Alternatywna konfiguracja Android Studio/Gradle pochodzi z upstream; zweryfikowana ścieżka tej iteracji to `aapt2 → javac → d8 → apksigner`.
 
 ## Testy na urządzeniu / emulatorze
 
 ```sh
 export KEYSTORE="$HOME/.androidagent-keys/development.jks"
-adb install -r artifacts/androidagent-0.4.1.apk
+adb install -r artifacts/androidagent-0.4.2.apk
 ./tools/test-android.sh
 ```
 

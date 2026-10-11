@@ -9,6 +9,7 @@ APP_VERSION=$(python3 -c 'import re,pathlib; print(re.search(r"VERSION = \"([^\"
 "$ADB" install --no-incremental -r "artifacts/androidagent-$APP_VERSION.apk"
 "$ADB" install --no-incremental -r build/device-tests/tests.apk
 export ANDROIDAGENT_TEST_RUN_ID="$(python3 -c 'import uuid; print(uuid.uuid4())')"
+"$ADB" shell rm -rf /sdcard/Download/androidagent-runtime-tests
 "$ADB" shell am instrument -w -e termux_only true -e run_id "$ANDROIDAGENT_TEST_RUN_ID" dev.mateuszsury.androidagent.tests/dev.mateuszsury.androidagent.AndroidAgentTests
 mkdir -p artifacts/termux
 "$ADB" pull /sdcard/Download/androidagent-runtime-tests/. artifacts/termux/
