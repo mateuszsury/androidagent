@@ -86,7 +86,7 @@ pathlib.Path(sys.argv[2]+'/results.json').write_text(json.dumps(r,indent=2)+'\n'
 assert r['run_id']==sys.argv[1], 'Stale embedded-runtime report'
 assert r['api']==int(sys.argv[3]) and r['phase']==sys.argv[4], 'Wrong device/phase'
 assert r['failures']==0 and all(t['pass'] for t in r['tests']), r
-assert len(r['tests']) >= (1 if r['phase']=='seed' else 27), 'Incomplete suite'
+assert len(r['tests']) >= (1 if r['phase']=='seed' else 28), 'Incomplete suite'
 assert r['phase']=='seed' or (r['version_code']>=403 and not r['debuggable']), 'Wrong release APK'
 if r['phase']!='seed':
     for name in ('terminal.png','runtime.png'):

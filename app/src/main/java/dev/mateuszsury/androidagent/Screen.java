@@ -58,9 +58,12 @@ abstract class Screen extends Activity {
     protected void withToolHost(Runnable action) {
         if (!resumed || isFinishing() || isDestroyed()) return;
         hostStartup.removeCallbacksAndMessages(null);
-        if (McpHost.get(this).running()) { action.run(); offerNotifications(); return; }
-        try { startForegroundService(new Intent(this, AgentService.class)); }
+        // A live socket can belong only to a short setup job. Give terminal
+        // and browser-login sessions a lasting foreground owner before that
+        // job finishes, even when the listener is already available.
+        try { if (!AgentService.active) startForegroundService(new Intent(this, AgentService.class)); }
         catch (Exception e) { Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show(); return; }
+        if (McpHost.get(this).running()) { action.run(); offerNotifications(); return; }
         final long deadline = SystemClock.elapsedRealtime() + 5000;
         hostStartup.post(new Runnable() {
             @Override public void run() {
