@@ -17,7 +17,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 /** Real Android 13+ permission-controller regression, run before other foreground-service fixtures. */
 final class NotificationRegressionChecks {
-    static void freshInstallDenialKeepsToolsRunning(Instrumentation instrumentation, Activity screen,
+    static void freshConsentDenialKeepsToolsRunning(Instrumentation instrumentation, Activity screen,
                                                    UiAutomation ui) throws Exception {
         require(Build.VERSION.SDK_INT >= 33, "Run this regression only on API 33+");
         Context app = instrumentation.getTargetContext();
@@ -25,8 +25,8 @@ final class NotificationRegressionChecks {
         require(!AgentService.active && !McpHost.get(app).running(), "Run before service fixtures");
         require(app.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS)
             == PackageManager.PERMISSION_DENIED && NotificationPermission.canRequest(app),
-            "Requires a fresh install without a previous notification-permission answer");
-        require(!NotificationPermission.enabled(app), "Fresh-install notifications unexpectedly enabled");
+            "Requires fresh consent: host-prepared denial/permission flags and an unanswered app preference");
+        require(!NotificationPermission.enabled(app), "Notifications unexpectedly enabled before fresh consent");
         android.accessibilityservice.AccessibilityServiceInfo serviceInfo = ui.getServiceInfo();
         int originalFlags = serviceInfo.flags;
         serviceInfo.flags |= android.accessibilityservice.AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS;

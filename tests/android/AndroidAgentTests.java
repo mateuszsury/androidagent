@@ -26,6 +26,8 @@ public class AndroidAgentTests extends Instrumentation {
   private int failures;
   private boolean exportOnly;
   private boolean termuxOnly;
+  private boolean notificationFixture;
+  private boolean notificationFixtureApplied;
   private String runId;
 
   @Override
@@ -33,6 +35,7 @@ public class AndroidAgentTests extends Instrumentation {
     super.onCreate(arguments);
     exportOnly = arguments != null && "true".equals(arguments.getString("export_only"));
     termuxOnly = arguments != null && "true".equals(arguments.getString("termux_only"));
+    notificationFixture = arguments != null && "true".equals(arguments.getString("notification_fixture"));
     runId = arguments == null ? null : arguments.getString("run_id");
     if (runId == null) runId = java.util.UUID.randomUUID().toString();
     start();
@@ -58,6 +61,17 @@ public class AndroidAgentTests extends Instrumentation {
     }
     ui = getUiAutomation(UiAutomation.FLAG_DONT_SUPPRESS_ACCESSIBILITY_SERVICES);
     try {
+      if (notificationFixture && !termuxOnly && Build.VERSION.SDK_INT >= 33) {
+        // Explicit instrumentation-only consent fixture for a post-runtime-install
+        // run. The host driver must revoke POST_NOTIFICATIONS and clear Android's
+        // user-set/user-fixed flags before starting this UID; revoking here can kill it.
+        check(app.checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS)
+            == android.content.pm.PackageManager.PERMISSION_DENIED,
+            "notification_fixture requires the host driver to revoke POST_NOTIFICATIONS before instrumentation");
+        check(app.getSharedPreferences("notification_permission", Context.MODE_PRIVATE).edit().clear().commit(),
+            "Could not reset the explicitly requested test-only notification consent fixture");
+        notificationFixtureApplied = true;
+      }
       if (termuxOnly) termuxSuite();
       else suite();
     } catch (Throwable e) {
@@ -73,6 +87,11 @@ public class AndroidAgentTests extends Instrumentation {
               .put("api", Build.VERSION.SDK_INT)
               .put("model", Build.MODEL)
               .put("run_id", runId)
+              .put("notification_fixture_requested", notificationFixture)
+              .put("notification_fixture_applied", notificationFixtureApplied)
+              .put("notification_fixture_scope", notificationFixtureApplied
+                  ? "Test-only reset of notification_permission preferences; Android permission and flags prepared by host driver before instrumentation. Native permission dialog, refusal and foreground service remain asserted."
+                  : "No notification-consent preference reset")
               .toString(2)
               .getBytes(StandardCharsets.UTF_8));
     } catch (Exception ignored) {
@@ -403,6 +422,13 @@ public class AndroidAgentTests extends Instrumentation {
   }
 
   private void suite() throws Exception {
+    if (Build.VERSION.SDK_INT >= 33)
+      test("notifications: native fresh-consent denial keeps foreground tools usable", () -> {
+        // DeviceActivity does not bootstrap the embedded runtime. Exercise the
+        // first actual Android consent prompt before any test starts a tool host.
+        launch(DeviceActivity.class);
+        NotificationRegressionChecks.freshConsentDenialKeepsToolsRunning(this, current, ui);
+      });
     test("permissions: real state and native consent routes", () -> PermissionRegressionChecks.readOnlyStateAndNativeRoutes(app));
     test("permissions: FlowMesh is never mistaken for our service", () -> PermissionRegressionChecks.accessibilityRecognitionIsScoped(app));
     test("permissions: screen refresh preserves existing consent", () -> {launch(PermissionsActivity.class);PermissionRegressionChecks.screenRefreshAndNativeAccessibilityRoute(this,current);});
@@ -428,9 +454,6 @@ public class AndroidAgentTests extends Instrumentation {
           check("codex".equals(Prefs.backend(app)), "Codex default");
           check(!new SetupState(app).canRun(), "Fresh install incorrectly ready");
         });
-    if (Build.VERSION.SDK_INT >= 33)
-      test("notifications: fresh-install denial keeps foreground tools usable",
-          () -> NotificationRegressionChecks.freshInstallDenialKeepsToolsRunning(this, current, ui));
     test(
         "device: live battery, RAM, storage",
         () -> {
