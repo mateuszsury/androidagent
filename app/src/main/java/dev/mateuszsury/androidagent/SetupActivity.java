@@ -55,8 +55,8 @@ public class SetupActivity extends Screen {
     protected void onResume() {
         super.onResume();
         if (isFinishing()) return;
-        if (SetupState.accessibilityEnabled(this) && Termux.installed(this) && Termux.permitted(this)) ping();
-        else render();
+        render();
+        if (Termux.installed(this) && Termux.permitted(this)) ping();
     }
 
     private static final long PING_WAIT_MS = 4000;
@@ -64,6 +64,10 @@ public class SetupActivity extends Screen {
 
     /** Ask the Termux helper to answer; re-render as the answer arrives (or doesn't). */
     private void ping() {
+        withToolHost(this::pingReady);
+    }
+
+    private void pingReady() {
         pingSentAt = System.currentTimeMillis();
         try {
             Termux.run(this, "ping");
@@ -88,6 +92,7 @@ public class SetupActivity extends Screen {
     private static final class Step {
         String title, body, action, action2;
         Boolean done;
+        boolean optional;
         View.OnClickListener l, l2;
     }
 
@@ -114,9 +119,10 @@ public class SetupActivity extends Screen {
             a11yText += "\n\nSwitch greyed out (\"Restricted setting\")? Android blocks this for apps installed from a file. "
                     + "Tap App info, then ⋮ in the top right → Allow restricted settings, and try again.";
         }
-        steps[0] = step("Turn on the androidagent accessibility service", a11yText, a11y,
+        steps[0] = step("Sterowanie ekranem (opcjonalne)", a11yText, a11y,
                 a11y ? null : "Open settings", v -> startActivity(new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)),
                 a11y || Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ? null : "App info", v -> openAppInfo(getPackageName()));
+        steps[0].optional = true;
 
         steps[1] = step("Allow androidagent to run commands in Termux",
                 termux ? "androidagent wysyła zadania do wybranego agenta w Termux."
@@ -148,13 +154,13 @@ public class SetupActivity extends Screen {
         else if (answered && !helperCurrent) helperText = "androidagent Termux helper is out of date. " + howTo;
         else if (answered) helperText = "Termux answered, but " + agent + " isn't installed there yet. Install it in Termux "
                 + "and sign in (see the androidagent README), or choose the other brain below.";
-        else if (!a11y || !perm) helperText = "Finish steps 1 and 2 first. Then: " + howTo;
+        else if (!termux || !perm) helperText = "Najpierw zainstaluj Termux i zezwól na wykonywanie komend. " + howTo;
         else if (pingSentAt > 0 && System.currentTimeMillis() - pingSentAt < PING_WAIT_MS) helperText = "Checking Termux…";
         else helperText = howTo + " Come back here when it says Done.";
         if (helperCurrent && answered && !SetupState.agentReady(this, backend)) helperText = agent
                 + " is installed but not signed in. Run " + ("codex".equals(backend) ? "~/bin/codex login --device-auth" : "~/bin/claude auth login")
                 + " in Termux once and sign in.";
-        boolean canSetup = a11y && perm;
+        boolean canSetup = termux && perm;
         steps[2] = step("Set up the Termux helper", helperText, canSetup ? helperOk : null,
                 canSetup && !helperOk ? "Copy setup command" : null, v -> copySetupCommand(),
                 canSetup && !helperOk ? "Check again" : null, v -> ping());
@@ -174,7 +180,7 @@ public class SetupActivity extends Screen {
         boolean replied = Prefs.hadReply(this);
         steps[4] = step("Try it", replied
                         ? "androidagent has answered you. Tap the bubble anytime to ask for more."
-                        : a11y && perm && helperOk
+                        : perm && helperOk
                         ? "Tap the bubble on the edge of your screen and ask something like \"open Messenger\", or start a chat here."
                         : "Finish the steps above first.",
                 replied ? Boolean.TRUE : null, null, null, null, null);
@@ -325,8 +331,10 @@ public class SetupActivity extends Screen {
     }
 
     private void setupCard(Step[] steps) {
-        int done = 0, next = -1;
+        int done = 0, next = -1, required = 0;
         for (int i = 0; i < steps.length; i++) {
+            if (steps[i].optional) continue;
+            required++;
             if (Boolean.TRUE.equals(steps[i].done)) done++;
             else if (next < 0) next = i;
         }
@@ -337,7 +345,7 @@ public class SetupActivity extends Screen {
         c.setPadding(dp(this, 16), dp(this, 14), dp(this, 16), dp(this, 14));
         LinearLayout head = row(this);
         head.addView(title(this, "Setup", 17));
-        TextView n = monoText(this, done + "/5", 12, complete ? OK : ACCENT_TEXT);
+        TextView n = monoText(this, done + "/" + required, 12, complete ? OK : ACCENT_TEXT);
         n.setTypeface(mono(this, 600));
         n.setPadding(dp(this, 8), dp(this, 2), 0, 0);
         head.addView(n, weight1());
@@ -354,9 +362,10 @@ public class SetupActivity extends Screen {
         fill.setBackground(rounded(this, complete ? OK : ACCENT, 3));
         bar.addView(fill, new FrameLayout.LayoutParams(0, FrameLayout.LayoutParams.MATCH_PARENT));
         final int doneF = done;
+        final int requiredF = Math.max(1, required);
         bar.post(() -> {
             FrameLayout.LayoutParams fp = (FrameLayout.LayoutParams) fill.getLayoutParams();
-            fp.width = bar.getWidth() * doneF / 5;
+            fp.width = bar.getWidth() * doneF / requiredF;
             fill.setLayoutParams(fp);
         });
         LinearLayout.LayoutParams bp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(this, 6));
@@ -400,7 +409,7 @@ public class SetupActivity extends Screen {
                 TextView t = title(this, st.title, 15);
                 if (!isDone && !isNext) t.setTextColor(MUTED);
                 col.addView(t);
-                if (isNext) {
+                if (isNext || st.optional) {
                     TextView b = text(this, st.body, 14, MUTED);
                     b.setPadding(0, dp(this, 4), 0, 0);
                     col.addView(b);

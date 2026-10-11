@@ -12,12 +12,14 @@ import java.util.*;
 /** Hardware generations and exclusive leases. Only the foreground UI requests Android permission. */
 final class UsbSessions {
     static final String PERMISSION="dev.mateuszsury.androidagent.USB_PERMISSION";
+    private static final java.util.concurrent.atomic.AtomicLong GENERATIONS=new java.util.concurrent.atomic.AtomicLong();
     private static UsbSessions instance;
     static synchronized UsbSessions get(Context c){if(instance==null)instance=new UsbSessions(c.getApplicationContext());return instance;}
     final Context app;final UsbManager manager;
     final Map<String,Device> devices=new LinkedHashMap<>();final Map<String,Session> sessions=new LinkedHashMap<>();
     static final class Device{final String id=UUID.randomUUID().toString();final UsbDevice usb;Device(UsbDevice d){usb=d;}}
     static final class Session implements Closeable {
+        final long generation=GENERATIONS.incrementAndGet();
         final String id=UUID.randomUUID().toString(),device,profile;String owner;final UsbDeviceConnection connection;SerialTransport serial;AdbClient adb;volatile String task="";volatile int slot;volatile long redirection;volatile boolean closed;volatile String qmpId="";
         Session(String d,String p,String o,UsbDeviceConnection c){device=d;profile=p;owner=o;connection=c;}
         synchronized JSONObject json()throws JSONException{return new JSONObject().put("id",id).put("device",device).put("profile",profile).put("owner",owner).put("task",task).put("connected",!closed&&(serial==null||!serial.closed)&&(adb==null||!adb.closed)&&(redirection==0||"active".equals(UsbNative.state(redirection)))).put("rx",serial==null?0:serial.received.end()).put("tx",serial==null?0:serial.tx).put("error",serial==null?"":serial.error);}
@@ -33,19 +35,21 @@ final class UsbSessions {
     }
     void permission(Context foreground,String id){Device d=device(id);PendingIntent pending=PendingIntent.getBroadcast(foreground,Math.abs(id.hashCode()),new Intent(PERMISSION).setPackage(app.getPackageName()),PendingIntent.FLAG_IMMUTABLE|PendingIntent.FLAG_UPDATE_CURRENT);manager.requestPermission(d.usb,pending);}
     synchronized Session open(String device,String profile,String owner,int port)throws Exception{
+        McpHost.get(app).requireReady();
         Device d=device(device);if(!manager.hasPermission(d.usb))throw new SecurityException("permission_required: open the USB panel and grant Android access");
         if(sessions.values().stream().anyMatch(s->s.device.equals(device)))throw new IllegalStateException("Device busy; close or transfer its existing session");
         if("docker".equals(profile)){for(int i=0;i<d.usb.getInterfaceCount();i++)if(d.usb.getInterface(i).getInterfaceClass()==8)throw new IllegalStateException("Mounted storage uses the document picker and file import/export; raw mass-storage takeover is disabled");}
         UsbDeviceConnection c=manager.openDevice(d.usb);if(c==null)throw new IOException("Android could not open this USB device");Session s=new Session(device,profile,owner,c);
-        try{if("serial".equals(profile)){UsbSerialDriver driver=UsbSerialProber.getDefaultProber().probeDevice(d.usb);if(driver==null||port<0||port>=driver.getPorts().size())throw new IOException("Unsupported serial device or port");s.serial=new SerialTransport(driver.getPorts().get(port),c);}else if("adb".equals(profile)){s.adb=new AdbClient(app,new AdbClient.UsbTransport(d.usb,c));}else if(!"docker".equals(profile))throw new IllegalArgumentException("Unknown USB profile");sessions.put(s.id,s);app.startForegroundService(new Intent(app,UsbService.class));return s;}catch(Exception e){s.close();throw e;}
+        try{if("serial".equals(profile)){UsbSerialDriver driver=UsbSerialProber.getDefaultProber().probeDevice(d.usb);if(driver==null||port<0||port>=driver.getPorts().size())throw new IOException("Unsupported serial device or port");s.serial=new SerialTransport(driver.getPorts().get(port),c);}else if("adb".equals(profile)){s.adb=new AdbClient(app,new AdbClient.UsbTransport(d.usb,c));}else if(!"docker".equals(profile))throw new IllegalArgumentException("Unknown USB profile");sessions.put(s.id,s);app.startForegroundService(UsbService.startIntent(app,s.generation));return s;}catch(Exception e){sessions.remove(s.id);s.close();throw e;}
     }
     synchronized Session owned(String owner,String id){Session s=sessions.get(id);if(s==null||!s.owner.equals(owner))throw new SecurityException("USB session is not assigned to this caller");return s;}
     synchronized void authorizeTask(String owner,String task){if(task.isEmpty())return;for(Session s:sessions.values())if(task.equals(s.task)&&!owner.equals(s.owner))throw new SecurityException("Docker task USB is assigned to another caller");}
     synchronized JSONArray sessions(String owner)throws JSONException{JSONArray out=new JSONArray();for(Session s:sessions.values())if(owner==null||s.owner.equals(owner))out.put(s.json());return out;}
     synchronized void activate(String chat){for(Session s:sessions.values())if(s.owner.equals("pending:"+chat))s.owner="chat:"+chat;}
-    synchronized void assign(String id,String owner){Session s=owned("panel",id);if(!s.task.isEmpty()||UsbJobs.get(app).active(id)||s.redirection!=0||s.serial!=null&&s.serial.exclusive)throw new IllegalStateException("Device busy");s.owner=owner;}
+    synchronized void assign(String id,String owner){McpHost.get(app).requireReady();Session s=owned("panel",id);if(!s.task.isEmpty()||UsbJobs.get(app).active(id)||s.redirection!=0||s.serial!=null&&(s.serial.exclusive||s.serial.bridged))throw new IllegalStateException("Device busy");s.owner=owner;}
     synchronized void close(String owner,String id){Session s=owned(owner,id);UsbJobs.get(app).cancelResource(id);sessions.remove(id);s.close();UsbDocker.revoke(app,s);if(sessions.isEmpty())app.stopService(new Intent(app,UsbService.class));}
-    synchronized void closeOwner(String owner){UsbJobs.get(app).cancelOwner(owner);for(Session s:new ArrayList<>(sessions.values()))if(s.owner.equals(owner))close(owner,s.id);UsbStorage.get(app).revokeOwner(owner);}
+    void closeOwner(String owner){UsbJobs.get(app).cancelOwner(owner);synchronized(this){for(Session s:new ArrayList<>(sessions.values()))if(s.owner.equals(owner))close(owner,s.id);}UsbStorage.get(app).revokeOwner(owner);}
     synchronized void closeDevice(String device){for(Session s:new ArrayList<>(sessions.values()))if(s.device.equals(device))close(s.owner,s.id);}
     synchronized void closeAll(){for(Session s:new ArrayList<>(sessions.values()))close(s.owner,s.id);}
+    synchronized void closeThrough(long generation){for(Session s:new ArrayList<>(sessions.values()))if(s.generation<=generation)close(s.owner,s.id);}
 }

@@ -12,6 +12,7 @@ import java.util.regex.*;
 
 /** Small native renderer: selectable prose, bold, inline code, fenced code with copy. */
 final class MessageContent {
+  private static final Pattern INLINE = Pattern.compile("\\*\\*(.+?)\\*\\*|`([^`]+)`", Pattern.DOTALL);
   static LinearLayout render(Context c, String source) {
     LinearLayout content = column(c);
     String[] blocks = source.split("```", -1);
@@ -70,7 +71,7 @@ final class MessageContent {
 
   static CharSequence inline(String text) {
     SpannableStringBuilder s = new SpannableStringBuilder();
-    Matcher m = Pattern.compile("\\*\\*(.+?)\\*\\*|`([^`]+)`", Pattern.DOTALL).matcher(text);
+    Matcher m = INLINE.matcher(text);
     int previous = 0;
     while (m.find()) {
       s.append(text.substring(previous, m.start()));

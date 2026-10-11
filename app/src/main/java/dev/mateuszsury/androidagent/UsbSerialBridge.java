@@ -22,16 +22,42 @@ final class UsbSerialBridge {
         server=candidate;final ServerSocket listener=candidate;
         Thread t=new Thread(()->{while(!listener.isClosed())try{Socket s=listener.accept();try{workers.execute(()->serve(s));}catch(RejectedExecutionException e){s.close();}}catch(IOException e){break;}},"usb-serial-bridge");t.setDaemon(true);t.start();
     }
-    static JSONObject attach(Context c,String owner,String id,String task)throws Exception{
-        synchronized(UsbDocker.taskAccess){
-        UsbSessions hub=UsbSessions.get(c);UsbSessions.Session session=hub.owned(owner,id);UsbTools.serial(session,true);
-        if(!"ready".equals(DockerVm.get(c).state))throw new IllegalStateException("Start Docker first");
-        Grant grant=new Grant(session);synchronized(UsbSerialBridge.class){listen();if(!session.task.isEmpty())throw new IllegalStateException("Already assigned");session.task=task;grants.put(grant.token,grant);}
-        String url="androidagent://10.0.2.2:"+PORT+"/"+grant.token;
-        try{return DockerVm.get(c).request(new JSONObject().put("op","serial_attach").put("task",task).put("session",session.id).put("url",url)).put("url",url).put("usage","Install pyserial in your image; PYTHONPATH and ANDROIDAGENT_SERIAL_URL are injected. Use serial.serial_for_url(os.environ['ANDROIDAGENT_SERIAL_URL']).");}
-        catch(Exception e){revoke(session);session.task="";throw e;}}
+    static JSONObject attach(Context c,String owner,String id,String task)throws Exception {
+        synchronized(UsbDocker.taskAccess) {
+            McpHost.get(c).requireCaller(owner);
+            if(task==null||!task.matches("[a-f0-9]{32}"))throw new IllegalArgumentException("Invalid task id");
+            UsbSessions hub=UsbSessions.get(c);DockerVm vm=DockerVm.get(c);
+            if(!"ready".equals(vm.state))throw new IllegalStateException("Start Docker first");
+            final UsbSessions.Session session;final Grant grant;
+            synchronized(hub) {
+                hub.authorizeTask(owner,task);session=hub.owned(owner,id);
+                if(session.closed||!session.task.isEmpty())throw new IllegalStateException("Disconnected or already assigned");
+                SerialTransport port=UsbTools.serial(session,true);port.reserveBridge();
+                grant=new Grant(session);
+                try {synchronized(UsbSerialBridge.class){listen();session.task=task;grants.put(grant.token,grant);}}
+                catch(Exception e){port.releaseBridge();throw e;}
+            }
+            String url="androidagent://10.0.2.2:"+PORT+"/"+grant.token;
+            try {
+                JSONObject result=vm.request(new JSONObject().put("op","serial_attach").put("task",task).put("session",session.id).put("url",url));
+                synchronized(hub) {UsbDocker.requireCurrent(hub,owner,session,task);}
+                return result.put("url",url).put("usage","Install pyserial in your image; PYTHONPATH and ANDROIDAGENT_SERIAL_URL are injected. Use serial.serial_for_url(os.environ['ANDROIDAGENT_SERIAL_URL']).");
+            } catch(Exception e) {
+                synchronized(hub) {if(hub.sessions.get(id)==session)hub.close(owner,id);else revoke(session);}
+                // A failed attachment closes the lease. Retrying requires a new
+                // session UUID, which old asynchronous detaches cannot revoke.
+                UsbDocker.revokeGrant(c,task,"",session.id,0);
+                throw e;
+            }
+        }
     }
-    static synchronized void revoke(UsbSessions.Session session){grants.values().removeIf(g->g.session==session);if(grants.isEmpty()&&server!=null){try{server.close();}catch(IOException ignored){}server=null;}}
+    static void revoke(UsbSessions.Session session) {
+        synchronized(UsbSerialBridge.class) {
+            grants.values().removeIf(g->g.session==session);
+            if(grants.isEmpty()&&server!=null){try{server.close();}catch(IOException ignored){}server=null;}
+        }
+        if(session.serial!=null)session.serial.releaseBridge();
+    }
     private static String line(InputStream in)throws IOException{ByteArrayOutputStream b=new ByteArrayOutputStream();int x;while((x=in.read())!=-1){if(x==10)return b.toString("US-ASCII").replace("\r","");if(b.size()>=8192)throw new IOException("Header too long");b.write(x);}throw new EOFException();}
     static void serve(Socket socket){try(Socket s=socket){s.setSoTimeout(5000);InputStream in=s.getInputStream();String request=line(in);int size=0;String token="";for(int i=0;i<40;i++){String h=line(in);if(h.isEmpty())break;int at=h.indexOf(':');if(at<0)throw new IOException("Invalid header");String key=h.substring(0,at).toLowerCase(Locale.US),value=h.substring(at+1).trim();if(key.equals("authorization")&&value.startsWith("Bearer "))token=value.substring(7);if(key.equals("content-length"))size=Integer.parseInt(value);if(i==39)throw new IOException("Too many headers");}
         if(!request.equals("POST /serial HTTP/1.1")||size<2||size>180000)throw new IOException("Invalid bridge request");Grant g;synchronized(UsbSerialBridge.class){g=grants.get(token);}JSONObject result;

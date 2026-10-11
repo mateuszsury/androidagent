@@ -68,6 +68,7 @@ public class AndroidAgentTests extends Instrumentation {
       out.write(
           new JSONObject()
               .put("tests", results)
+              .put("version", BuildInfo.VERSION)
               .put("failures", failures)
               .put("api", Build.VERSION.SDK_INT)
               .put("model", Build.MODEL)
@@ -234,15 +235,26 @@ public class AndroidAgentTests extends Instrumentation {
   private void runUnsignedClaude(Sessions.Session session, boolean dev) throws Exception {
     check(session != null && !SetupState.agentReady(app, "claude"), "No unsigned Claude fixture");
     int before = session.messages.size();
+    long cleanupDeadline = SystemClock.elapsedRealtime() + 10000;
+    while (true) {
+      try { McpHost.get(app).requireReady(session.id); break; }
+      catch (IllegalStateException pendingCleanup) {
+        if (SystemClock.elapsedRealtime() >= cleanupDeadline) throw pendingCleanup;
+        SystemClock.sleep(25);
+      }
+    }
+    String credential = McpHost.get(app).credential(session.id);
+    String callbackRun = java.util.UUID.randomUUID().toString();
     main(() -> {
+      session.callbackRun = callbackRun;
+      session.runAcknowledged = false;
       session.running = true;
       session.lastError = "";
       session.phoneConnected = false;
       session.phoneToolCount = 0;
     });
-    String credential = McpHost.get(app).credential(session.id);
     Termux.run(
-        app, "ask", session.id, "claude", dev ? "1" : "0", "Unsigned integration check", "", "", credential);
+        app, "ask", session.id, "claude", dev ? "1" : "0", "Unsigned integration check", "", "", credential, callbackRun);
     long until = SystemClock.elapsedRealtime() + 60000;
     while (SystemClock.elapsedRealtime() < until) {
       if (!session.running && session.messages.size() > before) break;
@@ -315,6 +327,13 @@ public class AndroidAgentTests extends Instrumentation {
         });
     waitForIdleSync();
     if (error.get() != null) throw new AssertionError("UI action failed", error.get());
+  }
+
+  private void mainCheck(Check action) {
+    main(() -> {
+      try { action.run(); }
+      catch (Exception error) { throw new RuntimeException(error); }
+    });
   }
 
   private View find(View v, String label) {
@@ -489,6 +508,8 @@ public class AndroidAgentTests extends Instrumentation {
           check(find("Historia rozmów") != null, "History affordance");
           shot("01-home-light");
         });
+    test("appearance: native light dialog and custom text stay readable",
+        () -> UiRegressionChecks.dialogMatchesPalette(this, current));
     test(
         "defaults: Codex, no fabricated ready state",
         () -> {
@@ -711,6 +732,7 @@ public class AndroidAgentTests extends Instrumentation {
           launch(MainActivity.class);
           check(Ui.DARK, "Dark mode not applied");
           shot("06-home-dark");
+          UiRegressionChecks.dialogMatchesPalette(this, current);
           main(
               () -> {
                 Prefs.setThemeMode(app, "light");
@@ -727,6 +749,18 @@ public class AndroidAgentTests extends Instrumentation {
               "Onboarding missing");
           shot("07-setup");
         });
+    test("MCP: Stop closes active and queued client sockets", RuntimeRegressionChecks::mcpShutdown);
+    test("MCP: complete chunk framing and bounded headers", RuntimeRegressionChecks::mcpFraming);
+    test("MCP: a new run cannot revive an old credential or queued request",
+        () -> RuntimeRegressionChecks.mcpRunGeneration(app));
+    test("attachments: bounded panorama decode and file provider projection",
+        () -> RuntimeRegressionChecks.attachments(app));
+    test("voice: previous speech callbacks and delayed TTS cannot revive after Stop",
+        () -> RuntimeRegressionChecks.voice(this));
+    test("Stop: main thread stays responsive while USB cleanup is blocked",
+        () -> RuntimeRegressionChecks.stopDoesNotBlock(this, app));
+    test("terminal: background children obey timeout and cleanup",
+        () -> RuntimeRegressionChecks.backgroundCommand(app));
     test(
         "accessibility: service starts with explicit test grant",
         () -> {
@@ -1089,6 +1123,8 @@ public class AndroidAgentTests extends Instrumentation {
               claude[0].messages.size() == before, "Partial tokens persisted as separate messages");
           shot("12-claude-stream-fixture");
         });
+    test("chat UI: live response survives leaving and resuming the screen",
+        () -> UiRegressionChecks.streamSurvivesResume(this, current));
     test(
         "Claude protocol fixture: final text is persisted once",
         () -> {
@@ -1163,6 +1199,52 @@ public class AndroidAgentTests extends Instrumentation {
                 Prefs.setBackend(app, "codex");
               });
         });
+    launch(MainActivity.class); // The preceding fixture deletes its displayed chat.
+    test("agents: callbacks cannot stop or resurrect another run",
+        () -> mainCheck(() -> AgentRegressionChecks.callbackIsolation(app)));
+    test("agents: history retention preserves active chats and releases evictions",
+        () -> mainCheck(() -> AgentRegressionChecks.retentionKeepsRunningChats(app)));
+    test("agents: history migration preserves data and updates only changed conversations",
+        () -> mainCheck(() -> AgentRegressionChecks.persistenceMigration(app)));
+    test("agents: initial streaming blocks are bounded and subagent replies separated",
+        () -> mainCheck(() -> AgentRegressionChecks.streamingBoundsAndSubagents(app)));
+    test("UI: tall bottom sheet reaches its final option",
+        () -> UiRegressionChecks.tallSheetScrolls(this, current));
+    test("UI: switch exposes checked state to accessibility",
+        () -> UiRegressionChecks.switchReportsState(this, current));
+    test("UI: large font landscape keeps composer and useful home content visible", () -> {
+      try {
+        shell("settings put system font_scale 1.5");
+        ui.setRotation(Surface.ROTATION_0);
+        SystemClock.sleep(700);
+        launch(MainActivity.class);
+        check(current.getResources().getConfiguration().fontScale >= 1.4f, "Font scale unchanged");
+        shot("13-home-large-font");
+        ui.setRotation(Surface.ROTATION_90);
+        SystemClock.sleep(700);
+        launch(MainActivity.class);
+        main(() -> {
+          View send = find("Rozpocznij rozmowę");
+          android.graphics.Rect visible = new android.graphics.Rect();
+          check(send != null && send.getGlobalVisibleRect(visible)
+              && visible.height() == send.getHeight(), "Composer action clipped in landscape");
+          View heading = find("Co dziś zrobimy?");
+          check(heading != null && heading.getGlobalVisibleRect(visible)
+              && visible.height() == heading.getHeight(), "Home heading clipped in landscape");
+          View firstAction = find("Sprawdź telefon");
+          check(firstAction != null, "First device action missing");
+          View card = (View) firstAction.getParent().getParent();
+          check(card.getGlobalVisibleRect(visible) && visible.height() == card.getHeight(),
+              "Decorative home content hides the first useful action in landscape");
+        });
+        shot("14-home-large-font-landscape");
+      } finally {
+        shell("settings put system font_scale 1.0");
+        ui.setRotation(Surface.ROTATION_0);
+        SystemClock.sleep(500);
+        launch(MainActivity.class);
+      }
+    });
     main(() -> Prefs.setBackend(app, "codex"));
   }
 }

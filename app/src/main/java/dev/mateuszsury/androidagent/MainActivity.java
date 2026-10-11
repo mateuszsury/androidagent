@@ -15,10 +15,13 @@ public class MainActivity extends Screen implements ChatHub.Listener {
   private ChatHub hub;
   private TextView connection;
   private EditText prompt;
+  private boolean compactHeight;
 
   @Override
   protected void onCreate(Bundle state) {
     super.onCreate(state);
+    // Landscape phones and short split-screen windows need useful content above the composer.
+    compactHeight = getResources().getConfiguration().screenHeightDp < 480;
     getWindow()
         .setSoftInputMode(
             WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN
@@ -30,7 +33,8 @@ public class MainActivity extends Screen implements ChatHub.Listener {
     root.setBackgroundColor(BG);
     root.setFitsSystemWindows(true);
     LinearLayout bar = row(this);
-    bar.setPadding(dp(this, 12), dp(this, 8), dp(this, 12), dp(this, 8));
+    bar.setPadding(dp(this, 12), dp(this, compactHeight ? 4 : 8),
+        dp(this, 12), dp(this, compactHeight ? 4 : 8));
     ImageButton history = iconButton(this, R.drawable.ms_menu, "Historia rozmów");
     history.setOnClickListener(v -> history());
     bar.addView(history, new LinearLayout.LayoutParams(dp(this, 48), dp(this, 48)));
@@ -45,7 +49,8 @@ public class MainActivity extends Screen implements ChatHub.Listener {
     LinearLayout status = row(this);
     status.setGravity(Gravity.CENTER);
     connection = text(this, "", 12, MUTED);
-    connection.setPadding(dp(this, 14), dp(this, 9), dp(this, 14), dp(this, 9));
+    connection.setPadding(dp(this, 14), dp(this, compactHeight ? 6 : 9),
+        dp(this, 14), dp(this, compactHeight ? 6 : 9));
     connection.setBackground(rounded(this, CARD, 20));
     connection.setContentDescription("Wybierz agenta");
     connection.setOnClickListener(v -> chooseAgent());
@@ -56,24 +61,25 @@ public class MainActivity extends Screen implements ChatHub.Listener {
     scroll.setFillViewport(true);
     scroll.setVerticalScrollBarEnabled(false);
     LinearLayout center = column(this);
-    center.setGravity(Gravity.CENTER);
-    center.setPadding(dp(this, 26), dp(this, 30), dp(this, 26), dp(this, 24));
+    center.setGravity(compactHeight ? Gravity.TOP | Gravity.CENTER_HORIZONTAL : Gravity.CENTER);
+    center.setPadding(dp(this, 26), dp(this, compactHeight ? 8 : 30),
+        dp(this, 26), dp(this, compactHeight ? 16 : 24));
     TextView mark = title(this, "›_", 33);
     mark.setTypeface(mono(this, 600));
     mark.setGravity(Gravity.CENTER);
     mark.setBackground(rounded(this, CARD, 25));
-    center.addView(mark, new LinearLayout.LayoutParams(dp(this, 76), dp(this, 76)));
-    TextView heading = title(this, "Co dziś zrobimy?", 28);
+    if (!compactHeight) center.addView(mark, new LinearLayout.LayoutParams(dp(this, 76), dp(this, 76)));
+    TextView heading = title(this, "Co dziś zrobimy?", compactHeight ? 22 : 28);
     heading.setGravity(Gravity.CENTER);
-    heading.setPadding(0, dp(this, 24), 0, dp(this, 8));
+    heading.setPadding(0, dp(this, compactHeight ? 4 : 24), 0, dp(this, compactHeight ? 4 : 8));
     center.addView(heading, full());
     TextView sub = text(this, "Twój agent. Twój telefon.\nOd pomysłu do wykonania.", 15, MUTED);
     sub.setGravity(Gravity.CENTER);
     sub.setLineSpacing(dp(this, 4), 1);
-    center.addView(sub, full());
+    if (!compactHeight) center.addView(sub, full());
     LinearLayout cards = column(this);
     LinearLayout.LayoutParams cardsP = full();
-    cardsP.topMargin = dp(this, 30);
+    cardsP.topMargin = dp(this, compactHeight ? 8 : 30);
     cards.addView(
         suggestion(
             R.drawable.ms_phone,
@@ -134,14 +140,15 @@ public class MainActivity extends Screen implements ChatHub.Listener {
     TextView footer = text(this, "Twój telefon · Twoja kontrola", 10, MUTED);
     footer.setGravity(Gravity.CENTER);
     footer.setPadding(0, dp(this, 12), 0, dp(this, 14));
-    root.addView(footer, full());
+    if (!compactHeight) root.addView(footer, full());
     setContentView(root);
     if (state != null) prompt.setText(state.getString("draft", ""));
   }
 
   private View suggestion(int resource, String label, String detail, Runnable action) {
     LinearLayout r = row(this);
-    r.setPadding(dp(this, 16), dp(this, 14), dp(this, 12), dp(this, 14));
+    r.setPadding(dp(this, 16), dp(this, compactHeight ? 10 : 14),
+        dp(this, 12), dp(this, compactHeight ? 10 : 14));
     r.setBackgroundResource(ripple(this, false));
     r.addView(icon(this, resource, TEXT, 23));
     LinearLayout t = column(this);

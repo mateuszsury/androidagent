@@ -90,6 +90,10 @@ final class Theme {
     /** Load the palette and style the window (bar colours and icon contrast) for an activity. */
     static void apply(Activity a) {
         load(a);
+        // Native dialogs/widgets must follow the app's mode as well as our custom palette.
+        // Screen calls this before super.onCreate; rethemed() reapplies it for new dialogs.
+        a.setTheme(Ui.DARK ? android.R.style.Theme_DeviceDefault_NoActionBar
+                : android.R.style.Theme_DeviceDefault_Light_NoActionBar);
         Window w = a.getWindow();
         w.setStatusBarColor(Ui.BG);
         w.setNavigationBarColor(Ui.NAV);

@@ -1,4 +1,4 @@
-# Docker w androidagent 0.4.0
+# Docker w androidagent 0.4.1
 
 Aplikacja zawiera QEMU oraz obraz Alpine Linux z rzeczywistym Docker Engine. Silnik działa we własnym jądrze Linux w maszynie wirtualnej, uruchomionej z UID androidagent. Telefon nie wymaga roota, Termux ani Shizuku do tej funkcji. Termux pozostaje potrzebny do klientów Codex/Claude Code.
 
@@ -43,7 +43,7 @@ Narzędzia `usb_docker_attach`, `usb_docker_serial` i `usb_docker_detach` wymaga
 ## Dostęp i limity
 
 - QEMU wykonuje się jako aplikacja Android; nie używa roota, `/dev/kvm`, ADB, usług systemowych Shizuku ani serwera zdalnego. Izolację zapewnia oddzielne jądro VM i standardowy Docker. Nie jest to gwarancja odporności na błędy jądra/QEMU.
-- Procesy agentów nie dostają socketu Dockera, powłoki administratora VM ani katalogów kont innych aplikacji. Kontener montuje tylko katalog własnego zadania, bez trybu privileged i bez socketu Dockera.
+- Procesy agentów nie dostają socketu Dockera, powłoki administratora VM ani katalogów kont innych aplikacji. Kontener dostaje katalog własnego zadania, bez trybu privileged i bez socketu Dockera. Przy przydziale USB dochodzi wybrany węzeł urządzenia, a przy UART — moduł protokołu montowany tylko do odczytu.
 - Obraz zachowuje deklarację `USER`. Katalog projektu i pliki utworzone przez kontroler są zapisywalne dla użytkownika kontenera, także bez UID 0. Ten katalog jest montowany tylko w kontenerze własnego zadania.
 - API VM słucha przez przekierowanie QEMU na `127.0.0.1:18780`; wymaga osobnego losowego tokenu. Token jest przekazywany przez dodatkowy dysk tylko do odczytu, poza linią komend jądra i urządzeniami kontenera. MCP telefonu zachowuje osobny token i port 8766.
 - Podgląd WebView obsługuje JavaScript, ale nie udostępnia mostu Java, plików aplikacji ani URI `content://`. Nawigacja poza lokalny podgląd trafia do zewnętrznej przeglądarki, jeśli jest dostępna.
@@ -64,7 +64,7 @@ Dockerfile może pobierać zależności przez internet. Stan sieci, DNS, dostęp
 
 ## Budowanie środowiska
 
-Wymagane na gospodarzu Linux: działający Docker, Python 3.9+, `dpkg-deb`, `readelf`, `patchelf` i moduł Python `pyelftools`. Pełny APK 0.4.0 wymaga też JNI USB z Android NDK 29.0.14206865. Oprócz standardowego SDK/JDK z README:
+Wymagane na gospodarzu Linux: działający Docker, Python 3.9+, `dpkg-deb`, `readelf`, `patchelf` i moduł Python `pyelftools`. Pełny APK 0.4.1 wymaga też JNI USB z Android NDK 29.0.14206865. Oprócz standardowego SDK/JDK z README:
 
 ```sh
 python3 tools/prepare-qemu.py
@@ -85,7 +85,7 @@ Pochodzenie i licencje: [docker/SOURCES.md](../docker/SOURCES.md), inwentarze pa
 ## Testowanie
 
 ```sh
-adb install -r artifacts/androidagent-0.4.0.apk
+adb install -r artifacts/androidagent-0.4.1.apk
 bash tools/test-docker.sh
 ```
 

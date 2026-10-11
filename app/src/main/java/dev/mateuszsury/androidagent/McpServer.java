@@ -29,7 +29,9 @@ import java.util.concurrent.Executors;
  */
 final class McpServer {
     private static final ThreadLocal<String> CALLER = new ThreadLocal<>();
+    private static final ThreadLocal<String> CREDENTIAL = new ThreadLocal<>();
     static String caller() { String value=CALLER.get();return value==null?"external":value; }
+    static String credential() { return CREDENTIAL.get(); }
     static final int PORT = 8766;
     private static final String TAG = "androidagentMcp";
     private static final String DEFAULT_PROTOCOL = "2025-06-18";
@@ -48,6 +50,8 @@ final class McpServer {
 
     private final String token;
     private final Handler handler;
+    private final int port;
+    private final java.util.Set<Socket> clients = java.util.concurrent.ConcurrentHashMap.newKeySet();
     private final ExecutorService pool = new java.util.concurrent.ThreadPoolExecutor(
             4, 8, 30, java.util.concurrent.TimeUnit.SECONDS,
             new java.util.concurrent.ArrayBlockingQueue<>(32));
@@ -55,8 +59,13 @@ final class McpServer {
     private volatile boolean running;
 
     McpServer(String token, Handler handler) {
+        this(token, handler, PORT);
+    }
+
+    McpServer(String token, Handler handler, int port) {
         this.token = token;
         this.handler = handler;
+        this.port = port;
     }
 
     void start() {
@@ -74,6 +83,9 @@ final class McpServer {
             if (socket != null) socket.close();
         } catch (IOException ignored) {
         }
+        // Interrupting a worker does not unblock socket reads. Queued workers
+        // will never run after shutdownNow, so their sockets also need closing.
+        for (Socket client : clients) closeClient(client);
         pool.shutdownNow();
     }
 
@@ -81,12 +93,14 @@ final class McpServer {
         while (running) {
             try (ServerSocket ss = new ServerSocket()) {
                 ss.setReuseAddress(true);
-                ss.bind(new InetSocketAddress(InetAddress.getByName("127.0.0.1"), PORT));
+                ss.bind(new InetSocketAddress(InetAddress.getByName("127.0.0.1"), port));
                 socket = ss;
                 while (running) {
                     final Socket s = ss.accept();
+                    clients.add(s);
+                    if (!running) { closeClient(s); break; }
                     try { pool.execute(() -> handle(s)); }
-                    catch (java.util.concurrent.RejectedExecutionException e) { s.close(); }
+                    catch (java.util.concurrent.RejectedExecutionException e) { closeClient(s); }
                 }
             } catch (IOException e) {
                 if (!running) return;
@@ -117,7 +131,10 @@ final class McpServer {
 
             Map<String, String> headers = new HashMap<>();
             String line;
+            int headerBytes = 0, headerCount = 0;
             while ((line = readLine(in)) != null && !line.isEmpty()) {
+                headerBytes += line.length();
+                if (++headerCount > 128 || headerBytes > 65536) throw new IOException("headers too large");
                 int c = line.indexOf(':');
                 if (c > 0) {
                     headers.put(line.substring(0, c).trim().toLowerCase(Locale.ROOT), line.substring(c + 1).trim());
@@ -131,8 +148,12 @@ final class McpServer {
             }
             if(!principal.equals("external")&&!path.equals("/mcp")){send(out,401,"application/json","{\"error\":\"session credential is for MCP only\"}");return;}
             CALLER.set(principal);
+            CREDENTIAL.set(auth.substring(7));
 
             byte[] body = readBody(in, headers);
+            // A run can end while a client is sending its body. Reusing the
+            // chat id in a later run must not revive this request's credential.
+            if(!"external".equals(principal)&&!principal.equals(handler.principal(CREDENTIAL.get()))){send(out,401,"application/json","{\"error\":\"session credential revoked\"}");return;}
 
             if ("/event".equals(path) && "POST".equals(method)) {
                 try {
@@ -176,11 +197,14 @@ final class McpServer {
             Log.w(TAG, "request failed", e);
         } finally {
             CALLER.remove();
-            try {
-                s.close();
-            } catch (IOException ignored) {
-            }
+            CREDENTIAL.remove();
+            closeClient(s);
         }
+    }
+
+    private void closeClient(Socket client) {
+        clients.remove(client);
+        try { client.close(); } catch (IOException ignored) {}
     }
 
     /** Returns null for notifications. */
@@ -284,16 +308,21 @@ final class McpServer {
         if (te != null && te.toLowerCase(Locale.ROOT).contains("chunked")) {
             while (true) {
                 String sizeLine = readLine(in);
-                if (sizeLine == null) break;
+                if (sizeLine == null) throw new IOException("unexpected end of chunked body");
                 int semi = sizeLine.indexOf(';');
                 int size = Integer.parseInt((semi >= 0 ? sizeLine.substring(0, semi) : sizeLine).trim(), 16);
                 if (size == 0) {
                     String l;
-                    while ((l = readLine(in)) != null && !l.isEmpty()) { /* trailers */ }
+                    int trailerBytes = 0, trailers = 0;
+                    while ((l = readLine(in)) != null && !l.isEmpty()) {
+                        trailerBytes += l.length();
+                        if (++trailers > 128 || trailerBytes > 65536) throw new IOException("trailers too large");
+                    }
+                    if (l == null) throw new IOException("unexpected end of trailers");
                     break;
                 }
                 readFully(in, body, size);
-                readLine(in);
+                if (!"".equals(readLine(in))) throw new IOException("invalid chunk boundary");
             }
         } else {
             String cl = headers.get("content-length");

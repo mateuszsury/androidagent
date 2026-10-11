@@ -51,6 +51,11 @@ android {
     packaging {
         jniLibs.useLegacyPackaging = true
     }
+    androidResources {
+        // The guest disks are already gzip-compressed; match build.sh and avoid
+        // another decompression layer when installing the Linux environment.
+        noCompress += "gz"
+    }
 }
 
 // Both build paths require verified USB/ESP and QEMU artifacts.
@@ -58,4 +63,8 @@ val verifyUsbAssets by tasks.registering(Exec::class) {
     workingDir(rootProject.projectDir)
     commandLine("python3", "tools/check-usb-assets.py")
 }
-tasks.named("preBuild") { dependsOn(verifyUsbAssets) }
+val verifyDockerAssets by tasks.registering(Exec::class) {
+    workingDir(rootProject.projectDir)
+    commandLine("python3", "tools/check-docker-assets.py")
+}
+tasks.named("preBuild") { dependsOn(verifyUsbAssets, verifyDockerAssets) }

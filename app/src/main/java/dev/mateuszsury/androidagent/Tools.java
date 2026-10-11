@@ -44,6 +44,7 @@ final class Tools {
     void cancelLocalCommands() { synchronized (commands) { for (LocalShell command : commands) command.stop(); } }
     private final Object lock = new Object();
     private final List<AccessibilityNodeInfo> lastNodes = new ArrayList<>();
+    void clearNodes() { synchronized(lock) { for(AccessibilityNodeInfo n:lastNodes)n.recycle();lastNodes.clear(); } }
 
     Tools(BuddyService svc) {
         this.svc = svc;
@@ -168,6 +169,7 @@ final class Tools {
                 String command = a.getString("command");
                 String approval = svc.askConfirm("Wykonać komendę w lokalnym katalogu androidagent?\n\n" + command);
                 if (!approval.startsWith("APPROVED")) return text("DENIED. Command was not executed.");
+                McpHost.get(svc).requireCaller(McpServer.caller());
                 if (svc.controlRevoked() != null) return text("Control stopped. Command was not executed.");
                 LocalShell shell = new LocalShell();
                 synchronized (commands) {
@@ -243,11 +245,9 @@ final class Tools {
     }
 
     private void walk(AccessibilityNodeInfo n, StringBuilder sb, int depth) {
-        if (n == null || lastNodes.size() >= MAX_NODES) return;
-        if (!n.isVisibleToUser()) {
-            n.recycle();
-            return;
-        }
+        if (n == null) return;
+        try {
+        if (lastNodes.size() >= MAX_NODES || !n.isVisibleToUser()) return;
         CharSequence text = n.getText();
         CharSequence desc = n.getContentDescription();
         boolean interesting = !empty(text) || !empty(desc) || n.isClickable() || n.isEditable()
@@ -276,9 +276,10 @@ final class Tools {
             sb.append('\n');
         }
         int count = n.getChildCount();
-        for (int i = 0; i < count; i++) {
+        for (int i = 0; i < count && lastNodes.size() < MAX_NODES; i++) {
             walk(n.getChild(i), sb, interesting ? depth + 1 : depth);
         }
+        } finally { n.recycle(); }
     }
 
     private static String windowType(int t) {
@@ -594,23 +595,32 @@ final class Tools {
     }
 
     private JSONObject screenshot() throws Exception {
-        svc.setBubblePassThrough(true);
-        Thread.sleep(150);
         final CountDownLatch done = new CountDownLatch(1);
         final AtomicReference<Bitmap> shot = new AtomicReference<>();
         final AtomicReference<String> error = new AtomicReference<>();
+        final boolean[] accepting = {true};
+        Bitmap full = null, small = null;
+        svc.setBubblePassThrough(true);
         try {
+            Thread.sleep(150);
             svc.takeScreenshot(Display.DEFAULT_DISPLAY, svc.getMainExecutor(), new AccessibilityService.TakeScreenshotCallback() {
                 @Override
                 public void onSuccess(AccessibilityService.ScreenshotResult r) {
+                    Bitmap hw = null;
                     try {
-                        Bitmap hw = Bitmap.wrapHardwareBuffer(r.getHardwareBuffer(), r.getColorSpace());
-                        if (hw != null) shot.set(hw.copy(Bitmap.Config.ARGB_8888, false));
-                        r.getHardwareBuffer().close();
+                        hw = Bitmap.wrapHardwareBuffer(r.getHardwareBuffer(), r.getColorSpace());
+                        Bitmap copy = hw == null ? null : hw.copy(Bitmap.Config.ARGB_8888, false);
+                        synchronized (shot) {
+                            if (accepting[0]) shot.set(copy);
+                            else if (copy != null) copy.recycle();
+                        }
                     } catch (Exception e) {
                         error.set(String.valueOf(e.getMessage()));
+                    } finally {
+                        if (hw != null) hw.recycle();
+                        r.getHardwareBuffer().close();
+                        done.countDown();
                     }
-                    done.countDown();
                 }
 
                 @Override
@@ -621,23 +631,30 @@ final class Tools {
                 }
             });
             done.await(5, TimeUnit.SECONDS);
+            synchronized (shot) { accepting[0] = false; full = shot.getAndSet(null); }
+            if (full == null) throw new IllegalStateException(error.get() != null ? error.get() : "Screenshot timed out.");
+            float scale = Math.min(1f, (float) SCREENSHOT_WIDTH / full.getWidth());
+            small = scale < 1f
+                    ? Bitmap.createScaledBitmap(full, Math.round(full.getWidth() * scale), Math.max(1, Math.round(full.getHeight() * scale)), true)
+                    : full;
+            ByteArrayOutputStream jpg = new ByteArrayOutputStream();
+            if (!small.compress(Bitmap.CompressFormat.JPEG, 70, jpg)) throw new IllegalStateException("Screenshot encoding failed.");
+            String note = String.format(Locale.ROOT,
+                    "Screenshot %dx%d (screen is %dx%d). To tap something you see, multiply image coordinates by %.3f.",
+                    small.getWidth(), small.getHeight(), full.getWidth(), full.getHeight(), 1f / scale);
+            return new JSONObject().put("content", new JSONArray()
+                    .put(new JSONObject().put("type", "image").put("mimeType", "image/jpeg")
+                            .put("data", Base64.encodeToString(jpg.toByteArray(), Base64.NO_WRAP)))
+                    .put(new JSONObject().put("type", "text").put("text", note)));
         } finally {
+            synchronized (shot) {
+                accepting[0] = false;
+                Bitmap orphan = shot.getAndSet(null);
+                if (orphan != null) orphan.recycle();
+            }
+            if (small != null && small != full) small.recycle();
+            if (full != null) full.recycle();
             svc.setBubblePassThrough(false);
         }
-        Bitmap full = shot.get();
-        if (full == null) throw new IllegalStateException(error.get() != null ? error.get() : "Screenshot timed out.");
-        float scale = Math.min(1f, (float) SCREENSHOT_WIDTH / full.getWidth());
-        Bitmap small = scale < 1f
-                ? Bitmap.createScaledBitmap(full, Math.round(full.getWidth() * scale), Math.round(full.getHeight() * scale), true)
-                : full;
-        ByteArrayOutputStream jpg = new ByteArrayOutputStream();
-        small.compress(Bitmap.CompressFormat.JPEG, 70, jpg);
-        String note = String.format(Locale.ROOT,
-                "Screenshot %dx%d (screen is %dx%d). To tap something you see, multiply image coordinates by %.3f.",
-                small.getWidth(), small.getHeight(), full.getWidth(), full.getHeight(), 1f / scale);
-        return new JSONObject().put("content", new JSONArray()
-                .put(new JSONObject().put("type", "image").put("mimeType", "image/jpeg")
-                        .put("data", Base64.encodeToString(jpg.toByteArray(), Base64.NO_WRAP)))
-                .put(new JSONObject().put("type", "text").put("text", note)));
     }
 }

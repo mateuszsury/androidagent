@@ -12,10 +12,10 @@ SCRIPT = 'stream_codex() {' + FUNCTION + '\npost() { cat; printf "\\n"; }\nSID=p
 
 
 class CodexStreamTests(unittest.TestCase):
-    def translate(self, events):
+    def translate(self, events, newline=True):
         with tempfile.TemporaryDirectory(prefix='androidagent-stream-') as state:
             result = subprocess.run(['bash', '-c', SCRIPT, 'stream-test', state],
-                                    input='\n'.join(json.dumps(e, ensure_ascii=False) for e in events) + '\n',
+                                    input='\n'.join(json.dumps(e, ensure_ascii=False) for e in events) + ('\n' if newline else ''),
                                     text=True, capture_output=True, check=True)
             thread = pathlib.Path(state, 'codex-thread')
             return ([json.loads(line) for line in result.stdout.splitlines() if line],
@@ -57,6 +57,10 @@ class CodexStreamTests(unittest.TestCase):
         events, _ = self.translate([{'type': 'error', 'message': 'Network disconnected'}])
         self.assertEqual(events[0]['type'], 'buddy_error')
         self.assertIn('Network disconnected', events[0]['text'])
+
+    def test_final_event_without_trailing_newline_is_not_lost(self):
+        events, _ = self.translate([{'type': 'item.completed', 'item': {'type': 'agent_message', 'text': 'Last output'}}], newline=False)
+        self.assertEqual(events[0]['message']['content'][0]['text'], 'Last output')
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)

@@ -54,7 +54,8 @@ jobs:
           adb shell settings put global transition_animation_scale 0
           adb shell settings put global animator_duration_scale 0
           adb shell input keyevent 82
-          adb install -r artifacts/androidagent-0.4.0.apk
+          APP_VERSION=$(python3 -c 'import re,pathlib; print(re.search(r"VERSION = \"([^\"]+)\"", pathlib.Path("app/src/main/java/dev/mateuszsury/androidagent/BuildInfo.java").read_text())[1])')
+          adb install -r "artifacts/androidagent-$APP_VERSION.apk"
       - name: Device tests
         run: ./tools/test-android.sh
       - name: USB emulator and real adbd tests

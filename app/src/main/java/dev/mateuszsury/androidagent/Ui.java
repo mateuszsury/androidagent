@@ -15,6 +15,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
@@ -179,6 +180,7 @@ final class Ui {
         b.setText(label);
         b.setAllCaps(false);
         b.setSingleLine(true);
+        b.setEllipsize(TextUtils.TruncateAt.END);
         b.setTextColor(primary ? ON_ACCENT : TEXT);
         b.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
         b.setTypeface(sans(c, 600));
@@ -296,12 +298,23 @@ final class Ui {
             knob.setLayoutParams(kp);
         };
         track.addView(knob);
+        track.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS);
         paint.run();
         r.addView(track, new LinearLayout.LayoutParams(dp(c, 48), dp(c, 28)));
         r.setOnClickListener(v -> {
             state[0] = !state[0];
             paint.run();
             l.onToggle(state[0]);
+        });
+        r.setFocusable(true);
+        r.setAccessibilityDelegate(new View.AccessibilityDelegate() {
+            @Override public void onInitializeAccessibilityNodeInfo(View host, AccessibilityNodeInfo info) {
+                super.onInitializeAccessibilityNodeInfo(host, info);
+                info.setClassName(android.widget.Switch.class.getName());
+                info.setCheckable(true);
+                info.setChecked(state[0]);
+                info.setText(title + (sub == null || sub.isEmpty() ? "" : ". " + sub));
+            }
         });
         return r;
     }
@@ -318,6 +331,7 @@ final class Ui {
         for (String[] o : options) {
             boolean on = o[0].equals(selected);
             TextView t = text(c, o[1], 14, on ? TEXT : MUTED);
+            t.setSelected(on);
             t.setTypeface(monoLabels ? mono(c, on ? 600 : 400) : sans(c, on ? 600 : 500));
             t.setGravity(Gravity.CENTER);
             t.setPadding(dp(c, 10), dp(c, 8), dp(c, 10), dp(c, 8));
@@ -373,7 +387,12 @@ final class Ui {
         hp.gravity = Gravity.CENTER_HORIZONTAL;
         hp.bottomMargin = dp(a, 14);
         box.addView(handle, hp);
-        box.addView(content, full());
+        android.widget.ScrollView scroll = new android.widget.ScrollView(a);
+        scroll.setFillViewport(false);
+        scroll.addView(content, new android.widget.ScrollView.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        box.addView(scroll, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT, 1));
         d.setContentView(box);
         Window w = d.getWindow();
         if (w != null) {

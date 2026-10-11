@@ -38,11 +38,19 @@ public class OnboardingActivity extends Screen {
     private boolean stuckOpen;
     /** After Back, stay on the (possibly done) step until the user moves on themselves. */
     private boolean noAutoAdvance;
+    private final android.os.Handler callbacks = new android.os.Handler(android.os.Looper.getMainLooper());
 
     @Override
     protected void onCreate(Bundle state) {
         super.onCreate(state);
         step = Math.min(Prefs.onboardStep(this), LAST);
+        if (state != null) {
+            noAutoAdvance = state.getBoolean("no_auto_advance");
+            accessTries = state.getInt("access_tries");
+            stuckOpen = state.getBoolean("stuck_open");
+        }
+        if (Build.VERSION.SDK_INT >= 33) getOnBackInvokedDispatcher().registerOnBackInvokedCallback(
+                android.window.OnBackInvokedDispatcher.PRIORITY_DEFAULT, this::goBack);
 
         LinearLayout root = column(this);
         root.setBackgroundColor(BG);
@@ -83,12 +91,28 @@ public class OnboardingActivity extends Screen {
 
     @Override
     public void onBackPressed() {
+        goBack();
+    }
+
+    private void goBack() {
         if (step > WELCOME) {
             noAutoAdvance = true;
             go(step - 1);
         } else {
-            super.onBackPressed();
+            finish();
         }
+    }
+
+    @Override protected void onPause() {
+        callbacks.removeCallbacksAndMessages(null);
+        super.onPause();
+    }
+
+    @Override protected void onSaveInstanceState(Bundle out) {
+        out.putBoolean("no_auto_advance", noAutoAdvance);
+        out.putInt("access_tries", accessTries);
+        out.putBoolean("stuck_open", stuckOpen);
+        super.onSaveInstanceState(out);
     }
 
     // ------------------------------------------------------------- state
@@ -143,20 +167,24 @@ public class OnboardingActivity extends Screen {
     private void checkAdvance() {
         if (noAutoAdvance || !done(this, step)) return;
         final int at = step;
-        body.postDelayed(() -> {
+        callbacks.postDelayed(() -> {
             if (step == at && done(this, at) && !isFinishing()) go(at + 1);
         }, 900);
     }
 
     private void ping() {
-        if (BuddyService.get() == null || !Termux.permitted(this) || !Termux.installed(this)) return;
+        if (!Termux.permitted(this) || !Termux.installed(this)) return;
+        withToolHost(this::pingReady);
+    }
+
+    private void pingReady() {
         try {
             Termux.run(this, "ping");
         } catch (Exception ignored) {
             return;
         }
-        body.postDelayed(this::refreshIfDone, 1500);
-        body.postDelayed(this::refreshIfDone, 4000);
+        callbacks.postDelayed(this::refreshIfDone, 1500);
+        callbacks.postDelayed(this::refreshIfDone, 4000);
     }
 
     private void refreshIfDone() {
@@ -205,13 +233,13 @@ public class OnboardingActivity extends Screen {
                 }
                 break;
             case ACCESS:
-                header(R.drawable.ms_shield_person, "Let androidagent see and tap", ok ? "Accessibility is on." :
+                header(R.drawable.ms_shield_person, "Sterowanie ekranem (opcjonalne)", ok ? "Accessibility is on." :
                         "androidagent accessibility service shows the bubble and lets the agent read the screen, tap and type, "
                                 + "only when you ask it to do something.", ok);
                 if (!ok) {
                     note("Nothing leaves the phone except what " + agentNames() + " sends to "
                             + ("both".equals(Prefs.agents(this)) ? "OpenAI lub Anthropic" : "codex".equals(Prefs.agents(this)) ? "OpenAI" : "Anthropic")
-                            + " to answer you. Sending, posting, buying and deleting always ask for your OK first.");
+                            + " to answer you. Agent ma instrukcję pytania o zgodę przed wysłaniem, zakupem lub usunięciem. Możesz zatrzymać jego pracę.");
                     if (accessTries > 0 && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) restrictedHelp();
                     note("In the list: Downloaded apps → androidagent · sterowanie telefonem → turn it on.");
                     primary("Open accessibility settings", v -> {
@@ -223,6 +251,7 @@ public class OnboardingActivity extends Screen {
                                 + "(below), then ⋮ in the top right → Allow restricted settings, and try again.", null, null);
                         secondary("App info", v -> openAppInfo(getPackageName()));
                     }
+                    secondary("Kontynuuj bez sterowania ekranem", v -> withToolHost(() -> go(PERMISSION)));
                 }
                 break;
             case PERMISSION:

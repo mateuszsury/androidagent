@@ -15,6 +15,7 @@ public class DockerActivity extends Screen {
     private Spinner ram;
     private LinearLayout tasks, exports;
     private String lastTasks = "", lastExports = "";
+    private boolean exportsLoading;
     private DockerVm vm;
     private final Runnable refresh = new Runnable() {
         public void run() {
@@ -55,6 +56,7 @@ public class DockerActivity extends Screen {
         Button log=button(this,"Dziennik środowiska",false);
         log.setOnClickListener(v -> {
             TextView view=monoText(this,vm.console().isEmpty()?"Środowisko jeszcze nie pracuje.":vm.console(),11,CODE_TEXT);
+            view.setBackgroundColor(CODE);view.setPadding(dp(this,12),dp(this,12),dp(this,12),dp(this,12));
             view.setTextIsSelectable(true); ScrollView s=new ScrollView(this);s.addView(view);
             new android.app.AlertDialog.Builder(this).setTitle("Dziennik Linuxa").setView(s).setPositiveButton("Zamknij",null).show();
         }); body.addView(log,full());
@@ -66,11 +68,15 @@ public class DockerActivity extends Screen {
         exports=column(this);body.addView(exports,full());
         Button reset=button(this,"Usuń wszystkie zadania i cache",false);
         reset.setOnClickListener(v -> confirmSheet(this,"Zresetować środowisko?","Usuniesz dysk roboczy, zadania i obrazy Dockera. Zachowane pliki pozostaną dostępne.","Usuń dysk",true,()->{
-            try {vm.reset();lastTasks="";render();}catch(Exception e){error(e);}
+            new Thread(()->{
+                try {vm.reset();runOnUiThread(()->{if(!isDestroyed()){lastTasks="";render();}});}
+                catch(Exception e){runOnUiThread(()->error(e));}
+            },"docker-reset").start();
         }));body.addView(reset,full());
         TextView limits=text(this,"Środowisko korzysta z pamięci i baterii telefonu. Pierwsze uruchomienie wymaga rozpakowania Linuxa; duże projekty potrzebują dodatkowego miejsca.",12,MUTED);
         limits.setPadding(0,dp(this,16),0,0);body.addView(limits,full());
         Button licenses=button(this,"Licencje i źródła",false);licenses.setOnClickListener(v->showLicenses());body.addView(licenses,full());
+        spaceButtons(body);
         scroll.addView(body);root.addView(scroll,new LinearLayout.LayoutParams(-1,0,1));setContentView(root);
     }
     private void create(boolean demo) {
@@ -110,12 +116,26 @@ public class DockerActivity extends Screen {
                 Button b=button(this,task.optString("name","Zadanie"),false);
                 b.setOnClickListener(v->startActivity(new Intent(this,DockerTaskActivity.class).putExtra("task",task.optString("id"))));tasks.addView(b,full());
             }
+            spaceButtons(tasks);
         }
-        JSONArray saved=vm.exports();String files=saved.toString();
+        if(!exportsLoading){exportsLoading=true;new Thread(()->{
+            JSONArray saved=vm.exports();
+            runOnUiThread(()->{exportsLoading=false;if(!isDestroyed())renderExports(saved);});
+        },"docker-exports").start();}
+    }
+    private void renderExports(JSONArray saved) {
+        String files=saved.toString();
         if(!files.equals(lastExports)){lastExports=files;exports.removeAllViews();
             if(saved.length()==0)exports.addView(text(this,"Wyeksportuj plik przed usunięciem zadania.",13,MUTED));
             for(int i=0;i<saved.length();i++){JSONObject file=saved.optJSONObject(i);if(file==null)continue;
                 Button b=button(this,file.optString("name"),false);b.setOnClickListener(v->openExport(file));exports.addView(b,full());}
+            spaceButtons(exports);
+        }
+    }
+    static void spaceButtons(LinearLayout parent) {
+        for(int i=0;i<parent.getChildCount();i++)if(parent.getChildAt(i) instanceof Button){
+            LinearLayout.LayoutParams p=(LinearLayout.LayoutParams)parent.getChildAt(i).getLayoutParams();
+            p.topMargin=dp(parent.getContext(),8);parent.getChildAt(i).setLayoutParams(p);
         }
     }
     void openExport(JSONObject file) {

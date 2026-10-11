@@ -13,8 +13,9 @@ public class DockerTaskActivity extends Screen {
     private TextView output;
     private EditText filename, source, image, command, artifact;
     private CheckBox preview;
-    private boolean polling;
+    private boolean polling, visible;
     private final Handler handler=new Handler(Looper.getMainLooper());
+    private final Runnable pollTick=this::pollJob;
     @Override protected void onCreate(Bundle state){
         super.onCreate(state);vm=DockerVm.get(this);task=getIntent().getStringExtra("task");
         if(task==null){finish();return;} if(state!=null)job=state.getString("job");
@@ -44,6 +45,7 @@ public class DockerTaskActivity extends Screen {
             catch(Exception e){handler.post(()->showError(e));}
         },"docker-export").start();});body.addView(export,full());
         Button cleanup=button(this,"Posprzątaj i usuń zadanie",false);cleanup.setOnClickListener(v->confirmSheet(this,"Usunąć zadanie?","Usuniesz kontener, jego obraz i pliki robocze. Zachowane pliki pozostaną dostępne.","Posprzątaj",true,()->operation("cleanup")));body.addView(cleanup,full());
+        DockerActivity.spaceButtons(body);
         scroll.addView(body);root.addView(scroll,new LinearLayout.LayoutParams(-1,0,1));setContentView(root);
         if(state!=null){filename.setText(state.getString("filename"));source.setText(state.getString("source"));image.setText(state.getString("image"));command.setText(state.getString("command"));artifact.setText(state.getString("artifact"));output.setText(state.getString("output"));preview.setChecked(state.getBoolean("preview"));}
         else {
@@ -83,18 +85,22 @@ public class DockerTaskActivity extends Screen {
         },"docker-task").start();
     }
     private void pollJob(){
-        if(polling||job==null||isDestroyed())return;polling=true;final String id=job;
+        if(polling||!visible||job==null||isDestroyed())return;
+        handler.removeCallbacks(pollTick);polling=true;final String id=job;
         new Thread(()->{
             try{JSONObject result=vm.request(new JSONObject().put("op","logs").put("task",task).put("job",id));
                 handler.post(()->{
-                    polling=false;if(isDestroyed())return;output.setText(result.optString("state")+"\n\n"+result.optString("output"));
-                    if("running".equals(result.optString("state"))||"queued".equals(result.optString("state")))handler.postDelayed(this::pollJob,1500);
+                    polling=false;if(isDestroyed())return;
+                    if(!id.equals(job)){pollJob();return;}
+                    output.setText(result.optString("state")+"\n\n"+result.optString("output"));
+                    if(visible&&("running".equals(result.optString("state"))||"queued".equals(result.optString("state"))))handler.postDelayed(pollTick,1500);
                 });
-            }catch(Exception e){handler.post(()->{polling=false;showError(e);});}
+            }catch(Exception e){handler.post(()->{polling=false;if(!id.equals(job)){pollJob();return;}showError(e);});}
         },"docker-job-poll").start();
     }
     private void showError(Exception e){if(!isDestroyed())output.setText("Błąd: "+e.getMessage());}
-    @Override protected void onResume(){super.onResume();if(job!=null)pollJob();}
-    @Override protected void onPause(){handler.removeCallbacksAndMessages(null);super.onPause();}
-    @Override protected void onSaveInstanceState(Bundle out){out.putString("job",job);out.putString("filename",filename.getText().toString());out.putString("source",source.getText().toString());out.putString("image",image.getText().toString());out.putString("command",command.getText().toString());out.putString("artifact",artifact.getText().toString());out.putString("output",output.getText().toString());out.putBoolean("preview",preview.isChecked());super.onSaveInstanceState(out);}
+    @Override protected void onResume(){super.onResume();visible=true;if(job!=null)pollJob();}
+    @Override protected void onPause(){visible=false;handler.removeCallbacks(pollTick);super.onPause();}
+    @Override protected void onDestroy(){handler.removeCallbacksAndMessages(null);super.onDestroy();}
+    @Override protected void onSaveInstanceState(Bundle out){if(filename!=null){out.putString("job",job);out.putString("filename",filename.getText().toString());out.putString("source",source.getText().toString());out.putString("image",image.getText().toString());out.putString("command",command.getText().toString());out.putString("artifact",artifact.getText().toString());out.putString("output",output.getText().toString());out.putBoolean("preview",preview.isChecked());}super.onSaveInstanceState(out);}
 }

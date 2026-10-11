@@ -290,8 +290,91 @@ public class DockerRuntimeTests extends Instrumentation {
         for(int i=0;i<channels.length();i++)if(id.equals(channels.getJSONObject(i).optString("label")))return true;
         return false;
     }
+    /** Delayed HTTP fixture for races only; real Linux tests remain in suite(). */
+    final class DelayedGuest implements java.io.Closeable {
+        final ServerSocket listener=new ServerSocket();
+        final java.util.concurrent.CountDownLatch attaching=new java.util.concurrent.CountDownLatch(1),release=new java.util.concurrent.CountDownLatch(1);
+        final java.util.List<Thread> clients=new java.util.ArrayList<>();
+        volatile boolean granted,rejectAttachment;volatile int detaches;volatile Throwable error;
+        final Thread accepting;
+        DelayedGuest()throws Exception {
+            listener.setReuseAddress(true);listener.bind(new InetSocketAddress("127.0.0.1",DockerVm.API_PORT));
+            accepting=new Thread(()->{while(!listener.isClosed())try {
+                Socket socket=listener.accept();Thread client=new Thread(()->respond(socket),"delayed-guest-client");
+                synchronized(clients){clients.add(client);}client.start();
+            }catch(IOException e){if(!listener.isClosed())error=e;}},"delayed-guest");accepting.start();
+        }
+        String line(InputStream in)throws Exception {ByteArrayOutputStream bytes=new ByteArrayOutputStream();int ch;while((ch=in.read())!=-1){if(ch==10)return bytes.toString("US-ASCII").trim();if(bytes.size()>8192)throw new IOException("Header limit");bytes.write(ch);}throw new EOFException();}
+        void respond(Socket socket) {
+            try(Socket c=socket) {
+                c.setSoTimeout(10000);InputStream in=c.getInputStream();line(in);int count=0;
+                for(String header;(header=line(in)).length()>0;)if(header.toLowerCase(java.util.Locale.ROOT).startsWith("content-length:"))count=Integer.parseInt(header.substring(header.indexOf(':')+1).trim());
+                if(count<1||count>10000)throw new IOException("Request size");byte[] bytes=new byte[count];new DataInputStream(in).readFully(bytes);
+                JSONObject a=new JSONObject(new String(bytes,StandardCharsets.UTF_8));
+                boolean reject="serial_attach".equals(a.optString("op"))&&rejectAttachment;
+                if("serial_attach".equals(a.optString("op"))){attaching.countDown();if(!release.await(10,java.util.concurrent.TimeUnit.SECONDS))throw new IOException("Fixture deadline");granted=!reject;}
+                else if("usb_detach".equals(a.optString("op"))){granted=false;synchronized(this){detaches++;}}
+                byte[] body=(reject?"{\"error\":\"fixture attach failure\"}":"{\"ok\":true}").getBytes(StandardCharsets.UTF_8);
+                c.getOutputStream().write(("HTTP/1.1 "+(reject?"400 Error":"200 OK")+"\r\nContent-Length: "+body.length+"\r\nConnection: close\r\n\r\n").getBytes(StandardCharsets.US_ASCII));c.getOutputStream().write(body);
+            }catch(Throwable e){error=e;}
+        }
+        public void close()throws IOException {release.countDown();listener.close();try{accepting.join(5000);java.util.List<Thread> pending;synchronized(clients){pending=new java.util.ArrayList<>(clients);}for(Thread t:pending)t.join(5000);}catch(InterruptedException e){Thread.currentThread().interrupt();}}
+    }
+    void attachmentRegressions()throws Exception {
+        test("Docker cancel: malformed task cannot close unrelated USB leases",()->{
+            UsbSessions hub=UsbSessions.get(app);UsbSessions.Session session=new UsbSessions.Session("fixture","serial","panel",null);
+            synchronized(hub){hub.sessions.put(session.id,session);}
+            try {
+                for(String op:new String[]{"cancel","cleanup"})for(String taskId:new String[]{"","../bad"}){
+                    boolean denied=false;try{DockerVm.get(app).request(args("op",op,"task",taskId));}catch(IllegalArgumentException expected){denied=true;}
+                    check(denied&&!session.closed&&hub.owned("panel",session.id)==session,"Invalid task revoked another USB session");
+                }
+            }finally{hub.close("panel",session.id);}
+        });
+        test("UART Docker: cannot attach a second caller to an owned task",()->{
+            DockerVm vm=DockerVm.get(app);String state=vm.state;vm.state="ready";
+            UsbSessions hub=UsbSessions.get(app);UsbSessions.Session first=new UsbSessions.Session("first","docker","owner-one",null),second=new UsbSessions.Session("second","serial","owner-two",null);
+            first.task="11111111111111111111111111111111";second.serial=new SerialTransport(new UsbRuntimeTests.FixturePort(),null);
+            synchronized(hub){hub.sessions.put(first.id,first);hub.sessions.put(second.id,second);}
+            try {boolean denied=false;try{UsbSerialBridge.attach(app,"owner-two",second.id,first.task);}catch(SecurityException expected){denied=true;}
+                check(denied&&second.task.isEmpty()&&!second.serial.bridged,"Cross-owner UART assignment accepted");
+            }finally{vm.state=state;first.task="";hub.close(first.owner,first.id);hub.close(second.owner,second.id);}
+        });
+        test("UART Docker: failed attachment closes its generation before retry (HTTP fixture)",()->{
+            DockerVm vm=DockerVm.get(app);check(!vm.alive(),"Fixture requires stopped VM");String state=vm.state;vm.state="ready";
+            UsbSessions hub=UsbSessions.get(app);UsbSessions.Session session=new UsbSessions.Session("fixture","serial","fixture",null);session.serial=new SerialTransport(new UsbRuntimeTests.FixturePort(),null);
+            synchronized(hub){hub.sessions.put(session.id,session);}
+            try(DelayedGuest guest=new DelayedGuest()) {
+                guest.rejectAttachment=true;guest.release.countDown();boolean failed=false;
+                try{UsbSerialBridge.attach(app,"fixture",session.id,"22222222222222222222222222222222");}catch(IOException expected){failed=true;}
+                check(failed&&session.closed&&!session.serial.bridged,"Failed attachment left a reusable old generation");
+                synchronized(hub){check(!hub.sessions.containsKey(session.id),"Failed session can race a retry against old detach");}
+                long until=SystemClock.elapsedRealtime()+5000;while(guest.detaches<2&&SystemClock.elapsedRealtime()<until)SystemClock.sleep(20);
+                check(guest.detaches>=2&&guest.error==null,"Failed attach rollback did not finish");
+            }finally{vm.state=state;synchronized(hub){if(hub.sessions.get(session.id)==session)hub.close(session.owner,session.id);}UsbSerialBridge.revoke(session);}
+        });
+        test("UART Docker: Stop stays responsive and late attachment is rolled back (HTTP fixture)",()->{
+            DockerVm vm=DockerVm.get(app);check(!vm.alive(),"Fixture requires stopped VM");String state=vm.state;vm.state="ready";
+            UsbSessions hub=UsbSessions.get(app);UsbSessions.Session session=new UsbSessions.Session("fixture","serial","fixture",null);session.serial=new SerialTransport(new UsbRuntimeTests.FixturePort(),null);
+            synchronized(hub){hub.sessions.put(session.id,session);}
+            java.util.concurrent.atomic.AtomicReference<Throwable> result=new java.util.concurrent.atomic.AtomicReference<>();
+            Thread attach=new Thread(()->{try{UsbSerialBridge.attach(app,"fixture",session.id,"22222222222222222222222222222222");}catch(Throwable e){result.set(e);}},"test-uart-attach");
+            try(DelayedGuest guest=new DelayedGuest()) {
+                attach.start();check(guest.attaching.await(5,java.util.concurrent.TimeUnit.SECONDS),"Attachment did not reach HTTP fixture");
+                java.util.concurrent.CountDownLatch closed=new java.util.concurrent.CountDownLatch(1);
+                Thread stop=new Thread(()->{try{hub.close("fixture",session.id);}finally{closed.countDown();}},"test-uart-stop");stop.start();
+                try {check(closed.await(2,java.util.concurrent.TimeUnit.SECONDS),"USB close blocked behind guest I/O");}finally{guest.release.countDown();}
+                attach.join(10000);stop.join(5000);check(!attach.isAlive()&&result.get()!=null,"Revoked attachment reported success");
+                long until=SystemClock.elapsedRealtime()+5000;while((guest.granted||guest.detaches<2)&&SystemClock.elapsedRealtime()<until)SystemClock.sleep(20);
+                check(!guest.granted&&guest.detaches>=2&&guest.error==null,"Late guest grant was not revoked: "+guest.error);
+                synchronized(UsbSerialBridge.class){check(UsbSerialBridge.grants.values().stream().noneMatch(g->g.session==session),"Revoked UART token remains live");}
+                check(!session.serial.bridged,"UART reservation survived Stop");
+            }finally{vm.state=state;attach.join(10000);synchronized(hub){if(hub.sessions.get(session.id)==session)hub.close(session.owner,session.id);}UsbSerialBridge.revoke(session);}
+        });
+    }
     void uiSuite()throws Exception{
         check(!DockerVm.get(app).alive(),"Stop the VM before this dedicated emulator suite");DockerVm.get(app).reset();
+        attachmentRegressions();
         test("UI: readable memory selector in light theme",()->{
             runOnMainSync(()->{Prefs.setThemeMode(app,"light");Theme.changed(app);});launch(DockerActivity.class);
             Spinner s=(Spinner)find(screen.getWindow().getDecorView(),"Pamięć środowiska Docker");

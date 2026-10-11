@@ -11,7 +11,7 @@ public class DockerService extends Service {
     private static final int NOTICE = 730;
     @Override public int onStartCommand(Intent intent, int flags, int id) {
         if (intent != null && "stop".equals(intent.getAction())) {
-            new Thread(() -> { DockerVm.get(this).stop(true); stopSelf(); }, "docker-stop").start();
+            new Thread(() -> { DockerVm.get(this).stop(true); stopSelf(id); }, "docker-stop").start();
             return START_NOT_STICKY;
         }
         if (started) return START_NOT_STICKY;
@@ -31,7 +31,11 @@ public class DockerService extends Service {
         }
         final int ram = intent == null ? 1024 : intent.getIntExtra("ram", 1024);
         final int cores = intent == null ? 1 : intent.getIntExtra("cores", 1);
-        new Thread(() -> { DockerVm.get(this).boot(ram, cores); if (!DockerVm.get(this).alive()) stopSelf(); }, "docker-vm").start();
+        new Thread(() -> {
+            try {DockerVm.get(this).boot(ram, cores);}
+            catch(IllegalStateException ignored) { /* Stop is still releasing resources. */ }
+            finally {if(!DockerVm.get(this).alive())stopSelf(id);}
+        }, "docker-vm").start();
         return START_NOT_STICKY;
     }
     @Override public IBinder onBind(Intent intent) { return null; }

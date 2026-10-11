@@ -30,6 +30,8 @@ final class DockerVm {
     private final String abi;
     final boolean emulatedAndroid;
     private final Object lifecycle = new Object();
+    private final Object preparation = new Object();
+    private int pendingStops;
     private DockerVm(Context c) {
         context = c;
         directory = new File(c.getFilesDir(), "docker");
@@ -57,7 +59,8 @@ final class DockerVm {
     void boot(int ram, int cores) {
         final int generation;
         synchronized (lifecycle) {
-            if (alive() || "preparing".equals(state) || "booting".equals(state)) return;
+            McpHost.get(context).requireReady();
+            if (alive() || "preparing".equals(state) || "booting".equals(state) || "stopping".equals(state)) return;
             generation = ++epoch;
             state = "preparing"; detail = "Przygotowywanie środowiska"; console = "";
         }
@@ -66,6 +69,9 @@ final class DockerVm {
             File nativeDir = new File(context.getApplicationInfo().nativeLibraryDir);
             File qemu = new File(nativeDir, "libqemu.so"), img = new File(nativeDir, "libqemu_img.so");
             if (!qemu.isFile() || !img.isFile()) throw new IOException("Ten APK nie zawiera środowiska QEMU. Zbuduj pełny wariant aplikacji.");
+            final Process running;
+            synchronized (preparation) {
+            if (epoch != generation) return;
             install(generation);
             if (epoch != generation) return;
             File secret = new File(directory, "boot-token");
@@ -115,16 +121,18 @@ final class DockerVm {
             synchronized (lifecycle) {
                 if (epoch != generation) return;
                 ProcessBuilder pb = nativeProcess(shell);
-                pb.environment().put("AA_PID_FILE", new File(directory, "vm.pid").getAbsolutePath());
-                process = pb.start(); state = "booting"; detail = "Uruchamianie Linuxa i Dockera";
+                File pidFile=new File(directory,"vm.pid");
+                if(pidFile.exists()&&!pidFile.delete())throw new IOException("Nie można przygotować pliku procesu środowiska");
+                pb.environment().put("AA_PID_FILE", pidFile.getAbsolutePath());
+                process = pb.start(); running = process; state = "booting"; detail = "Uruchamianie Linuxa i Dockera";
             }
-            final Process running = process;
+            }
             Thread reader = new Thread(() -> {
                 try (InputStream in = running.getInputStream()) {
                     byte[] buffer = new byte[2048]; int n;
                     while ((n = in.read(buffer)) != -1) {
                         String text = new String(buffer, 0, n, StandardCharsets.UTF_8).replace(token, "[token]");
-                        synchronized (this) { console = console + text; if (console.length() > 65536) console = console.substring(console.length() - 65536); }
+                        synchronized (this) { if(epoch != generation)break; console = console + text; if (console.length() > 65536) console = console.substring(console.length() - 65536); }
                     }
                 } catch (Exception ignored) {}
             }, "docker-console");
@@ -133,16 +141,21 @@ final class DockerVm {
             while (epoch == generation && running.isAlive()) {
                 try {
                     JSONObject result = requestRaw(new JSONObject().put("op", "status"), 12000);
-                    guest = result;
-                    if (result.optBoolean("ready")) { state = "ready"; detail = "Docker działa na telefonie"; }
+                    synchronized (lifecycle) {
+                        if (epoch != generation || process != running) break;
+                        guest = result;
+                        if (result.optBoolean("ready")) { state = "ready"; detail = "Docker działa na telefonie"; }
+                    }
                 } catch (Exception ignored) {}
                 if (!"ready".equals(state) && SystemClock.elapsedRealtime() > deadline) throw new IOException("Linux nie uruchomił Dockera w wyznaczonym czasie. Sprawdź dziennik środowiska.");
                 Thread.sleep(2000);
             }
             if (epoch == generation) throw new IOException("Środowisko zakończyło działanie. " + console.substring(Math.max(0, console.length() - 1000)));
         } catch (Exception e) {
-            if (epoch == generation) {
-                kill(); state = "error"; detail = e.getMessage() == null ? e.toString() : e.getMessage();
+            synchronized (lifecycle) {
+                if (epoch == generation) {
+                    kill(); state = "error"; detail = e.getMessage() == null ? e.toString() : e.getMessage();
+                }
             }
         }
     }
@@ -207,7 +220,11 @@ final class DockerVm {
     }
 
     JSONObject request(JSONObject args) throws Exception {
-        if("cleanup".equals(args.optString("op"))||"cancel".equals(args.optString("op")))UsbDocker.closeTask(context,args.optString("task"));
+        if("cleanup".equals(args.optString("op"))||"cancel".equals(args.optString("op"))) {
+            String task=args.optString("task");
+            if(!task.matches("[a-f0-9]{32}"))throw new IllegalArgumentException("Invalid task id");
+            UsbDocker.closeTask(context,task);
+        }
         if (!"ready".equals(state)) throw new IOException("Otwórz Docker w androidagent i uruchom środowisko. " + detail);
         final int generation = epoch;
         JSONObject result = requestRaw(args, 60000);
@@ -272,22 +289,35 @@ final class DockerVm {
         return list;
     }
     void stop(boolean graceful) {
-        UsbDocker.closeVm(context);
-        synchronized (lifecycle) { ++epoch; state = "stopping"; detail = "Zatrzymywanie środowiska"; }
-        if (graceful && alive()) {
-            try { requestRaw(new JSONObject().put("op", "shutdown"), 12000); } catch (Exception ignored) {}
-            try { process.waitFor(5, TimeUnit.SECONDS); } catch (Exception ignored) {}
+        final int generation;final Process running;
+        synchronized (lifecycle) {
+            generation=++epoch;pendingStops++;running=process;state="stopping";detail="Zatrzymywanie środowiska";
         }
-        kill(); guest = new JSONObject(); state = "stopped"; detail = "Środowisko zatrzymane; zadania zapisane";
+        try {
+            UsbDocker.closeVm(context);
+            if (graceful && running!=null && running.isAlive() && epoch==generation) {
+                try { requestRaw(new JSONObject().put("op", "shutdown"), 12000); } catch (Exception ignored) {}
+                try { running.waitFor(5, TimeUnit.SECONDS); } catch (Exception ignored) {}
+            }
+        } finally {
+            synchronized (lifecycle) {
+                // Keep start disabled until every old shutdown request completes.
+                // Otherwise a late HTTP shutdown could reach a new VM on this port.
+                if(epoch==generation) {kill();guest=new JSONObject();detail="Środowisko zatrzymane; zadania zapisane";}
+                if(--pendingStops==0)state="stopped";
+            }
+        }
     }
     void emergencyStop() {
-        UsbDocker.closeVm(context);
-        synchronized (lifecycle) { ++epoch; kill(); state = "stopped"; detail = "Przerwano pracę środowiska"; }
+        synchronized (lifecycle) { ++epoch;pendingStops++;kill();guest=new JSONObject();state="stopping";detail="Przerwano pracę środowiska"; }
+        try {UsbDocker.closeVm(context);}
+        finally {synchronized (lifecycle) {if(--pendingStops==0)state="stopped";}}
     }
     private void kill() {
         Process p = process;
         if (p != null) {
             try {
+                if(!p.isAlive()){process=null;return;}
                 String pid = readBounded(new FileInputStream(new File(directory, "vm.pid")), 32).trim();
                 android.os.Process.sendSignal(Integer.parseInt(pid), 9);
             } catch (Exception ignored) {}
@@ -309,11 +339,13 @@ final class DockerVm {
         }finally{socket.close();}
     }
     void reset() throws Exception {
-        if (alive() || "preparing".equals(state) || "booting".equals(state)) throw new IOException("Najpierw zatrzymaj środowisko");
+        synchronized (lifecycle) {
+        if (alive() || "preparing".equals(state) || "booting".equals(state) || "stopping".equals(state)) throw new IOException("Najpierw zatrzymaj środowisko");
         // Only this app-owned disk. Exported files and model accounts live elsewhere.
         File overlay = new File(directory, "user.qcow2");
         if (overlay.exists() && !overlay.delete()) throw new IOException("Nie można usunąć dysku");
         guest = new JSONObject(); detail = "Usunięto zadania i cache Dockera";
+        }
     }
     private static String readBounded(InputStream in, int max) throws IOException {
         if (in == null) throw new IOException("Brak odpowiedzi");

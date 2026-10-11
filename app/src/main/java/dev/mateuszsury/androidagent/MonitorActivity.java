@@ -110,12 +110,16 @@ public class MonitorActivity extends Screen implements ChatHub.MonitorListener {
         visible = true;
         hub.monitor = this;
         pulse.start();
-        if (BuddyService.get() == null) {
-            runningEmpty.setText("androidagent accessibility service is off, so sessions can't be checked. Turn it on in Settings.");
+        if (!Termux.installed(this) || !Termux.permitted(this)) {
+            runningEmpty.setText("Zainstaluj Termux i zezwól na wykonywanie komend w Ustawieniach.");
+            recentEmpty.setText("Historia będzie dostępna po połączeniu Termux.");
             return;
         }
-        request("recent");
-        running.post(poll);
+        withToolHost(() -> {
+            request("recent");
+            running.removeCallbacks(poll);
+            running.post(poll);
+        });
     }
 
     @Override

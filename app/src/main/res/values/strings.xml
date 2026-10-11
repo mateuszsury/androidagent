@@ -2,5 +2,5 @@
 <resources>
 <string name="app_name">androidagent</string>
 <string name="service_label">androidagent · sterowanie telefonem</string>
-<string name="service_description">Pozwala agentowi Codex odczytywać ekran i wykonywać gesty na Twoje polecenie. Codex działa w Termux; treść odczytana przez agenta może być przesyłana do dostawcy modelu. Dostęp można wyłączyć w dowolnym momencie.</string>
+<string name="service_description">Pozwala wybranemu agentowi (Codex lub Claude Code) odczytywać ekran i wykonywać gesty na Twoje polecenie. Agenci działają w Termux; odczytana treść może być przesyłana do dostawcy wybranego modelu. Dostęp można wyłączyć w dowolnym momencie.</string>
 </resources>

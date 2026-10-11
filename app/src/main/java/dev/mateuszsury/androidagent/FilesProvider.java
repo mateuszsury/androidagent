@@ -77,7 +77,8 @@ public class FilesProvider extends ContentProvider {
     public Cursor query(Uri uri, String[] projection, String sel, String[] args, String order) {
         File f = fileFor(uri);
         if (f == null) return null;
-        MatrixCursor c = new MatrixCursor(new String[]{OpenableColumns.DISPLAY_NAME, OpenableColumns.SIZE});
+        String[] columns=projection==null?new String[]{OpenableColumns.DISPLAY_NAME,OpenableColumns.SIZE}:projection;
+        MatrixCursor c = new MatrixCursor(columns);
         String name = f.getParentFile() != null && "attachments".equals(f.getParentFile().getName())
                 ? Attachments.name(f.getName()) : "photo.jpg";
         if (uri.getPathSegments().size() == 2 && "docker".equals(uri.getPathSegments().get(0))) {
@@ -88,7 +89,12 @@ public class FilesProvider extends ContentProvider {
             } catch (Exception ignored) { name = f.getName(); }
         }
         if(uri.getPathSegments().size()==2&&"usb".equals(uri.getPathSegments().get(0))){try{name=UsbArtifacts.metadata(getContext(),f.getName()).optString("name",f.getName());}catch(Exception ignored){name=f.getName();}}
-        c.addRow(new Object[]{name, f.length()});
+        Object[] row=new Object[columns.length];
+        for(int i=0;i<columns.length;i++){
+            if(OpenableColumns.DISPLAY_NAME.equals(columns[i]))row[i]=name;
+            else if(OpenableColumns.SIZE.equals(columns[i]))row[i]=f.length();
+        }
+        c.addRow(row);
         return c;
     }
 
