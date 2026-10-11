@@ -152,6 +152,39 @@ public final class EmbeddedRuntimeTests extends Instrumentation {
             check(normalized.contains("PTY_INPUT:" + input + "\n") && normalized.contains("PTY_ARG:" + argument + "\n"), result.summary());
             check(!normalized.startsWith(input + "\n"), "PTY echoed potentially sensitive user input");
         });
+        test("A terminal acquires a lasting foreground service when a temporary host is already listening", () -> {
+            if (Build.VERSION.SDK_INT >= 33) ui.grantRuntimePermission(app.getPackageName(), android.Manifest.permission.POST_NOTIFICATIONS);
+            Object temporaryOwner = new Object();
+            McpHost host = McpHost.get(app);
+            host.acquire(temporaryOwner);
+            TerminalActivity terminal = null;
+            try {
+                app.stopService(new Intent(app, AgentService.class));
+                long until = SystemClock.elapsedRealtime() + 15000;
+                while (SystemClock.elapsedRealtime() < until && (AgentService.active || !host.running())) SystemClock.sleep(50);
+                check(!AgentService.active && host.running(), "Temporary listening host fixture was not established");
+                terminal = (TerminalActivity) startActivitySync(new Intent(app, TerminalActivity.class).putExtra("mode", "shell").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK));
+                awaitView(terminal, "Wyślij", 60000, true);
+                until = SystemClock.elapsedRealtime() + 15000;
+                while (SystemClock.elapsedRealtime() < until && !agentForeground()) SystemClock.sleep(50);
+                check(AgentService.active && agentForeground(), "Existing socket skipped the lasting AgentService foreground owner");
+                host.release(temporaryOwner);
+                check(host.running(), "Tool listener stopped when temporary setup owner was released");
+                TerminalActivity opened = terminal;
+                String marker = "FGS_HOST_SURVIVED_" + runId;
+                runOnMainSync(() -> {
+                    EditText input = (EditText) findInput(opened.getWindow().getDecorView());
+                    check(input != null, "Terminal command input missing");
+                    input.setText("printf '" + marker + "\\n'; exit 0");
+                    findLabel(opened.getWindow().getDecorView(), "Wyślij").performClick();
+                });
+                awaitText(terminal, marker, 60000);
+                awaitText(terminal, "[exit 0]", 60000);
+            } finally {
+                host.release(temporaryOwner);
+                if (terminal != null) { TerminalActivity opened = terminal; runOnMainSync(opened::finish); waitForIdleSync(); }
+            }
+        });
         test("Terminal UI starts a real shell and sends stdin after onResume", () -> {
             if (Build.VERSION.SDK_INT >= 33) ui.grantRuntimePermission(app.getPackageName(), android.Manifest.permission.POST_NOTIFICATIONS);
             TerminalActivity terminal = (TerminalActivity) startActivitySync(new Intent(app, TerminalActivity.class).putExtra("mode", "shell").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK));
@@ -372,6 +405,12 @@ public final class EmbeddedRuntimeTests extends Instrumentation {
     private static String processState(int pid) {
         try { return read(new File("/proc/" + pid + "/stat")).trim(); }
         catch (IOException error) { return "pid=" + pid + ", exists=" + processExists(pid) + ", " + error; }
+    }
+    private boolean agentForeground() {
+        android.app.ActivityManager manager = app.getSystemService(android.app.ActivityManager.class);
+        for (android.app.ActivityManager.RunningServiceInfo service : manager.getRunningServices(100))
+            if (AgentService.class.getName().equals(service.service.getClassName())) return service.foreground;
+        return false;
     }
     private View findInput(View view) {
         if (view instanceof EditText) return view;
