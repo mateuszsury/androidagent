@@ -25,10 +25,10 @@ def verify(repository):
         manifest = json.loads((assets / 'manifest.json').read_text())
         if not all(name in manifest['files'] for name in GUEST_FILES):
             raise ValueError(f'{abi}: guest manifest must include disk, kernel and initramfs')
-        if manifest.get('runtime_revision') != 2:
+        if manifest.get('runtime_revision') != 3:
             raise ValueError(f'{abi}: prepare current guest runtime in initramfs first')
         runtime = manifest.get('runtime', {}).get('files', {})
-        if not all(name in runtime for name in ('init.sh', 'agent.py', 'engine.py')):
+        if not all(name in runtime for name in ('init.sh', 'agent.py', 'engine.py', 'diagnostics.py')):
             raise ValueError(f'{abi}: guest runtime manifest must include init, agent and engine supervisor')
         for name, expected in runtime.items():
             if digest(Path(repository) / 'docker/guest' / name) != expected:

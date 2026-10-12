@@ -4,6 +4,9 @@ import os
 from pathlib import Path
 import tempfile
 import unittest
+import sys
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'docker/guest'))
 
 
 class GuestBoundaryTests(unittest.TestCase):
@@ -87,6 +90,83 @@ class GuestBoundaryTests(unittest.TestCase):
             self.agent.task_dir('f' * 32)
         with self.assertRaises(ValueError):
             self.agent.dispatch({'op': 'logs', 'task': self.task, 'job': 'other'})
+
+    def test_startup_status_does_not_start_go_info_probes(self):
+        import json
+        from unittest.mock import patch
+        for stage in ('containerd', 'docker', 'load', 'sync', 'error', 'cancelled'):
+            with patch.object(Path, 'read_text', return_value=json.dumps({'stage': stage})), \
+                 patch.object(self.agent, 'engine_info') as info:
+                status = self.agent.dispatch({'op': 'status'})
+                self.assertFalse(status['ready'])
+                self.assertEqual(stage, status['startup']['stage'])
+                info.assert_not_called()
+
+    def test_readonly_diagnostics_is_available_without_task_lock_or_ready(self):
+        from unittest.mock import patch
+        class Locked:
+            def __enter__(self):
+                raise AssertionError('Diagnostic request must not wait for a task lock')
+            def __exit__(self, *args):
+                pass
+        request = {'op': 'diagnostics', 'max_bytes': 262144, 'tail_bytes': 8192}
+        with patch.object(self.agent, 'LOCK', Locked()), \
+             patch.object(self.agent.diagnostics, 'diagnostics', return_value={'startup': {'stage': 'error'}}) as call:
+            self.assertEqual('error', self.agent.dispatch(request)['startup']['stage'])
+            call.assert_called_once_with(request, token=self.agent.TOKEN)
+
+    def test_stale_ready_rejected_after_real_supervisor_process_exit(self):
+        import json
+        import subprocess
+        from unittest.mock import patch
+        process = subprocess.Popen(['python3', '-c', 'import time;time.sleep(30)'])
+        identity = self.agent.diagnostics.proc_info(process.pid)
+        state = {'stage': 'ready', 'supervisor': {'pid': process.pid, 'start_ticks': identity['start_ticks']}}
+        process.terminate()
+        process.wait(timeout=5)
+        real_read = Path.read_text
+        def read(path, *args, **kwargs):
+            return json.dumps(state) if str(path) == '/run/androidagent-engine.json' else real_read(path, *args, **kwargs)
+        with patch.object(Path, 'read_text', read), \
+             patch.object(self.agent, 'engine_info') as info:
+            status = self.agent.dispatch({'op': 'status'})
+        self.assertFalse(status['ready'])
+        self.assertEqual('error', status['startup']['stage'])
+        self.assertEqual('ready', status['startup']['last_persisted_stage'])
+        self.assertEqual('process_unavailable', status['startup']['supervisor_liveness']['reason'])
+        info.assert_not_called()
+
+    def test_stale_ready_rejected_for_pid_identity_reuse_and_missing_identity(self):
+        import json
+        from unittest.mock import patch
+        current = self.agent.diagnostics.proc_info(os.getpid())
+        for identity in ({}, {'pid': os.getpid(), 'start_ticks': current['start_ticks'] + 1}):
+            real_read = Path.read_text
+            def read(path, *args, **kwargs):
+                return json.dumps({'stage': 'ready', 'supervisor': identity}) if str(path) == '/run/androidagent-engine.json' else real_read(path, *args, **kwargs)
+            with patch.object(Path, 'read_text', read), \
+                 patch.object(self.agent, 'engine_info') as info:
+                status = self.agent.dispatch({'op': 'status'})
+            self.assertFalse(status['ready'])
+            self.assertEqual('error', status['startup']['stage'])
+            info.assert_not_called()
+
+    def test_live_matching_supervisor_allows_actual_engine_ready_check(self):
+        import json
+        from unittest.mock import patch
+        current = self.agent.diagnostics.proc_info(os.getpid())
+        state = {'stage': 'ready', 'supervisor': {'pid': os.getpid(), 'start_ticks': current['start_ticks']}}
+        real_read, real_exists = Path.read_text, Path.exists
+        def read(path, *args, **kwargs):
+            return json.dumps(state) if str(path) == '/run/androidagent-engine.json' else real_read(path, *args, **kwargs)
+        def exists(path):
+            return True if str(path) == '/var/lib/androidagent/images-ready' else real_exists(path)
+        with patch.object(Path, 'read_text', read), patch.object(Path, 'exists', exists), \
+             patch.object(self.agent, 'engine_info', return_value={'ServerVersion': 'unit-fixture'}) as info:
+            status = self.agent.dispatch({'op': 'status'})
+        self.assertTrue(status['ready'])
+        self.assertEqual('verified', status['startup']['supervisor_liveness']['reason'])
+        info.assert_called_once_with()
 
     def test_text_upload_limit_is_enforced(self):
         with self.assertRaises(ValueError):

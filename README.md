@@ -1,14 +1,14 @@
 # androidagent
 
-Natywna aplikacja Android do pracy z Codexem i Claude Code na telefonie: rozmowy, narzędzia telefonu i lokalne komendy. Wersja **0.4.3**, lokalny fork [Buddy](https://github.com/ghorbelhamdi/buddy-android), Apache-2.0. Niezależny projekt, niezwiązany z OpenAI ani Anthropic.
+Natywna aplikacja Android do pracy z Codexem i Claude Code na telefonie: rozmowy, narzędzia telefonu i lokalne komendy. Wersja **0.4.4**, lokalny fork [Buddy](https://github.com/ghorbelhamdi/buddy-android), Apache-2.0. Niezależny projekt, niezwiązany z OpenAI ani Anthropic.
 
-Wersja 0.4.3 zawiera własne środowisko Termux, terminal i instalację oficjalnych klientów z interfejsu aplikacji oraz poprawiony start containerd w VM. Wyniki i granice weryfikacji: [raport testów](docs/TESTING.md). Wcześniejsze zmiany stabilności i interfejsu: [przegląd 0.4.2](docs/REVIEW_0.4.2.md).
+Wersja 0.4.4 zachowuje wbudowane środowisko Termux i oficjalnych klientów. Poprawia nadzór wolnego rozruchu Dockera, dodaje wybór 1/2 CPU i trwałą diagnostykę, którą można zachować z panelu lub odczytać przez MCP także po błędzie. Wyniki i granice weryfikacji: [raport testów](docs/TESTING.md). Wcześniejsze zmiany stabilności i interfejsu: [przegląd 0.4.2](docs/REVIEW_0.4.2.md).
 
 ## Uruchomienie
 
-Aktualizacja z 0.4.2 zachowuje rozmowy, ustawienia i pliki aplikacji. Nowy kod gościa Docker korzysta z tego samego obrazu bazowego, kernela i istniejącego dysku VM; nie wymaga resetu danych. Konto używane wcześniej w osobnej aplikacji Termux nie jest automatycznie kopiowane do androidagent. Zaloguj się we wbudowanym środowisku.
+Aktualizacja z 0.4.2 lub 0.4.3 zachowuje rozmowy, ustawienia i pliki aplikacji. Nowy kod gościa Docker korzysta z tego samego obrazu bazowego, kernela i istniejącego dysku VM; nie wymaga resetu danych. Konto używane wcześniej w osobnej aplikacji Termux nie jest automatycznie kopiowane do androidagent. Zaloguj się we wbudowanym środowisku.
 
-1. Zainstaluj `artifacts/androidagent-0.4.3.apk` na 64-bitowym Androidzie 11 lub nowszym (ARM64 albo x86_64). Aktualizacja wymaga APK podpisanej tym samym certyfikatem co poprzednia wersja.
+1. Zainstaluj `artifacts/androidagent-0.4.4.apk` na 64-bitowym Androidzie 11 lub nowszym (ARM64 albo x86_64). Aktualizacja wymaga APK podpisanej tym samym certyfikatem co poprzednia wersja.
 2. Panel **Sprawdź telefon** i **Uruchom komendę** działają od razu. `/status` w rozmowie również działa bez modelu.
 3. Dotknij selektora agenta i wybierz **Codex**, **Claude Code** albo obu klientów. W **Środowisko i konta** terminal, Python, Node.js, Git i most narzędzi przygotowują się automatycznie. **Przygotuj wybranych agentów** pobiera oficjalne klienty przez HTTPS, sprawdza przypięte SHA256 i ich rzeczywiste pierwsze uruchomienie. Postęp, dziennik, anulowanie i ponowienie są dostępne w aplikacji. Przygotuj co najmniej 1 GB wolnego miejsca.
 4. Wybierz **Zaloguj Codex** lub **Zaloguj Claude Code**. Oficjalny klient pokazuje link/kod we wbudowanym terminalu; właściciel kończy logowanie na oficjalnej stronie. Dane konta pozostają w prywatnym katalogu androidagent. Automatyczne przygotowanie narzędzi nie oznacza logowania do modelu. Modele i pobieranie klientów wymagają internetu.
@@ -25,7 +25,7 @@ Nie trzeba instalować `com.termux`, nadawać `RUN_COMMAND` ani ręcznie wkleja�
 - Narzędzia MCP: `device_status`, `run_command` oraz odziedziczone od Buddy odczyt ekranu, tapnięcia, długie naciśnięcie, tekst, przewijanie, gesty, nawigacja systemowa, aplikacje, URL, zrzut ekranu, potwierdzenia i powiadomienia.
 - Codex CLI **0.162.1** i Claude Code **2.1.296** we wbudowanym środowisku: instalacja z przycisku, oficjalne logowanie, wybór domyślnego agenta, osobne historie i sesje, wznowienie, postęp narzędzi, wybór modelu i obsługa błędów.
 - Claude Code: odpowiedzi na żywo przez `stream-json`, modele Default/Sonnet/Opus/Haiku i własny identyfikator, narzędzia kodowania w trybie programisty oraz przekazanie sesji do oficjalnego Remote Control. Dostępność modeli i Remote Control zależy od konta i klienta. [Instrukcja Claude Code](docs/CLAUDE.md).
-- Lokalny Docker bez roota: Linux VM w APK, zadania, edycja plików, Dockerfile, kontenery, podgląd WWW, eksport wyników i sprzątanie. Te same 12 narzędzi MCP dla Codexa i Claude. [Instrukcja i wymagania](docs/DOCKER.md).
+- Lokalny Docker bez roota: Linux VM w APK, zadania, edycja plików, Dockerfile, kontenery, podgląd WWW, eksport wyników i sprzątanie. Te same 13 narzędzi MCP dla Codexa i Claude. [Instrukcja i wymagania](docs/DOCKER.md).
 - USB Host: natywny terminal UART, flasher ESP, ADB shell/logcat/pliki/APK, katalogi SAF oraz przekazywanie USB do QEMU/Dockera. [Użycie i granice testów](docs/USB.md).
 - Załączniki, zdjęcia, dyktowanie i odczyt odpowiedzi odziedziczone z Buddy; dostępność głosu zależy od zainstalowanego silnika Androida.
 - Tekst zaznaczalny, pogrubienie, kod w tekście i bloki kodu z kopiowaniem.
@@ -41,7 +41,7 @@ Moduł [USB](docs/USB.md) obejmuje bezpośredni UART/ESP, ADB do drugiego Androi
 | Wbudowane środowisko / agenci | Zwykły tryb: powłoka Codexa wyłączona; Claude ma WebSearch/WebFetch/Read z dostępem do załączników oraz MCP telefonu. Tryb programisty: komendy i pliki dostępne dla UID androidagent, z katalogiem startowym `~/.buddy/work` w prywatnym katalogu terminala |
 | Docker | Oddzielny Linux VM i kontener z katalogiem wyłącznie swojego zadania; bez katalogów telefonu i kont agentów |
 | USB | Wybrane urządzenie po zgodzie Androida i przydziale do aktywnej rozmowy; osobne katalogi SAF z odczytem lub zapisem |
-| Shizuku | Opcja następnego etapu, nieimplementowana w 0.4.3 |
+| Shizuku | Opcja następnego etapu, nieimplementowana w 0.4.4 |
 | Model | Usługa zewnętrzna; lokalnie działają klienci Codex/Claude i narzędzia, nie wagi modelu |
 
 Narzędzie MCP `run_command` działa bez Accessibility, ale wymaga trybu programisty i zatwierdzenia pełnej, dokładnej komendy w karcie rozmowy. Zgoda dotyczy konkretnego żądania i przebiegu; stare kliknięcie nie zatwierdza nowej komendy. Terminal otwierany przez użytkownika wykonuje wpisaną komendę po naciśnięciu przycisku. Odziedziczone narzędzia gestów opierają zgodę na instrukcjach agenta; nie jest to twarda blokada wszystkich możliwych operacji w innych aplikacjach. Ekrany chronione, ekran blokady i ograniczenia Androida nie są obchodzone.
@@ -64,13 +64,13 @@ export JAVA_HOME=/ścieżka/do/jdk-21
 ./tools/build-local.sh
 ```
 
-Powstaje `artifacts/androidagent-0.4.3.apk`. Skrypt tworzy lokalny klucz deweloperski w `~/.androidagent-keys`, jeśli go nie ma. Do aktualizacji istniejącej instalacji użyj jej dotychczasowego klucza; nowy certyfikat nie pozwoli jej zaktualizować. Kluczy nie dodajemy do Git. Alternatywna konfiguracja Android Studio/Gradle pochodzi z upstream; zweryfikowana ścieżka to `aapt2 → javac → d8 → apksigner`.
+Powstaje `artifacts/androidagent-0.4.4.apk`. Skrypt tworzy lokalny klucz deweloperski w `~/.androidagent-keys`, jeśli go nie ma. Do aktualizacji istniejącej instalacji użyj jej dotychczasowego klucza; nowy certyfikat nie pozwoli jej zaktualizować. Kluczy nie dodajemy do Git. Alternatywna konfiguracja Android Studio/Gradle pochodzi z upstream; zweryfikowana ścieżka to `aapt2 → javac → d8 → apksigner`.
 
 ## Testy na urządzeniu / emulatorze
 
 ```sh
 export KEYSTORE="$HOME/.androidagent-keys/development.jks"
-adb install -r artifacts/androidagent-0.4.3.apk
+adb install -r artifacts/androidagent-0.4.4.apk
 ./tools/test-android.sh
 ```
 

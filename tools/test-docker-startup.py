@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Real ARM Linux/QEMU migration and supervised startup; never a phone test."""
 import datetime
+import argparse
 import hashlib
 import json
 import os
@@ -13,8 +14,23 @@ import urllib.request
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-OUT = ROOT / 'build-runtime/arm-guest-test'
-REPORT = ROOT / 'artifacts/docker/arm-startup-migration-results.json'
+PARSER = argparse.ArgumentParser(description=__doc__)
+PARSER.add_argument('--baseline-initramfs', type=Path, default=ROOT.parent / 'tools/usb-runtime/044-baseline-guest/arm64-v8a/initramfs-virt')
+PARSER.add_argument('--baseline-version', choices=('0.4.2', '0.4.3'), default='0.4.3')
+PARSER.add_argument('--report-dir', type=Path, default=ROOT / 'artifacts/0.4.4/docker-arm')
+PARSER.add_argument('--vcpus', type=int, choices=(1, 2), default=2, help='vCPUs for the clean cold boot; baseline/upgrade use one')
+PARSER.add_argument('--dockerd-delay', type=int, default=160)
+PARSER.add_argument('--containerd-delay', type=int, default=20)
+PARSER.add_argument('--cpu-quota', type=float, default=.25, help='host CPU cap during upgraded guest startup')
+ARGS = PARSER.parse_args()
+if not 121 <= ARGS.dockerd_delay <= 240 or not 0 <= ARGS.containerd_delay <= 60 or not .05 <= ARGS.cpu_quota <= 2:
+    PARSER.error('dockerd-delay must exceed the old 120s cap and be <=240; containerd-delay0..60; quota0.05..2')
+OUT = ROOT / 'build-runtime/arm-guest-test-044'
+REPORT_DIR = ARGS.report_dir.resolve()
+REPORT = REPORT_DIR / 'arm-startup-migration-results.json'
+BASELINE_SHA = {'0.4.2': '947384afeab8c7622d144e1b400d81b3a18b5353252ab38f45dd982fefd45d27',
+                '0.4.3': 'a2dffdd3132d8677bec23098e2a74af59522855f3952d14348208391fca31388'}[ARGS.baseline_version]
+PRESERVED = 'PRESERVE_' + ARGS.baseline_version + '_PROJECT'
 OPENER = urllib.request.build_opener(urllib.request.ProxyHandler({}))
 DOCKER = ['env', '-u', 'DOCKER_HOST', '-u', 'DOCKER_CONTEXT', '-u', 'DOCKER_TLS', '-u', 'DOCKER_TLS_VERIFY', '-u', 'DOCKER_CERT_PATH', 'docker', '--host=unix:///var/run/docker.sock']
 checks, phases = [], []
@@ -22,6 +38,7 @@ process = None
 phase = None
 started = datetime.datetime.now(datetime.timezone.utc).isoformat()
 run_id = str(uuid.uuid4())
+report = {'failures': 1, 'error': 'Run interrupted before completion'}
 
 
 def sha(path):
@@ -47,22 +64,43 @@ def request(op, timeout=60, **args):
         return json.load(response)
 
 
-def start(name, reuse=False, legacy=False, delay=0, quota=0.5):
+def relative(path):
+    try:
+        return str(path.relative_to(ROOT))
+    except ValueError:
+        return str(path)
+
+
+def save_diagnostics(name):
+    result = request('diagnostics', timeout=15, tail_bytes=8192, max_bytes=262144)
+    encoded = json.dumps(result).encode()
+    if len(encoded) > 262144:
+        raise AssertionError('Diagnostics exceeded exact 256KiB encoded limit')
+    path = REPORT_DIR / ('arm-' + name + '-diagnostics.json')
+    path.write_bytes(encoded + b'\n')
+    return result, path
+
+
+def start(name, reuse=False, legacy=False, delay=0, dockerd_delay=0, quota=None, vcpus=1):
     global process, phase
     phase = name
-    log = ROOT / 'artifacts/docker' / ('arm-' + name + '.log')
+    log = REPORT_DIR / ('arm-' + name + '.log')
     log.parent.mkdir(parents=True, exist_ok=True)
-    args = ['bash', str(ROOT / 'tools/start-arm-guest-test.sh'), '--host-clock', '--memory', '1024', '--cpu-quota', str(quota)]
+    quota = ARGS.cpu_quota if quota is None else quota
+    args = ['bash', str(ROOT / 'tools/start-arm-guest-test.sh'), '--host-clock', '--memory', '1024', '--cpu-quota', str(quota),
+            '--vcpus', str(vcpus), '--baseline-initramfs', str(ARGS.baseline_initramfs.resolve()), '--report-dir', str(REPORT_DIR)]
     if reuse:
         args.append('--reuse-disk')
     if legacy:
         args.append('--legacy-runtime')
-    args += ['--containerd-delay', str(delay)]
+    args += ['--containerd-delay', str(delay), '--dockerd-delay', str(dockerd_delay)]
     with log.open('wb') as stream:
         process = subprocess.Popen(args, stdout=stream, stderr=subprocess.STDOUT, cwd=ROOT)
     began = time.monotonic()
     observations = []
-    until = began + 600
+    until = began + 1200
+    incomplete_was_never_ready = True
+    saw_pre_ready_diagnostics = False
     while time.monotonic() < until:
         if process.poll() is not None:
             raise AssertionError(f'{name}: VM exited with {process.returncode}; see {log}')
@@ -72,19 +110,43 @@ def start(name, reuse=False, legacy=False, delay=0, quota=0.5):
             if not observations or observations[-1].get('stage') != startup.get('stage'):
                 observations.append({**startup, 'observed_after_seconds': round(time.monotonic() - began, 3)})
                 print('STAGE ' + name + ' ' + startup.get('stage', 'legacy'), flush=True)
-            if startup.get('stage') == 'error':
+            if not legacy and startup.get('stage') != 'ready':
+                incomplete_was_never_ready = incomplete_was_never_ready and not status['ready']
+                if not saw_pre_ready_diagnostics:
+                    diagnostic, unused = save_diagnostics(name + '-pre-ready')
+                    saw_pre_ready_diagnostics = diagnostic['startup'].get('stage') != 'ready'
+            if startup.get('stage') in ('error', 'cancelled'):
+                if not legacy:
+                    save_diagnostics(name + '-failure')
                 raise AssertionError(f'{name}: {startup}')
             if status['ready']:
                 elapsed = round(time.monotonic() - began, 3)
-                phases.append({'name': name, 'ram_mb': 1024, 'vcpus': 1, 'host_cpu_quota': quota,
+                diagnostic, diagnostic_path = (None, None) if legacy else save_diagnostics(name + '-ready')
+                phases.append({'name': name, 'ram_mb': 1024, 'vcpus': vcpus, 'host_cpu_quota': quota,
                                'clock_mode': 'host', 'icount': None, 'legacy_runtime': legacy,
-                               'injected_containerd_delay_seconds': delay, 'ready_after_seconds': elapsed,
-                               'startup': startup, 'observations': observations, 'log': str(log.relative_to(ROOT))})
+                               'baseline_version': ARGS.baseline_version if legacy else None,
+                               'injected_containerd_delay_seconds': delay, 'injected_dockerd_delay_seconds': dockerd_delay,
+                               'ready_after_seconds': elapsed, 'incomplete_was_never_ready': incomplete_was_never_ready,
+                               'diagnostics_available_before_ready': saw_pre_ready_diagnostics,
+                               'startup': startup, 'observations': observations, 'log': relative(log),
+                               'ready_diagnostics': relative(diagnostic_path) if diagnostic_path else None})
+                if not legacy:
+                    check('Incomplete phases never reported ready: ' + name, incomplete_was_never_ready)
+                    check('Read-only bounded diagnostics available before real ready: ' + name, saw_pre_ready_diagnostics)
+                    events = diagnostic['events']
+                    check('Ready follows verified image persistence: ' + name,
+                          startup['runtime_revision'] == 3 and diagnostic['startup']['stage'] == 'ready'
+                          and any(event.get('phase') == 'sync' for event in events))
                 return status
         except (OSError, ValueError):
             pass
         time.sleep(2)
-    raise AssertionError(f'{name}: startup exceeded 600 host seconds')
+    if not legacy:
+        try:
+            save_diagnostics(name + '-outer-timeout')
+        except (OSError, ValueError):
+            pass
+    raise AssertionError(f'{name}: startup exceeded 1200 host seconds')
 
 
 def stop():
@@ -120,27 +182,30 @@ try:
     manifest = json.loads((ROOT / 'app/src/main/assets/docker/arm64-v8a/manifest.json').read_text())
     check('Exact 0.4.2 base disk remains unchanged', manifest['files']['base.qcow2.gz'] == '7399ae1c32e046f67bc5bc1de6ff2b71af4ed1329eefe3600396ab6bc67821d4')
     check('Exact 0.4.2 kernel remains unchanged', manifest['files']['vmlinuz-virt'] == '0431ad6e5e0296080add279573c773287b55427bf3ec94fbc2c9f985d0b79966')
-    check('Legacy test initramfs is exact 0.4.2', sha(ROOT / 'build-runtime/guest-arm64-v8a/initramfs-virt') == '947384afeab8c7622d144e1b400d81b3a18b5353252ab38f45dd982fefd45d27')
-    status = start('legacy-seed', legacy=True, quota=1)
+    check('Baseline initramfs is exact ' + ARGS.baseline_version, sha(ARGS.baseline_initramfs) == BASELINE_SHA)
+    status = start('baseline-' + ARGS.baseline_version.replace('.', '') + '-seed', legacy=True, quota=1)
     check('Legacy actual ARM engine ready', status['architecture'] == 'aarch64' and status['engine_version'] == '29.5.2')
-    legacy = request('create', name='0.4.2 preserved project')['id']
-    request('write', task=legacy, path='keep.txt', content='PRESERVE_0.4.2_PROJECT')
+    legacy = request('create', name=ARGS.baseline_version + ' preserved project')['id']
+    request('write', task=legacy, path='keep.txt', content=PRESERVED)
     request('write', task=legacy, path='Dockerfile', content='FROM alpine:3.23\nCMD ["sh", "-c", "echo LEGACY_CONTAINER_MARKER; sleep 3600"]\n')
     check('Legacy image built before migration', job(legacy, 'build')['state'] == 'succeeded')
     check('Legacy container started before migration', job(legacy, 'run', memory_mb=128)['state'] == 'succeeded')
     inode = (OUT / 'user.qcow2').stat().st_ino
     base_sha = sha(OUT / 'base.qcow2')
     stop()
-    status = start('upgrade-delayed', reuse=True, delay=20)
+    status = start('upgrade-dockerd-delayed', reuse=True, delay=ARGS.containerd_delay, dockerd_delay=ARGS.dockerd_delay)
     check('New supervisor actual ARM engine and overlay2', status['architecture'] == 'aarch64' and status['engine_version'] == '29.5.2' and status['storage_driver'] == 'overlay2')
-    check('Containerd delay beyond managed 15 seconds accepted only after real RPC', status['startup']['test_delay_seconds'] == 20 and status['startup']['elapsed_seconds'] >= 20 and status['startup']['containerd_version']['version'] == 'v2.2.0')
+    check('Containerd delay accepted only after real RPC', status['startup']['test_delay_seconds'] == ARGS.containerd_delay and status['startup']['elapsed_seconds'] >= ARGS.containerd_delay and status['startup']['containerd_version']['version'] == 'v2.2.0')
+    check('Dockerd delay beyond old 120s cap reaches actual ping/info', status['startup']['test_dockerd_delay_seconds'] == ARGS.dockerd_delay
+          and status['startup']['engine_version'] == '29.5.2' and status['startup']['elapsed_seconds'] >= ARGS.dockerd_delay
+          and any(row.get('phase') == 'docker' and row.get('phase_budget_seconds') == 360 for row in phases[-1]['observations']))
     check('Migration reuses original overlay inode and backing bytes', (OUT / 'user.qcow2').stat().st_ino == inode and sha(OUT / 'base.qcow2') == base_sha)
-    check('0.4.2 project remains after guest code update', request('read', task=legacy, path='keep.txt')['content'] == 'PRESERVE_0.4.2_PROJECT')
+    check(ARGS.baseline_version + ' project remains after guest code update', request('read', task=legacy, path='keep.txt')['content'] == PRESERVED)
     # Restart of Docker restores the existing container object, but its live
     # process was deliberately stopped by shutdown; start is a normal task run.
-    check('0.4.2 container object and its logs survive migration', 'LEGACY_CONTAINER_MARKER' in request('logs', task=legacy)['output'])
-    check('0.4.2 built image and container run after migration', job(legacy, 'run', memory_mb=128)['state'] == 'succeeded')
-    check('Migrated container exec sees persisted workspace', 'PRESERVE_0.4.2_PROJECT' in job(legacy, 'exec', command='cat /workspace/keep.txt')['output'])
+    check(ARGS.baseline_version + ' container object and its logs survive migration', 'LEGACY_CONTAINER_MARKER' in request('logs', task=legacy)['output'])
+    check(ARGS.baseline_version + ' built image and container run after migration', job(legacy, 'run', memory_mb=128)['state'] == 'succeeded')
+    check('Migrated container exec sees persisted workspace', PRESERVED in job(legacy, 'exec', command='cat /workspace/keep.txt')['output'])
     task = request('create', name='ARM full lifecycle')['id']
     demo = ROOT / 'app/src/main/assets/docker/demo'
     request('write', task=task, path='index.html', content='<html><body>REAL_ARM_DOCKER_PREVIEW<button onclick="this.textContent=\'works\'">Tap</button></body></html>')
@@ -155,23 +220,29 @@ try:
     check('ARM exec verifies UID, WORKDIR and actual 128 MiB cgroup', 'aarch64' in result['output'])
     check('Container logs accessible', isinstance(request('logs', task=task)['output'], str))
     exported = artifact(task, 'out/built.txt')
-    retained = ROOT / 'artifacts/docker/arm-retained-build.txt'
+    retained = REPORT_DIR / 'arm-retained-build.txt'
     retained.write_bytes(exported)
     check('Actual build output exported', exported.strip() == b'ARM_REAL_BUILD_OK')
     pending = request('exec', task=task, command='sleep 60; echo SHOULD_NOT_FINISH')
     time.sleep(2)
     request('cancel', task=task)
     check('Cancellation stops running operation', request('logs', task=task, job=pending['id'])['state'] == 'cancelled')
-    check('Cleanup targets only selected project', request('cleanup', task=task)['cleaned'] == task and request('read', task=legacy, path='keep.txt')['content'] == 'PRESERVE_0.4.2_PROJECT')
+    check('Cleanup targets only selected project', request('cleanup', task=task)['cleaned'] == task and request('read', task=legacy, path='keep.txt')['content'] == PRESERVED)
     stop()
-    status = start('restart-persistent', reuse=True)
-    check('Restart keeps migrated disk inode and project', (OUT / 'user.qcow2').stat().st_ino == inode and request('read', task=legacy, path='keep.txt')['content'] == 'PRESERVE_0.4.2_PROJECT')
+    previous_boot = status['startup']['boot_id']
+    status = start('restart-persistent', reuse=True, quota=.5)
+    check('Restart keeps migrated disk inode and project', (OUT / 'user.qcow2').stat().st_ino == inode and request('read', task=legacy, path='keep.txt')['content'] == PRESERVED)
+    diagnostic, unused = save_diagnostics('restart-persistent-retention')
+    prior = request('diagnostics', boot_id=previous_boot, max_bytes=262144, tail_bytes=1024)
+    check('Prior boot logs remain readable under a distinct boot UUID', status['startup']['boot_id'] != previous_boot
+          and previous_boot in diagnostic['available_boots'] and prior['historical_snapshot']
+          and bool(prior['logs'].get('docker.log', {}).get('tail')))
     check('Host export survives cleanup and VM restart', retained.read_bytes() == exported)
     check('Migrated image reusable after second reboot', job(legacy, 'run', memory_mb=128)['state'] == 'succeeded')
     request('cleanup', task=legacy)
     stop()
-    status = start('clean-delayed', delay=20)
-    check('Fresh disk ready after actual base image import and sync', status['ready'] and status['startup']['stage'] == 'ready' and status['startup']['test_delay_seconds'] == 20)
+    status = start('cold-two-vcpu', delay=ARGS.containerd_delay, quota=.5, vcpus=ARGS.vcpus)
+    check('Fresh disk ready after actual base image import and sync', status['ready'] and status['startup']['stage'] == 'ready' and status['startup']['test_delay_seconds'] == ARGS.containerd_delay)
     fresh = request('create', name='Clean first install')['id']
     request('write', task=fresh, path='Dockerfile', content='FROM alpine:3.23\nRUN echo FRESH_IMAGE_OK >/built\nCMD ["sh", "-c", "sleep 3600"]\n')
     job(fresh, 'build')
@@ -199,10 +270,11 @@ finally:
                    'guest_manifest': json.loads((ROOT / 'app/src/main/assets/docker/arm64-v8a/manifest.json').read_text()),
                    'limits': ['No physical Android ARM host or tablet validation', 'HTTP serves real interactive HTML; JavaScript requires separate Android WebView suite', 'CPU quota limits x86 host, not a calibrated Lenovo benchmark']})
     versions = []
-    for log in (ROOT / 'artifacts/docker').glob('arm-*.log'):
+    report['baseline_initramfs'] = {'path': str(ARGS.baseline_initramfs.resolve()), 'version': ARGS.baseline_version, 'sha256': BASELINE_SHA}
+    for log in REPORT_DIR.glob('arm-*.log'):
         match = re.search(r'QEMU emulator version ([^\r\n]+)', log.read_text(errors='replace'))
         if match:
-            versions.append({'log': str(log.relative_to(ROOT)), 'qemu_version': match[1]})
+            versions.append({'log': relative(log), 'qemu_version': match[1]})
     report['qemu_versions'] = versions
     REPORT.parent.mkdir(parents=True, exist_ok=True)
     REPORT.write_text(json.dumps(report, indent=2) + '\n')

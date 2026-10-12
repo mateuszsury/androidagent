@@ -39,3 +39,5 @@ artifacts/docker-ui/*.png
 artifacts/usb/*.png
 artifacts/api36/**/*.png
 artifacts/0.4.3/**/*.png
+
+artifacts/0.4.4/**/*.png
