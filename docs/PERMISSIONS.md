@@ -1,32 +1,40 @@
-# Zgody i działanie w tle
+# Permissions and background operation
 
-Ekran **Uprawnienia** (`PermissionGuide.open(Context)`) pokazuje bieżący stan i otwiera odpowiednie okna Androida. Odczytuje stan ponownie po powrocie do aplikacji. Samo otwarcie ekranu nie wyświetla prośby o zgodę i nie zmienia ustawień. Aplikacja nie nadaje sobie zgód ani nie obchodzi potwierdzeń właściciela.
+The Permissions screen reads the current state and opens Android's own consent dialogs/settings. It refreshes after returning to the app. Opening the guide alone neither requests permission nor changes settings. The app cannot grant itself system consent.
 
-| Dostęp | Kiedy jest potrzebny | Sposób uzyskania |
+| Access | Purpose | Owner action |
 | --- | --- | --- |
-| Internet i stan sieci | Połączenie z oficjalnym klientem/modelami i lokalne narzędzia | Normalne deklaracje manifestu; bez dialogu runtime |
-| Usługa pierwszoplanowa (`FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_SPECIAL_USE`) | Działające lokalne narzędzia i VM podczas zadań uruchomionych przez użytkownika | Manifest i odpowiedni typ usługi; start z widocznej aplikacji |
-| `WAKE_LOCK` | Utrzymanie pracy CPU podczas uruchomionej VM | Normalna deklaracja manifestu; bez dialogu runtime |
-| Powiadomienia (`POST_NOTIFICATIONS`, Android 13 / API 33+) | Widoczne zadanie i przycisk Stop w powiadomieniu | Opcjonalny dialog Androida lub ustawienia powiadomień tej aplikacji |
-| Mikrofon (`RECORD_AUDIO`) | Dyktowanie wiadomości | Opcjonalny dialog Androida; wpisywanie tekstu działa bez tej zgody |
-| Ułatwienia dostępu / Accessibility | Odczyt ekranu, gesty i klikanie w innych aplikacjach | Właściciel włącza usługę androidagent w ustawieniach ułatwień dostępu |
-| Wyjątek optymalizacji baterii | Długie rozmowy, kompilacje i VM w tle | Opcjonalne systemowe potwierdzenie, osobno dla androidagent |
-| USB | Dostęp do konkretnego urządzenia po USB OTG | `UsbManager.requestPermission()` dopiero dla wybranego urządzenia |
-| Foldery i pliki poza przestrzenią aplikacji | Wybrany folder, nośnik USB lub załącznik | Systemowy wybór SAF; zakres zgody obejmuje wybrane URI |
-| Instalowanie innych APK (`REQUEST_INSTALL_PACKAGES`) | Osobna funkcja instalacji zbudowanej aplikacji | Opcjonalna zgoda „Instalowanie nieznanych aplikacji” i systemowy instalator |
+| Internet/network state | Official clients and model connections | Normal manifest permissions; no runtime dialog |
+| Foreground service / special-use service | User-started tools and VM tasks | Started from the visible app, with the required notification |
+| Wake lock | Keep CPU work active during VM operation | Normal manifest permission |
+| Notifications, API 33+ | Visible task status and notification Stop | Optional Android permission or app notification settings |
+| Microphone | Dictation | Optional runtime consent; typing remains available |
+| Accessibility | Screen reading and gestures in other apps | Enable androidagent's service in system Accessibility settings |
+| Battery optimization exception | Long conversations/builds and background VM | Optional system confirmation for this app |
+| USB | One selected OTG device | Android USB permission dialog for that device |
+| External files/folders | Attachments, chosen storage and USB media | SAF picker grants for selected URIs |
+| Install unknown apps | Installing an exported APK | Optional install-source setting plus Android's package installer |
 
-Odmowa powiadomień **nie jest przeszkodą dla uruchomienia usługi pierwszoplanowej**. Android nadal wymaga jej powiadomienia, lecz może pokazywać aktywną usługę jedynie we własnym panelu zadań. `POST_PROMOTED_NOTIFICATIONS` na Androidzie 16 dotyczy prezentacji powiadomień; nie jest warunkiem rozmowy ani wykonania komendy. Poszczególne kanały użytkownik kontroluje w systemowych ustawieniach powiadomień.
+Denying `POST_NOTIFICATIONS` does not prevent a foreground service. Android still requires its notification and may display it only in the system active-apps panel. Android 16's promoted-notification permission affects presentation, not whether commands or conversations can run.
 
-Stan ułatwień dostępu porównuje dokładny komponent własnej usługi, a nie sam fakt, że jakakolwiek usługa jest aktywna. Ekran rozróżnia usługę włączoną i rzeczywiście połączoną. Nie zapisuje `enabled_accessibility_services` ani `accessibility_enabled`. W szczególności nie wyłącza `app.flowmesh.alpha/app.flowmesh.platform.FlowMeshAccessibilityService` ani pozostałych usług właściciela. Brak Accessibility nie blokuje terminala, rozmów, USB lub Dockera. Narzędzia sterujące ekranem zwracają wtedy błąd wymaganej zgody.
+## Screen control
 
-MCP `run_command` korzysta z osobnej karty zgody we własnej rozmowie i działa bez Accessibility. Tryb programisty oraz zatwierdzenie pełnej, nieuciętej komendy są obowiązkowe. Prośba ma własne ID i jest związana z poświadczeniem konkretnego przebiegu; zgoda ze starego przebiegu ani kliknięcie zachowanego starego przycisku nie zatwierdzają nowego żądania. Stop oraz zakończenie przebiegu odwołują prośby i przerywają przypisane do niego komendy. Terminal otwarty ręcznie przez właściciela uruchamia wpisaną przez niego komendę bez karty MCP.
+The app checks the exact component of its own Accessibility service and distinguishes enabled from actually connected. It does not write the global Accessibility settings or disable other services, including FlowMesh. Terminal, chat, USB and Docker do not require Accessibility; screen tools return a consent error without it.
 
-Po instalacji APK Android może zablokować włączenie Accessibility jako ustawienie z ograniczeniami. Ekran wyjaśnia, jak właściciel może użyć opcji **Zezwól na ustawienia z ograniczeniami** w Informacjach o aplikacji, jeśli urządzenie ją udostępnia. Aplikacja sama tej opcji nie włącza.
+Android may block Accessibility after sideloading. The guide explains the owner-operated **Allow restricted settings** option in App info where supported. The app does not bypass that confirmation, the lock screen or protected system screens.
 
-Wyjątek baterii poprawia szanse zakończenia długiego zadania; nie gwarantuje działania przy braku pamięci ani nie znosi ograniczeń producenta, Androida lub procesów potomnych. Przy problemach właściciel może sprawdzić systemowe ograniczenia działania androidagent w tle. Przywrócenie zwykłej optymalizacji pozostaje dostępne w ustawieniach Androida.
+## Commands and Stop
 
-USB używa typu usługi `connectedDevice` na nowych Androidach i rozpoczyna pracę po zgodzie na urządzenie. Nie wymaga wspólnej zgody na wszystkie urządzenia. SAF zastępuje szeroki dostęp do pamięci: nie potrzeba `MANAGE_EXTERNAL_STORAGE` ani dawnych `READ_EXTERNAL_STORAGE` / `WRITE_EXTERNAL_STORAGE`. Kontrola istniejących grantów i cofnięcie dostępu do sesji należą do warstwy USB/plików.
+MCP `run_command` requires developer mode and an approval card containing the complete command. Approval belongs to one request and run credential. Old buttons cannot approve replacement requests. Stop and run completion revoke pending approvals and cancel associated commands. A terminal opened by the owner executes their entered command directly.
 
-Logowanie do Codexa lub Claude Code jest niezależne od powyższych zgód. Gotowe lokalne środowisko nie oznacza zalogowanego modelu; właściciel korzysta z oficjalnej metody logowania. Nie kopiujemy tokenów ani kont z innego komputera.
+The agents' own developer-mode coding tools have broader app-UID access as described in [Claude Code](CLAUDE.md). They are not subject to the MCP command card for every operation.
 
-`PermissionRegressionChecks` sprawdza stan Androida, trasy natywnych ustawień, nieeksportowany ekran, odświeżanie po `onResume`, rozpoznawanie tylko własnej usługi oraz zachowanie istniejącej listy Accessibility. Test przycisku blokuje natywne okno przez `Instrumentation.ActivityMonitor`; nie nadaje ani nie odbiera zgód na fizycznym urządzeniu.
+## Background and storage
+
+Battery exemptions improve the chance of finishing long tasks, but do not remove Android/OEM memory or child-process limits. They are reversible through Android settings. The app does not globally disable Android protections.
+
+USB uses the `connectedDevice` service type where required and starts only after device consent. SAF avoids broad storage permissions: no `MANAGE_EXTERNAL_STORAGE` is required. Device permission and conversation assignment are distinct; choosing a folder grants only the requested read or read/write access.
+
+Provider login is separate from system permissions. An initialized environment is not an authenticated model account. Credentials remain in app-private storage and are not copied from another computer.
+
+Permission instrumentation checks native settings routes, refresh behavior, exact service recognition and preservation of existing Accessibility state. Emulator instrumentation can change its own test settings; it is not evidence that the application can grant itself permissions.

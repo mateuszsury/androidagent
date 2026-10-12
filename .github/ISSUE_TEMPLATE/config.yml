@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Documentation and setup
+    url: https://github.com/mateuszsury/androidagent/blob/main/docs/README.md
+    about: Start with installation, permissions, Docker, USB and build guides.
+  - name: Private vulnerability report
+    url: https://github.com/mateuszsury/androidagent/security
+    about: Use private reporting when available; see SECURITY.md for a contact fallback.

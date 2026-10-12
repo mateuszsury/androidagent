@@ -1,7 +1,0 @@
-{
-  "observed_at": "2026-10-12T01:18:30.986337+00:00",
-  "phase": "upgrade-dockerd-delayed",
-  "nano_cpus": 250000000,
-  "cpu_max": "25000 100000",
-  "expected_host_cpu_quota": 0.25
-}

@@ -2,10 +2,41 @@ name: Android build and emulator tests
 on:
   push:
     branches: [main, androidagent]
+    paths:
+      - 'app/**'
+      - 'docker/**'
+      - 'terminal/**'
+      - 'termux/**'
+      - 'usb/**'
+      - 'tests/**'
+      - 'tools/**'
+      - '!tools/check-docs.py'
+      - 'gradle/**'
+      - '*.gradle.kts'
+      - 'gradle.properties'
+      - 'gradlew*'
+      - 'build.sh'
   pull_request:
+    paths:
+      - 'app/**'
+      - 'docker/**'
+      - 'terminal/**'
+      - 'termux/**'
+      - 'usb/**'
+      - 'tests/**'
+      - 'tools/**'
+      - '!tools/check-docs.py'
+      - 'gradle/**'
+      - '*.gradle.kts'
+      - 'gradle.properties'
+      - 'gradlew*'
+      - 'build.sh'
   workflow_dispatch:
 permissions:
   contents: read
+concurrency:
+  group: android-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   android:
     runs-on: ubuntu-latest
@@ -91,6 +122,7 @@ jobs:
         if: always()
         with:
           name: androidagent-${{ env.APP_VERSION }}-api${{ matrix.api }}
+          retention-days: 7
           path: |
             artifacts/androidagent-${{ env.APP_VERSION }}.apk
             artifacts/${{ env.APP_VERSION }}/api${{ matrix.api }}/

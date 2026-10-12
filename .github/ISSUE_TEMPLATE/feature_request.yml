@@ -1,0 +1,24 @@
+name: Feature request
+description: Propose a capability with a concrete use case.
+title: "[Feature]: "
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What task would this help you complete?
+      description: Describe the user problem and current limitation.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior
+      description: Include device, permissions or hardware requirements where relevant.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives or examples
+      description: Optional references and tradeoffs, without credentials or private data.

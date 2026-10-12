@@ -1,9 +1,0 @@
-{
-  "clock_mode": "host",
-  "vcpus": 1,
-  "ram_mb": 1024,
-  "host_cpu_quota": 1.0,
-  "injected_containerd_delay_seconds": 0,
-  "injected_dockerd_delay_seconds": 0,
-  "baseline_runtime": true
-}

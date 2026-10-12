@@ -1,40 +1,36 @@
-androidagent 0.4.2
+androidagent
 
-This is a modified version of Buddy by ghorbelhamdi and contributors.
+This application is a modified version of Buddy by ghorbelhamdi and contributors.
 Upstream: https://github.com/ghorbelhamdi/buddy-android
-Base commit: 8c69699b1338f3b3c177979bbd0a69140bbdb9ce (Buddy 1.0.0)
-Upstream and the application integration modifications are distributed under
-Apache License 2.0. Separately bundled runtime components retain their licenses.
+Original base: 8c69699b1338f3b3c177979bbd0a69140bbdb9ce (Buddy 1.0.0)
+Buddy and androidagent's application integration modifications are distributed
+under Apache License 2.0. Separately bundled components retain their licenses.
 
-Modifications (2026-10-09): separate application identity and MCP port;
-conversation-first androidagent UI; Codex defaults; device metrics; bounded local
-shell with per-command approvals; rich message rendering; draft preservation;
-ARM64/x86_64 Codex launcher; device instrumentation tests and build scripts.
-Additional modifications (2026-10-10): Claude Code ARM64/x86_64 musl runtime
-setup, backend selection, streamed responses, isolated sessions, CLI auth status,
-model aliases, Remote Control MCP policy and integration coverage. Runtime downloads
-are separate: official Anthropic npm packages and Alpine musl (MIT), not bundled.
-Java package paths were moved from app.buddy.assistant to dev.mateuszsury.androidagent.
+androidagent modifications (2026): separate application identity and MCP port;
+native conversation interface, device metrics, bounded command execution and
+per-request approval; Codex and Claude Code integration; persistent sessions,
+streaming and run cancellation; app-owned embedded Termux userspace and client
+setup; QEMU/Linux VM lifecycle, supervised Docker startup, project tasks,
+interactive previews, diagnostic export and cleanup; direct USB UART/ESP/ADB,
+SAF storage and task-scoped USB/UART passthrough; build and validation tooling.
 
-Geist and Geist Mono fonts: SIL Open Font License, bundled in
-app/src/main/assets/fonts/OFL-Geist.txt.
-Material Symbols icons: Apache License 2.0 (upstream).
+Geist and Geist Mono fonts retain SIL Open Font License notices in
+app/src/main/assets/fonts/OFL-Geist.txt. Material Symbols icons retain their
+upstream Apache License 2.0 attribution.
 
-androidagent is an independent community application. It is not an official
-OpenAI or Anthropic application. Codex, ChatGPT and Claude belong to their
-respective owners. No provider credentials or model binaries are bundled.
-
-Additional modifications (2026-10-10): own local Linux VM lifecycle, Docker
-task controller, native project UI, shared Codex/Claude MCP tools, artifact
-export and task cleanup. QEMU/SeaBIOS, Linux and Alpine packages are separately
-licensed runtime components; see docker/SOURCES.md and docker/licenses.
-
-Additional modifications (2026-10-10): shared MCP host independent of
-Accessibility, per-run USB grants, native UART and ESP flashing, USB ADB,
-SAF storage, scoped USB redirection into Docker and a task-bound UART bridge.
 usb-serial-for-android by mik3y and contributors retains its MIT license.
-esp-serial-flasher by Espressif and contributors retains its Apache-2.0 license.
-Pinned sources, adaptations and notices: usb/README.md, usb/sources.json,
-usb/licenses and the original copyright notices in vendored source files.
-libusb and usbredir retain their separately documented runtime licenses
-under docker/licenses and docker/SOURCES.md.
+esp-serial-flasher by Espressif and contributors retains Apache-2.0.
+Their original copyright notices, pinned sources and documented adaptations
+are retained in usb/ and the vendored source files.
+
+QEMU, SeaBIOS, Linux, Alpine/Termux programs, PRoot, libusb, usbredir and their
+dependencies have separately documented licenses. See THIRD_PARTY_NOTICES.md,
+docker/SOURCES.md, terminal/SOURCES.md, usb/README.md and their license directories.
+The root application license does not relicense these runtime components.
+
+Codex and Claude Code clients are downloaded from official pinned packages on
+the user's device. Claude Code is proprietary Anthropic software and is not
+redistributed in the APK. No provider credentials or model weights are bundled.
+
+androidagent is an independent community application, not an official OpenAI
+or Anthropic product. Codex, ChatGPT and Claude belong to their respective owners.
