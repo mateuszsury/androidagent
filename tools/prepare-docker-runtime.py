@@ -50,10 +50,10 @@ def pack(entries):
 
 def payload():
     source = ROOT / 'docker/guest'
-    files = {name: (source / name).read_bytes() for name in ('init.sh', 'agent.py', 'engine.py')}
+    files = {name: (source / name).read_bytes() for name in ('init.sh', 'agent.py', 'engine.py', 'diagnostics.py')}
     files.update({str(path.relative_to(source)): path.read_bytes()
                   for path in sorted((source / 'python').rglob('*.py'))})
-    runtime = {'revision': 2, 'files': {name: hashlib.sha256(data).hexdigest() for name, data in files.items()}}
+    runtime = {'revision': 3, 'files': {name: hashlib.sha256(data).hexdigest() for name, data in files.items()}}
     files['runtime.json'] = (json.dumps(runtime, indent=2) + '\n').encode()
     lines = ['#!/bin/sh', 'set -eu', 'root=$1', 'source=/androidagent-runtime',
              'test -d "$root/opt/androidagent"', '# Only owned code; never copy a base disk or task directory.']
@@ -62,7 +62,7 @@ def payload():
                       f'cp "$source/{name}" "$root/opt/androidagent/{name}.aa-new"',
                       f'chmod {"755" if name == "init.sh" else "644"} "$root/opt/androidagent/{name}.aa-new"',
                       f'mv -f "$root/opt/androidagent/{name}.aa-new" "$root/opt/androidagent/{name}"'])
-    lines.extend(['sync', 'echo ANDROIDAGENT_RUNTIME_REVISION_2_INSTALLED'])
+    lines.extend(['sync', 'echo ANDROIDAGENT_RUNTIME_REVISION_3_INSTALLED'])
     files['install.sh'] = ('\n'.join(lines) + '\n').encode()
     return files, runtime
 
@@ -99,13 +99,13 @@ def prepare(abi):
     temporary.write_bytes(gzip.compress(pack(updated), compresslevel=6, mtime=0))
     temporary.replace(path)
     manifest = json.loads((directory / 'manifest.json').read_text())
-    manifest['version'] = 2
+    manifest['version'] = 3
     manifest['runtime_revision'] = runtime['revision']
     manifest['migration'] = 'same-base-and-kernel-owned-runtime-in-initramfs'
     manifest['runtime'] = runtime
     manifest['files']['initramfs-virt'] = hashlib.sha256(path.read_bytes()).hexdigest()
     (directory / 'manifest.json').write_text(json.dumps(manifest, indent=2) + '\n')
-    print(f'{abi}: runtime revision 2 embedded; base disk and kernel unchanged')
+    print(f'{abi}: runtime revision 3 embedded; base disk and kernel unchanged')
 
 
 if __name__ == '__main__':

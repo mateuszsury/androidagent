@@ -18,6 +18,7 @@ import subprocess
 import threading
 import time
 import uuid
+import diagnostics
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlsplit
@@ -286,17 +287,26 @@ for path in ROOT.iterdir():
 
 def dispatch(a):
     op = a.get('op')
+    # Read-only evidence must stay available while startup is incomplete or a
+    # long task operation owns LOCK. It never exposes a guest shell.
+    if op == 'diagnostics':
+        return diagnostics.diagnostics(a, token=TOKEN)
+    if op == 'shutdown':
+        Path('/run/androidagent-engine.cancel').touch()
     with LOCK:
         if op == 'status':
             try:
                 startup = json.loads(Path('/run/androidagent-engine.json').read_text())
             except (OSError, ValueError):
                 startup = {'stage': 'starting', 'detail': 'Uruchamianie nadzoru silnika'}
-            try:
-                engine = engine_info()
-                ready = bool(engine.get('ServerVersion')) and startup.get('stage') == 'ready' and Path('/var/lib/androidagent/images-ready').exists()
-            except (OSError, ValueError, http.client.HTTPException) as error:
-                engine, ready = {'error': str(error)}, False
+            startup = diagnostics.checked_startup(startup)
+            engine, ready = {'ServerVersion': startup.get('engine_version'), 'Driver': startup.get('storage_driver')}, False
+            if startup.get('stage') == 'ready':
+                try:
+                    engine = engine_info()
+                    ready = bool(engine.get('ServerVersion')) and Path('/var/lib/androidagent/images-ready').exists()
+                except (OSError, ValueError, http.client.HTTPException) as error:
+                    engine, ready = {'error': str(error)}, False
             return {'ready': ready, 'engine_version': engine.get('ServerVersion'), 'architecture': os.uname().machine,
                     'storage_driver': engine.get('Driver'), 'disk_free_bytes': os.statvfs(ROOT).f_bavail * os.statvfs(ROOT).f_frsize,
                     'startup': startup,
@@ -310,9 +320,15 @@ def dispatch(a):
             (path / 'task.json').write_text(json.dumps(info))
             return task_info(path)
         if op == 'shutdown':
-            for p in ROOT.iterdir():
-                if (p / 'task.json').is_file():
-                    cancel(p.name)
+            # No Docker CLI flood while the daemon is still initializing.
+            try:
+                startup = json.loads(Path('/run/androidagent-engine.json').read_text())
+            except (OSError, ValueError):
+                startup = {}
+            if startup.get('stage') == 'ready':
+                for p in ROOT.iterdir():
+                    if (p / 'task.json').is_file():
+                        cancel(p.name)
             command(['sync'])
             threading.Timer(1, lambda: subprocess.Popen(['poweroff', '-f'])).start()
             return {'stopping': True}
@@ -487,6 +503,7 @@ class Handler(BaseHTTPRequestHandler):
             if not 0 < count <= REQUEST_LIMIT:
                 raise ValueError('Request size exceeds limit')
             data = json.loads(self.rfile.read(count))
+            self.operation = data.get('op') if data.get('op') in ('status', 'diagnostics', 'shutdown', 'create', 'build', 'run', 'exec', 'logs', 'cancel', 'cleanup', 'write', 'read', 'files', 'usb_attach', 'usb_detach', 'serial_attach') else 'unknown'
             self.reply(200, dispatch(data))
         except (BrokenPipeError, ConnectionResetError):
             pass
@@ -517,7 +534,15 @@ class Handler(BaseHTTPRequestHandler):
 
     def log_message(self, fmt, *args):
         # Never log bearer tokens or source file contents.
-        print(fmt % args, flush=True)
+        line = (fmt % args) + ' op=' + getattr(self, 'operation', 'none') + '\n'
+        directory = os.environ.get('AA_DIAGNOSTICS_DIR')
+        try:
+            if directory:
+                diagnostics.append_log(directory, 'agent.log', line.encode())
+        except OSError:
+            pass
+        finally:
+            print(line, end='', flush=True)
 
 
 if __name__ == '__main__':

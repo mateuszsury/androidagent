@@ -33,7 +33,7 @@ class BuildAssetsTests(unittest.TestCase):
         self.json('usb/source-manifest.json', {'usb/source.c': self.sha(self.source)})
         native = {}
         runtime = {}
-        for name in ('init.sh', 'agent.py', 'engine.py'):
+        for name in ('init.sh', 'agent.py', 'engine.py', 'diagnostics.py'):
             source = self.root / 'docker/guest' / name
             self.write(source, ('owned runtime ' + name).encode())
             runtime[name] = self.sha(source)
@@ -43,7 +43,7 @@ class BuildAssetsTests(unittest.TestCase):
             for name in DOCKER.GUEST_FILES:
                 self.write(assets / name, name.encode())
                 files[name] = self.sha(assets / name)
-            self.json(assets / 'manifest.json', {'files': files, 'runtime_revision': 2, 'runtime': {'files': runtime}})
+            self.json(assets / 'manifest.json', {'files': files, 'runtime_revision': 3, 'runtime': {'files': runtime}})
             for name in ('bios-256k.bin', 'kvmvapic.bin', 'linuxboot_dma.bin'):
                 self.write(assets / 'qemu' / name, b'firmware')
             libraries = {}
@@ -79,7 +79,7 @@ class BuildAssetsTests(unittest.TestCase):
             DOCKER.verify(self.root)
 
     def test_manifest_cannot_omit_guest_files(self):
-        self.json('app/src/main/assets/docker/arm64-v8a/manifest.json', {'files': {}, 'runtime_revision': 2})
+        self.json('app/src/main/assets/docker/arm64-v8a/manifest.json', {'files': {}, 'runtime_revision': 3})
         with self.assertRaisesRegex(ValueError, 'disk, kernel and initramfs'):
             DOCKER.verify(self.root)
 

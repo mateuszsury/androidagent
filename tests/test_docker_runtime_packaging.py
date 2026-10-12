@@ -9,10 +9,12 @@ import subprocess
 import tempfile
 import threading
 import unittest
+import sys
 from unittest.mock import patch
 
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / 'docker/guest'))
 spec = importlib.util.spec_from_file_location('docker_runtime_package', ROOT / 'tools/prepare-docker-runtime.py')
 PACKAGE = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(PACKAGE)
@@ -37,9 +39,9 @@ class RuntimePackagingTests(unittest.TestCase):
 
     def test_runtime_payload_cannot_replace_persistent_data(self):
         files, manifest = PACKAGE.payload()
-        self.assertEqual(2, manifest['revision'])
-        self.assertTrue({'init.sh', 'engine.py', 'agent.py'} <= files.keys())
-        self.assertTrue(all(name in {'init.sh', 'agent.py', 'engine.py', 'runtime.json', 'install.sh'} or name.startswith('python/') for name in files))
+        self.assertEqual(3, manifest['revision'])
+        self.assertTrue({'init.sh', 'engine.py', 'agent.py', 'diagnostics.py'} <= files.keys())
+        self.assertTrue(all(name in {'init.sh', 'agent.py', 'engine.py', 'diagnostics.py', 'runtime.json', 'install.sh'} or name.startswith('python/') for name in files))
         installer = files['install.sh'].decode()
         self.assertNotIn('/var/lib/docker', installer)
         self.assertNotIn('/var/lib/androidagent', installer)

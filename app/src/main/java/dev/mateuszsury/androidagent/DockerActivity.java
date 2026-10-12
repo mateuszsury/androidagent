@@ -12,7 +12,7 @@ public class DockerActivity extends Screen {
     private final Handler poll = new Handler(Looper.getMainLooper());
     private TextView status, detail;
     private Button start;
-    private Spinner ram;
+    private Spinner ram, cores;
     private LinearLayout tasks, exports;
     private String lastTasks = "", lastExports = "";
     private boolean exportsLoading;
@@ -43,24 +43,42 @@ public class DockerActivity extends Screen {
         });
         ram.setBackground(rounded(this,CARD,12));
         ram.setSelection(state==null?1:state.getInt("ram",1)); body.addView(ram,full());
+        cores = new Spinner(this); cores.setContentDescription("Procesory środowiska Docker");
+        cores.setAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_spinner_dropdown_item,
+                new String[]{"1 CPU · mniejsze obciążenie", "2 CPU · szybszy start"}) {
+            private android.view.View label(int position, boolean dropdown) {
+                TextView v = text(DockerActivity.this, getItem(position) + (dropdown ? "" : "   ▾"), 14, TEXT);
+                v.setBackgroundColor(CARD); v.setPadding(dp(DockerActivity.this,12),dp(DockerActivity.this,12),dp(DockerActivity.this,12),dp(DockerActivity.this,12)); return v;
+            }
+            @Override public android.view.View getView(int p,android.view.View r,android.view.ViewGroup g){return label(p,false);}
+            @Override public android.view.View getDropDownView(int p,android.view.View r,android.view.ViewGroup g){return label(p,true);}
+        });
+        cores.setBackground(rounded(this,CARD,12));
+        int defaultCores = !vm.emulatedAndroid && Runtime.getRuntime().availableProcessors() >= 4 ? 1 : 0;
+        cores.setSelection(state == null ? defaultCores : state.getInt("cores",defaultCores)); body.addView(cores,full());
         start = button(this,"Uruchom środowisko",true);
         start.setOnClickListener(v -> {
             if (vm.alive() || "preparing".equals(vm.state) || "booting".equals(vm.state)) {
                 startService(new Intent(this,DockerService.class).setAction("stop"));
             } else {
                 int[] sizes={512,1024,2048};
-                startForegroundService(new Intent(this,DockerService.class).putExtra("ram",sizes[ram.getSelectedItemPosition()]).putExtra("cores",1));
+                startForegroundService(new Intent(this,DockerService.class).putExtra("ram",sizes[ram.getSelectedItemPosition()]).putExtra("cores",cores.getSelectedItemPosition()+1));
                 offerNotifications();
             }
         });
         body.addView(start,full());
         Button log=button(this,"Dziennik środowiska",false);
         log.setOnClickListener(v -> {
-            TextView view=monoText(this,vm.console().isEmpty()?"Środowisko jeszcze nie pracuje.":vm.console(),11,CODE_TEXT);
+            TextView view=monoText(this,vm.console().isEmpty()?"Dziennik z poprzedniego uruchomienia możesz zachować przyciskiem poniżej.":vm.console(),11,CODE_TEXT);
             view.setBackgroundColor(CODE);view.setPadding(dp(this,12),dp(this,12),dp(this,12),dp(this,12));
             view.setTextIsSelectable(true); ScrollView s=new ScrollView(this);s.addView(view);
             new android.app.AlertDialog.Builder(this).setTitle("Dziennik Linuxa").setView(s).setPositiveButton("Zamknij",null).show();
         }); body.addView(log,full());
+        Button saveLog = button(this,"Zachowaj diagnostykę rozruchu",false);
+        saveLog.setOnClickListener(v -> new Thread(() -> {
+            try { JSONObject saved = vm.exportDiagnostics(); runOnUiThread(() -> { if(!isDestroyed())openExport(saved); }); }
+            catch(Exception e){runOnUiThread(() -> error(e));}
+        },"docker-diagnostics-export").start()); body.addView(saveLog,full());
         TextView taskTitle=title(this,"Zadania",22);taskTitle.setPadding(0,dp(this,24),0,dp(this,12));body.addView(taskTitle);
         Button create=button(this,"+ Nowe zadanie",false);create.setOnClickListener(v -> create(false));body.addView(create,full());
         Button demo=button(this,"Wypróbuj przykładową aplikację",false);demo.setOnClickListener(v -> create(true));body.addView(demo,full());
@@ -107,7 +125,14 @@ public class DockerActivity extends Screen {
         String information=vm.detail;
         if("ready".equals(vm.state))information="Docker "+vm.guest.optString("engine_version")+" · "+vm.guest.optString("architecture")
                 +"\nWolne miejsce: "+String.format(java.util.Locale.US,"%.1f GB w środowisku · %.1f GB na telefonie",vm.guest.optLong("disk_free_bytes")/1073741824.0,vm.directory.getUsableSpace()/1073741824.0);
+        else if ("booting".equals(vm.state)) {
+            JSONObject phase = vm.guest.optJSONObject("startup");
+            if (phase != null && phase.has("phase_elapsed_seconds")) information += String.format(java.util.Locale.ROOT,
+                "\nEtap: %.0f s · limit %.0f s", phase.optDouble("phase_elapsed_seconds"), phase.optDouble("phase_budget_seconds"));
+        }
         detail.setText(information);start.setText(vm.alive()||"preparing".equals(vm.state)||"booting".equals(vm.state)?"Zatrzymaj środowisko":"Uruchom środowisko");
+        boolean configuring = vm.alive() || "preparing".equals(vm.state) || "booting".equals(vm.state) || "stopping".equals(vm.state);
+        ram.setEnabled(!configuring); cores.setEnabled(!configuring); start.setEnabled(!"stopping".equals(vm.state));
         JSONArray list=vm.guest.optJSONArray("tasks");String value=list==null?"[]":list.toString();
         if(!lastTasks.equals(value)) {
             lastTasks=value;tasks.removeAllViews();
@@ -160,5 +185,5 @@ public class DockerActivity extends Screen {
     private void error(Exception e){if(!isDestroyed())new android.app.AlertDialog.Builder(this).setTitle("Docker").setMessage(e.getMessage()).setPositiveButton("OK",null).show();}
     @Override protected void onResume(){super.onResume();poll.post(refresh);}
     @Override protected void onPause(){poll.removeCallbacks(refresh);super.onPause();}
-    @Override protected void onSaveInstanceState(Bundle out){out.putInt("ram",ram.getSelectedItemPosition());super.onSaveInstanceState(out);}
+    @Override protected void onSaveInstanceState(Bundle out){out.putInt("ram",ram.getSelectedItemPosition());out.putInt("cores",cores.getSelectedItemPosition());super.onSaveInstanceState(out);}
 }

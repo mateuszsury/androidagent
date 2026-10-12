@@ -8,6 +8,7 @@ final class DockerTools {
     static JSONArray list() throws JSONException {
         JSONArray tools=new JSONArray();
         tools.put(schema("docker_status","Read local Docker VM state, architecture, disk usage, tasks and jobs. No model login or root required.",new String[]{}));
+        tools.put(schema("docker_diagnostics","Read a bounded page of the last VM startup console and termination metadata, also after failed boot or app restart. No shell execution; offset is a byte offset and limit is at most 32768.",new String[]{"offset:integer","limit:integer"}));
         tools.put(schema("docker_create","Create a disposable build workspace in the running Docker VM. Save its task id. The user starts the VM in androidagent.",new String[]{"name"},"name"));
         tools.put(schema("docker_write","Write a UTF-8 source file or Dockerfile inside this task. Relative paths only; maximum 256 KiB.",new String[]{"task","path","content"},"task","path","content"));
         tools.put(schema("docker_build","Start an asynchronous Dockerfile build. Returns a job id; use docker_logs to inspect completion. Native Linux architecture of this phone.",new String[]{"task","dockerfile"},"task"));
@@ -32,6 +33,7 @@ final class DockerTools {
         DockerVm vm=DockerVm.get(c);
         JSONObject result;
         if("docker_status".equals(name))result=vm.status();
+        else if("docker_diagnostics".equals(name))result=vm.diagnostics(args.optInt("offset",0),args.optInt("limit",16384));
         else if("docker_export".equals(name))result=vm.export(args.getString("task"),args.getString("path"));
         else {
             String op=name.substring("docker_".length());

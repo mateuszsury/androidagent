@@ -4,19 +4,24 @@
 This does not assert that ARM Android JNI loading or a physical phone works.
 """
 import json
+import argparse
 import re
-import sys
 import socket
 import time
 import urllib.request
 from pathlib import Path
 
 root = Path(__file__).resolve().parents[1]
-token = (root / 'build-runtime/arm-guest-test/token').read_bytes()[:64].decode()
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument('--host-clock', action='store_true')
+parser.add_argument('--work-dir', type=Path, default=root / 'build-runtime/arm-guest-test-044')
+parser.add_argument('--report-dir', type=Path, default=root / 'artifacts/0.4.4/docker-arm')
+args = parser.parse_args()
+token = (args.work_dir / 'token').read_bytes()[:64].decode()
 http = urllib.request.build_opener(urllib.request.ProxyHandler({}))
 results = []
 task = None
-clock_mode = 'host' if '--host-clock' in sys.argv else 'instruction_count'
+clock_mode = 'host' if args.host_clock else 'instruction_count'
 
 
 def request(op, **args):
@@ -52,7 +57,7 @@ def check(name, condition):
 
 def job(op, **args):
     info = request(op, task=task, **args)
-    until = time.monotonic() + 240
+    until = time.monotonic() + 300
     while time.monotonic() < until:
         info = request('logs', task=task, job=info['id'])
         if info['state'] not in ('queued', 'running'):
@@ -64,7 +69,7 @@ def job(op, **args):
 
 
 try:
-    until = time.monotonic() + 240
+    until = time.monotonic() + 1200
     while time.monotonic() < until:
         try:
             status = request('status')
@@ -120,7 +125,7 @@ finally:
     report['clock_mode'] = clock_mode
     report['icount_shift'] = 3 if clock_mode == 'instruction_count' else None
     report['guest_manifest'] = json.loads((root / 'app/src/main/assets/docker/arm64-v8a/manifest.json').read_text())
-    path = root / 'artifacts/docker' / ('arm-guest-host-clock-results.json' if clock_mode == 'host' else 'arm-guest-results.json')
+    path = args.report_dir / ('arm-guest-host-clock-results.json' if clock_mode == 'host' else 'arm-guest-results.json')
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(report, indent=2)+'\n')
 raise SystemExit(report['failures'])

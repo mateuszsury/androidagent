@@ -43,6 +43,12 @@ public class DockerRuntimeTests extends Instrumentation {
         if(v instanceof ViewGroup){ViewGroup g=(ViewGroup)v;for(int n=0;n<g.getChildCount();n++){View r=find(g.getChildAt(n),label);if(r!=null)return r;}}return null;
     }
     void click(String label){runOnMainSync(()->{View v=find(screen.getWindow().getDecorView(),label);check(v!=null,"Missing button "+label);v.performClick();});waitForIdleSync();}
+    int dockerWorkers(){int count=0;for(Thread thread:Thread.getAllStackTraces().keySet())if(thread.isAlive()&&"docker-vm".equals(thread.getName()))count++;return count;}
+    ActivityManager.RunningServiceInfo dockerService(){
+        for(ActivityManager.RunningServiceInfo service:app.getSystemService(ActivityManager.class).getRunningServices(100))
+            if(DockerService.class.getName().equals(service.service.getClassName()))return service;
+        return null;
+    }
     void shot(String name)throws Exception{SystemClock.sleep(500);Bitmap image=ui.takeScreenshot();try(OutputStream out=new FileOutputStream(new File(evidence,name+".png"))){image.compress(Bitmap.CompressFormat.PNG,100,out);}image.recycle();}
     void navigationContrast()throws Exception{
         final int[] box=new int[4];runOnMainSync(()->{View back=find(screen.getWindow().getDecorView(),"Wróć");check(back!=null,"Back button missing");back.getLocationOnScreen(box);box[2]=back.getWidth();box[3]=back.getHeight();});
@@ -148,7 +154,10 @@ public class DockerRuntimeTests extends Instrumentation {
             ProcessBuilder p=new ProcessBuilder(lib+"/libqemu.so","--version").redirectErrorStream(true);p.environment().put("LD_LIBRARY_PATH",lib);
             java.lang.Process q=p.start();String version=read(q.getInputStream());check(q.waitFor()==0&&version.contains("QEMU emulator version"),version);
             check(android.os.Process.myUid()!=0,"App is running as root");
-            check(DockerTools.list().length()==12,"Docker MCP tools missing");
+            check(DockerTools.list().length()==13,"Docker MCP tools including durable diagnostics missing");
+            JSONObject diagnostics=DockerTools.call(app,"docker_diagnostics",args("offset",0,"limit",128)).getJSONObject("structuredContent");
+            check(diagnostics.has("content")&&diagnostics.has("next_offset")&&diagnostics.has("total_bytes"),"Diagnostics tool did not return a bounded local page");
+            check(DockerVm.get(app).status().has("diagnostics"),"Local Docker status omitted durable diagnostics");
         }))return;
         if(!test("VM: dedicated emulator workspace and stop guard",()->{
             DockerVm vm=DockerVm.get(app);check(!vm.alive(),"An existing VM is running; stop it before this destructive emulator suite");if(!reuseCache)vm.reset();
@@ -457,6 +466,16 @@ public class DockerRuntimeTests extends Instrumentation {
             Activity recreated=waitForMonitorWithTimeout(monitor,15000);removeMonitor(monitor);check(recreated!=null,"Activity recreation");screen=recreated;waitForIdleSync();
             check(((Spinner)find(screen.getWindow().getDecorView(),"Pamięć środowiska Docker")).getSelectedItemPosition()==0,"Selection reset");
         });
+        test("UI: two CPU selection remains readable after rotation",()->{
+            runOnMainSync(()->((Spinner)find(screen.getWindow().getDecorView(),"Procesory środowiska Docker")).setSelection(1));
+            ActivityMonitor monitor=addMonitor(DockerActivity.class.getName(),null,false);runOnMainSync(()->screen.recreate());
+            Activity recreated=waitForMonitorWithTimeout(monitor,15000);removeMonitor(monitor);check(recreated!=null,"Activity recreation");screen=recreated;waitForIdleSync();
+            Spinner cores=(Spinner)find(screen.getWindow().getDecorView(),"Procesory środowiska Docker");
+            check(cores!=null&&cores.getSelectedItemPosition()==1,"CPU selection reset");
+            TextView label=(TextView)cores.getSelectedView();
+            check(label!=null&&label.getText().toString().contains("2")&&label.getCurrentTextColor()==Ui.TEXT,"CPU selector label is unreadable");
+            runOnMainSync(()->cores.setSelection(0));
+        });
         test("UI: readable memory selector in dark theme",()->{
             runOnMainSync(()->{Prefs.setThemeMode(app,"dark");Theme.changed(app);});launch(DockerActivity.class);
             Spinner s=(Spinner)find(screen.getWindow().getDecorView(),"Pamięć środowiska Docker");
@@ -466,16 +485,62 @@ public class DockerRuntimeTests extends Instrumentation {
         test("QEMU: final APK clock arguments and stop during boot",()->{
             DockerVm vm=DockerVm.get(app);
             check(!new File(vm.directory,"user.qcow2").exists(),"This targeted test requires a fresh dedicated Docker disk");
-            launch(DockerActivity.class);click("Uruchom środowisko");
+            launch(DockerActivity.class);runOnMainSync(()->((Spinner)find(screen.getWindow().getDecorView(),"Procesory środowiska Docker")).setSelection(1));click("Uruchom środowisko");
             long until=SystemClock.elapsedRealtime()+30000;while(!vm.alive()&&SystemClock.elapsedRealtime()<until)SystemClock.sleep(250);
             check(vm.alive(),vm.detail);SystemClock.sleep(500);String pid=read(new FileInputStream(new File(vm.directory,"vm.pid"))).trim();
             String cmd=read(new FileInputStream("/proc/"+pid+"/cmdline"));
+            String[] arguments=cmd.split("\u0000"); boolean actualTwoCpus=false;
+            for(int i=0;i+1<arguments.length;i++)if("-smp".equals(arguments[i]))actualTwoCpus="2".equals(arguments[i+1]);
+            check(actualTwoCpus,"Actual QEMU command did not receive selected -smp 2");
             check(cmd.contains("-icount")==vm.emulatedAndroid,"Incorrect clock arguments on actual QEMU process");
             if(vm.emulatedAndroid)check(cmd.contains("shift=3,align=off,sleep=on"),"Incorrect emulator clock scale");
             until=SystemClock.elapsedRealtime()+10000;while(find(screen.getWindow().getDecorView(),"Zatrzymaj środowisko")==null&&SystemClock.elapsedRealtime()<until)SystemClock.sleep(250);
             click("Zatrzymaj środowisko");until=SystemClock.elapsedRealtime()+30000;
             while(vm.alive()&&SystemClock.elapsedRealtime()<until)SystemClock.sleep(250);
-            check(!vm.alive(),"Stop did not terminate booting QEMU");vm.reset();
+            check(!vm.alive(),"Stop did not terminate booting QEMU");runOnMainSync(()->((Spinner)find(screen.getWindow().getDecorView(),"Procesory środowiska Docker")).setSelection(0));vm.reset();
+        });
+        test("QEMU service: duplicate starts claim one owner and Stop ends the latest foreground service",()->{
+            DockerVm vm=DockerVm.get(app);launch(DockerActivity.class);McpHost.get(app).requireReady();
+            long until=SystemClock.elapsedRealtime()+30000;
+            while((dockerService()!=null||dockerWorkers()!=0)&&SystemClock.elapsedRealtime()<until)SystemClock.sleep(100);
+            check(!vm.alive()&&"stopped".equals(vm.state)&&dockerService()==null&&dockerWorkers()==0,"Previous VM/service owner has not stopped");
+            java.lang.reflect.Field lifecycle=DockerVm.class.getDeclaredField("lifecycle");lifecycle.setAccessible(true);
+            Intent boot=new Intent(app,DockerService.class).putExtra("ram",512).putExtra("cores",1);
+            try {
+                // Both onStartCommand calls run while the worker cannot enter
+                // boot's lifecycle lock or publish preparing. This exposes the
+                // old check-state-then-spawn race without timing assumptions.
+                synchronized(lifecycle.get(vm)) {
+                    runOnMainSync(()->{app.startForegroundService(new Intent(boot));app.startForegroundService(new Intent(boot));});
+                    until=SystemClock.elapsedRealtime()+10000;boolean bothDelivered=false;
+                    while(SystemClock.elapsedRealtime()<until){
+                        String dump=shellOutput("dumpsys -t 2 activity services "+app.getPackageName()+"/"+DockerService.class.getName());
+                        java.util.regex.Matcher ids=java.util.regex.Pattern.compile("lastStartId=([0-9]+)").matcher(dump);
+                        if(ids.find()&&Integer.parseInt(ids.group(1))>=2){bothDelivered=true;break;}
+                        SystemClock.sleep(50);
+                    }
+                    check(bothDelivered,"Android did not deliver both service start IDs while the lifecycle barrier was held");
+                    runOnMainSync(()->{});waitForIdleSync();
+                    check("stopped".equals(vm.state)&&!vm.alive(),"Lifecycle barrier did not precede preparing");
+                    check(dockerWorkers()==1,"Duplicate start created "+dockerWorkers()+" VM worker threads before preparing");
+                    ActivityManager.RunningServiceInfo owner=dockerService();
+                    check(owner!=null&&owner.foreground&&owner.started,"Single owner is not an actual foreground service");
+                }
+                until=SystemClock.elapsedRealtime()+30000;
+                while(!vm.alive()&&SystemClock.elapsedRealtime()<until)SystemClock.sleep(100);
+                check(vm.alive(),"Duplicate start stopped the actual VM owner: "+vm.detail);
+                ActivityManager.RunningServiceInfo owner=dockerService();
+                check(owner!=null&&owner.foreground&&dockerWorkers()==1,"Live QEMU lost its sole foreground/worker owner");
+                java.lang.reflect.Field process=DockerVm.class.getDeclaredField("process");process.setAccessible(true);
+                java.lang.Process running=(java.lang.Process)process.get(vm);check(running!=null&&running.isAlive(),"No actual QEMU process");
+                runOnMainSync(()->app.startService(new Intent(app,DockerService.class).setAction("stop")));
+                until=SystemClock.elapsedRealtime()+30000;
+                while((vm.alive()||dockerService()!=null||dockerWorkers()!=0)&&SystemClock.elapsedRealtime()<until)SystemClock.sleep(100);
+                check(!vm.alive()&&!running.isAlive()&&dockerService()==null&&dockerWorkers()==0,"Stop did not terminate QEMU and foreground service after the duplicate advanced startId");
+            } finally {
+                runOnMainSync(()->app.stopService(new Intent(app,DockerService.class)));
+                if(vm.alive()||"preparing".equals(vm.state)||"booting".equals(vm.state))vm.emergencyStop();
+            }
         });
     }
     void save()throws Exception{

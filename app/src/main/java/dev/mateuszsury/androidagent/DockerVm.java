@@ -23,6 +23,7 @@ final class DockerVm {
     final File directory;
     private volatile Process process;
     private volatile int epoch;
+    private volatile int stoppedEpoch;
     volatile String state = "stopped", detail = "Gotowy do uruchomienia";
     volatile JSONObject guest = new JSONObject();
     private volatile String console = "";
@@ -32,6 +33,10 @@ final class DockerVm {
     private final Object lifecycle = new Object();
     private final Object preparation = new Object();
     private int pendingStops;
+    private volatile DockerDiagnostics diagnostics;
+    private volatile long lastGuestResponse, bootStarted;
+    private volatile String lastProbeError = "";
+    private volatile int ramMb, vcpus;
     private DockerVm(Context c) {
         context = c;
         directory = new File(c.getFilesDir(), "docker");
@@ -45,25 +50,37 @@ final class DockerVm {
             existing = hex(random); prefs.edit().putString("token", existing).apply();
         }
         token = existing;
+        diagnostics = new DockerDiagnostics(new File(directory, "diagnostics"), token);
     }
     JSONObject status() throws JSONException {
         return new JSONObject().put("state", state).put("detail", detail).put("abi", abi)
                 .put("ready", "ready".equals(state)).put("root_required", false)
                 .put("clock_mode", emulatedAndroid ? "instruction_count" : "host")
                 .put("preview_url", "http://127.0.0.1:" + PREVIEW_PORT)
-                .put("guest", guest).put("host_free_bytes", directory.getUsableSpace());
+                .put("guest", guest).put("host_free_bytes", directory.getUsableSpace())
+                .put("ram_mb", ramMb).put("vcpus", vcpus)
+                .put("startup_budget_seconds", emulatedAndroid ? 900 : 1200)
+                .put("last_guest_response_host_ms", lastGuestResponse)
+                .put("last_probe_error", lastProbeError).put("diagnostics", diagnostics.status());
     }
     String console() { return console; }
     boolean alive() { Process p = process; return p != null && p.isAlive(); }
+    int stoppedGeneration() { return stoppedEpoch; }
 
     void boot(int ram, int cores) {
         final int generation;
+        final DockerDiagnostics log;
         synchronized (lifecycle) {
             McpHost.get(context).requireReady();
             if (alive() || "preparing".equals(state) || "booting".equals(state) || "stopping".equals(state)) return;
             generation = ++epoch;
             state = "preparing"; detail = "Przygotowywanie środowiska"; console = "";
+            guest = new JSONObject(); lastGuestResponse = 0; lastProbeError = "";
+            ramMb = Math.max(512, Math.min(2048, ram)); vcpus = Math.max(1, Math.min(2, cores));
+            log = new DockerDiagnostics(new File(directory, "diagnostics"), token);
+            log.begin(abi, emulatedAndroid, ramMb, vcpus); diagnostics = log;
         }
+        boolean processStarted = false;
         try {
             if (!"arm64-v8a".equals(abi) && !"x86_64".equals(abi)) throw new IOException("Wymagany telefon ARM64 lub x86_64");
             File nativeDir = new File(context.getApplicationInfo().nativeLibraryDir);
@@ -124,30 +141,45 @@ final class DockerVm {
                 File pidFile=new File(directory,"vm.pid");
                 if(pidFile.exists()&&!pidFile.delete())throw new IOException("Nie można przygotować pliku procesu środowiska");
                 pb.environment().put("AA_PID_FILE", pidFile.getAbsolutePath());
-                process = pb.start(); running = process; state = "booting"; detail = "Uruchamianie Linuxa i Dockera";
+                process = pb.start(); processStarted = true; running = process; state = "booting"; detail = "Uruchamianie Linuxa i Dockera";
+                bootStarted = SystemClock.elapsedRealtime();
+                log.append("ANDROID_HOST_PROCESS_STARTED epoch_ms=" + System.currentTimeMillis()
+                    + " monotonic_ms=" + bootStarted + " ram_mb=" + ramMb + " vcpus=" + vcpus + "\n");
             }
             }
             Thread reader = new Thread(() -> {
-                try (InputStream in = running.getInputStream()) {
-                    byte[] buffer = new byte[2048]; int n;
+                try (Reader in = new InputStreamReader(running.getInputStream(), StandardCharsets.UTF_8)) {
+                    char[] buffer = new char[2048]; int n;
                     while ((n = in.read(buffer)) != -1) {
-                        String text = new String(buffer, 0, n, StandardCharsets.UTF_8).replace(token, "[token]");
-                        synchronized (this) { if(epoch != generation)break; console = console + text; if (console.length() > 65536) console = console.substring(console.length() - 65536); }
+                        String text = new String(buffer, 0, n);
+                        log.append(text);
+                        synchronized (this) { if(epoch == generation) { console = (console + text).replace(token, "[token]"); if (console.length() > 65536) console = console.substring(console.length() - 65536); } }
                     }
                 } catch (Exception ignored) {}
             }, "docker-console");
             reader.setDaemon(true); reader.start();
+            Thread exitObserver = new Thread(() -> {
+                try {
+                    int code = running.waitFor();
+                    reader.join(1500);
+                    log.recordExit(code);
+                } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+            }, "docker-process-exit");
+            exitObserver.setDaemon(true); exitObserver.start();
             // Each stage has a real bounded probe in the guest. A physical TCG
             // host must also allow cold image import; failures arrive sooner.
-            long deadline = SystemClock.elapsedRealtime() + (emulatedAndroid ? 900000 : 600000);
+            long deadline = bootStarted + (emulatedAndroid ? 900000 : 1200000);
+            long nextProbeLog = 0;
             while (epoch == generation && running.isAlive()) {
                 String startupError = null;
                 try {
                     JSONObject result = requestRaw(new JSONObject().put("op", "status"), 12000);
                     synchronized (lifecycle) {
                         if (epoch != generation || process != running) break;
+                        lastGuestResponse = SystemClock.elapsedRealtime(); lastProbeError = "";
                         guest = result;
                         JSONObject startup = result.optJSONObject("startup");
+                        if (startup != null) log.noteStartup(startup);
                         if (startup != null && "error".equals(startup.optString("stage"))) startupError = startup.optString("detail", "Błąd rozruchu Docker Engine");
                         if (result.optBoolean("ready")) { state = "ready"; detail = "Docker działa na telefonie"; }
                         // A busy engine can miss one short heartbeat while a
@@ -155,19 +187,68 @@ final class DockerVm {
                         // explicitly; do not reject cancellation due to jitter.
                         else if (!"ready".equals(state)) { state = "booting"; detail = startup == null ? "Uruchamianie Linuxa i Dockera" : startup.optString("detail", "Uruchamianie Dockera"); }
                     }
-                } catch (Exception ignored) {}
-                if (startupError != null) throw new IOException(startupError + ". Szczegóły są w dzienniku containerd i Dockera.");
-                if (!"ready".equals(state) && SystemClock.elapsedRealtime() > deadline) throw new IOException("Linux nie uruchomił Dockera w wyznaczonym czasie. Sprawdź dziennik środowiska.");
+                } catch (Exception error) {
+                    synchronized (lifecycle) {
+                        if (epoch != generation || process != running) break;
+                        lastProbeError = error.getClass().getSimpleName() + ": " + error.getMessage();
+                        if (SystemClock.elapsedRealtime() >= nextProbeLog) {
+                            log.append("ANDROID_HOST_PROBE " + lastProbeError + "\n");
+                            nextProbeLog = SystemClock.elapsedRealtime() + 30000;
+                        }
+                    }
+                }
+                if (epoch != generation || process != running) break;
+                if (startupError != null) {
+                    captureGuestDiagnostics(log, generation, running);
+                    log.finish("guest_startup_error", null, startupError);
+                    throw new IOException(startupError + ". Zachowano diagnostykę rozruchu.");
+                }
+                if (!"ready".equals(state) && SystemClock.elapsedRealtime() > deadline) {
+                    captureGuestDiagnostics(log, generation, running);
+                    log.finish("host_startup_timeout", null, "Limit rozruchu Androida");
+                    throw new IOException("Linux nie uruchomił Dockera w wyznaczonym czasie. Zachowano diagnostykę rozruchu.");
+                }
                 Thread.sleep(2000);
             }
             if (epoch == generation) throw new IOException("Środowisko zakończyło działanie. " + console.substring(Math.max(0, console.length() - 1000)));
         } catch (Exception e) {
             synchronized (lifecycle) {
                 if (epoch == generation) {
+                    if (!log.status().optBoolean("finished")) log.finish("boot_error", null, e.getMessage());
                     kill(); state = "error"; detail = e.getMessage() == null ? e.toString() : e.getMessage();
                 }
             }
-        }
+        } finally { if (!processStarted) log.recordNoProcess(); }
+    }
+
+    private void captureGuestDiagnostics(DockerDiagnostics log, int generation, Process running) {
+        if (epoch != generation || process != running) return;
+        try {
+            JSONObject snapshot = requestRaw(new JSONObject().put("op", "diagnostics").put("tail_bytes", 8192).put("max_bytes", 262144), 8000);
+            synchronized (lifecycle) { if (epoch == generation && process == running) log.snapshotGuest(snapshot); }
+        } catch (Exception e) { log.append("ANDROID_DIAGNOSTICS_UNAVAILABLE " + e.getClass().getSimpleName() + ": " + e.getMessage() + "\n"); }
+    }
+
+    JSONObject diagnostics(int offset, int limit) throws Exception {
+        if (offset < 0 || limit < 1 || limit > 32768) throw new IllegalArgumentException("offset >= 0; limit musi wynosić 1–32768 bajtów");
+        DockerDiagnostics current = diagnostics;
+        return current.read(offset, limit).put("metadata", current.status());
+    }
+
+    JSONObject exportDiagnostics() throws Exception {
+        DockerDiagnostics current = diagnostics;
+        if (!current.status().optBoolean("available")) throw new IOException("Brak zapisanego dziennika. Najpierw uruchom środowisko.");
+        File dir = new File(context.getFilesDir(), "docker-exports"); dir.mkdirs();
+        String id = UUID.randomUUID().toString().replace("-", "") + ".txt";
+        File target = new File(dir, id);
+        File marker = new File(dir, id + ".json");
+        try {
+            try (OutputStream out = new FileOutputStream(target)) { current.writeTo(out); }
+            JSONObject result = new JSONObject().put("id", id).put("name", "docker-startup-" + current.status().optString("boot_id", "unknown") + ".txt")
+                .put("task", "diagnostics").put("bytes", target.length()).put("uri", FilesProvider.dockerUri(id).toString());
+            try (OutputStream out = new FileOutputStream(marker)) { out.write(result.toString().getBytes(StandardCharsets.UTF_8)); }
+            return result;
+        } catch (Exception failure) { target.delete(); marker.delete(); throw failure; }
     }
 
     private ProcessBuilder nativeProcess(List<String> args) {
@@ -332,6 +413,7 @@ final class DockerVm {
         final int generation;final Process running;
         synchronized (lifecycle) {
             generation=++epoch;pendingStops++;running=process;state="stopping";detail="Zatrzymywanie środowiska";
+            diagnostics.finish(graceful ? "user_stop" : "forced_stop", null, detail);
         }
         try {
             UsbDocker.closeVm(context);
@@ -344,14 +426,14 @@ final class DockerVm {
                 // Keep start disabled until every old shutdown request completes.
                 // Otherwise a late HTTP shutdown could reach a new VM on this port.
                 if(epoch==generation) {kill();guest=new JSONObject();detail="Środowisko zatrzymane";}
-                if(--pendingStops==0)state="stopped";
+                if(--pendingStops==0){stoppedEpoch=epoch;state="stopped";}
             }
         }
     }
     void emergencyStop() {
-        synchronized (lifecycle) { ++epoch;pendingStops++;kill();guest=new JSONObject();state="stopping";detail="Przerwano pracę środowiska"; }
+        synchronized (lifecycle) { ++epoch;pendingStops++;diagnostics.finish("emergency_stop", null, "Przerwano pracę środowiska");kill();guest=new JSONObject();state="stopping";detail="Przerwano pracę środowiska"; }
         try {UsbDocker.closeVm(context);}
-        finally {synchronized (lifecycle) {if(--pendingStops==0)state="stopped";}}
+        finally {synchronized (lifecycle) {if(--pendingStops==0){stoppedEpoch=epoch;state="stopped";}}}
     }
     private void kill() {
         Process p = process;
