@@ -1,0 +1,11 @@
+{
+  "observed_at": "2026-10-12T01:26:04.010814+00:00",
+  "phase": "cold-two-vcpu",
+  "nano_cpus": 500000000,
+  "cpu_max": "50000 100000",
+  "expected_host_cpu_quota": 0.5,
+  "qemu_vcpus": 2,
+  "qemu_ram_mb": 1024,
+  "qemu_rtc": "base=utc,clock=host",
+  "qemu_icount_present": false
+}

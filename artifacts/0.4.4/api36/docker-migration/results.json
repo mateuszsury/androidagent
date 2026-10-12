@@ -1,0 +1,56 @@
+{
+  "run_id": "0ba3328d-3991-4cb7-a132-e8af5ddaae19",
+  "version": "0.4.4",
+  "version_code": 404,
+  "phase": "migration",
+  "api": 36,
+  "abi": "x86_64",
+  "process_uid": 10156,
+  "page_size_bytes": 4096,
+  "elapsed_ms": 1630,
+  "failures": 0,
+  "tests": [
+    {
+      "name": "Migration: 0.4.2 backing and user disk remain, initramfs updates",
+      "pass": true
+    },
+    {
+      "name": "Migration: changed backing is rejected without changing files",
+      "pass": true
+    },
+    {
+      "name": "Migration: unknown disk without marker is retained and rejected",
+      "pass": true
+    },
+    {
+      "name": "Migration: cancellation retains old marker and later retry succeeds",
+      "pass": true
+    }
+  ],
+  "observations": {},
+  "fixture": "Actual DockerVm.install in isolated Android cache; sentinel backing/overlay files. Real ARM QCOW2 migration is separate.",
+  "host_observation": {
+    "started_utc": "2026-10-12T01:30:53.298743+00:00",
+    "completed_utc": "2026-10-12T01:31:07.300779+00:00",
+    "elapsed_ms": 14002,
+    "scope": "Software x86_64 Android emulator with TCG guest clock drift; not physical ARM Android performance"
+  },
+  "tested_apk": {
+    "name": "androidagent-0.4.4.apk",
+    "version": "0.4.4",
+    "version_code": 404,
+    "bytes": 653558148,
+    "sha256": "c939d53f01be01eb32be96b306c7cdf4bc97854b69de7c994d13af689bd37e8a",
+    "source_commit": "bc73465374bf6b5df91ec00726d1ff58d38b9567",
+    "certificate_sha256": "b0fe60ab6fb41c33051f1fe9c16b2d24e476fdf66be225870db831cd7e2fb66b",
+    "protected_0.4.3_bytes_unchanged": true
+  },
+  "tested_instrumentation": {
+    "name": "androidagent-0.4.4-tests.apk",
+    "bytes": 168475,
+    "sha256": "b774e8a0b1b9f7db2aa94d877c74258d2145f2e9c591b572f8e5baeb65958c22",
+    "source_commit": "bc73465374bf6b5df91ec00726d1ff58d38b9567",
+    "test_only": true,
+    "bundled_in_product": false
+  }
+}

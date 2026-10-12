@@ -1,0 +1,61 @@
+{
+  "schema": 1,
+  "recorded_at_utc": "2026-10-12T01:31:35.093852+00:00",
+  "scope": "Offline tests of connector staging with synthetic fixture bytes and an in-memory Git API; no APK installation, device/model test, account use or real GitHub transfer.",
+  "command": "python3 -m unittest discover -s tests -p test_transfer_apk_connector.py -v",
+  "result": "PASS",
+  "tests": 8,
+  "passed": 8,
+  "failures": 0,
+  "errors": 0,
+  "unittest_elapsed_seconds": 0.118,
+  "real_github_requests": 0,
+  "real_subprocess_transport_calls": 0,
+  "production_boundary_checked": {
+    "raw_chunk_bytes": 8388608,
+    "connector_json_limit_bytes": 16777216,
+    "base64_request_fits": true
+  },
+  "source_sha256": {
+    "tools/transfer-apk-connector.py": "d4b2dde4a78c651b70ac8bb4107f35ec10cdcc9ee98c687e95990e640b064e15",
+    "tools/transfer-apk-git-blobs.py": "3c1f74485e8e63f35fbc0017a5454da47e38d5e4b0349065311542053492bcef",
+    "tests/test_transfer_apk_connector.py": "ec804885c0f8bdd7407353c7e66ce37728735610ddc2d6ea3f8452450117c706"
+  },
+  "checks": [
+    {
+      "name": "test_accepted_external_part_resumes_by_exact_get_without_reposting",
+      "result": "PASS"
+    },
+    {
+      "name": "test_bad_get_bytes_leave_original_pending_without_staging_next_part",
+      "result": "PASS"
+    },
+    {
+      "name": "test_cli_default_eight_mib_fits_connector_json_cap_without_post",
+      "result": "PASS"
+    },
+    {
+      "name": "test_cli_report_attachment_cannot_upload_unfinished_apk_parts",
+      "result": "PASS"
+    },
+    {
+      "name": "test_completed_parts_and_manifest_describe_every_chunk_without_part_posts",
+      "result": "PASS"
+    },
+    {
+      "name": "test_different_chunk_journal_is_rejected_before_any_get_or_post",
+      "result": "PASS"
+    },
+    {
+      "name": "test_first_stage_is_durable_before_external_transport_and_never_posts",
+      "result": "PASS"
+    },
+    {
+      "name": "test_unavailable_pending_blob_stops_with_get_only_and_preserves_journal",
+      "result": "PASS"
+    }
+  ],
+  "additional_checks": [
+    "git diff --check: PASS"
+  ]
+}

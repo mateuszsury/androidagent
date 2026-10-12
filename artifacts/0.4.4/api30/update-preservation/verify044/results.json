@@ -1,0 +1,177 @@
+{
+  "run_id": "cf9a41b5-e90e-4bb9-b801-7a5e916cb542",
+  "version": "0.4.4",
+  "version_code": 404,
+  "phase": "verify044",
+  "api": 30,
+  "abi": "x86_64",
+  "process_uid": 10134,
+  "page_size_bytes": 4096,
+  "elapsed_ms": 23261,
+  "failures": 0,
+  "tests": [
+    {
+      "name": "Update: 0.4.4 has the same Android UID and signing certificate",
+      "pass": true
+    },
+    {
+      "name": "Update: all persisted history and the fixture conversation remain unchanged",
+      "pass": true
+    },
+    {
+      "name": "Update: HOME project and Android export retain exact bytes and inode",
+      "pass": true
+    },
+    {
+      "name": "Update: initialized terminal prefix and ready marker are reused without bootstrap",
+      "pass": true
+    },
+    {
+      "name": "Update: actual disk, backing, kernel and installation marker retain exact bytes/inode",
+      "pass": true
+    },
+    {
+      "name": "Update: real shell and Node use retained HOME under the new APK",
+      "pass": true
+    },
+    {
+      "name": "Update: installed official clients still execute without a download or model call",
+      "pass": true
+    }
+  ],
+  "observations": {},
+  "fixture": "Actual in-place 0.4.3 to 0.4.4 Android update; production HOME/history and real QCOW2 retained; no guest engine boot in this suite",
+  "baseline": {
+    "seed_run_id": "43e4bbb9-862a-47aa-82a8-caa3a29aded7",
+    "uid": 10134,
+    "certificate_sha256": "b0fe60ab6fb41c33051f1fe9c16b2d24e476fdf66be225870db831cd7e2fb66b",
+    "chat_id": "f1e01828246b",
+    "chat_text": "0.4.3 update preservation fixture 43e4bbb9-862a-47aa-82a8-caa3a29aded7",
+    "history_sha256": "58a80bcf5b57fb259b77cebe83fab2bd7eb50f6b45da545e4e0d21875125dfbf",
+    "project_path": "/data/user/0/dev.mateuszsury.androidagent/files/terminal/home/projects/update-preserved-43e4bbb9-862a-47aa-82a8-caa3a29aded7.txt",
+    "project": {
+      "bytes": 58,
+      "inode": 165145,
+      "mtime_seconds": 1791768190,
+      "sha256": "77c2193afd2ed982a3bfab899a5a516e5a6bc14066abb47e811b3263d56fa54a"
+    },
+    "export_path": "/data/user/0/dev.mateuszsury.androidagent/files/docker-exports/update-preserved-43e4bbb9-862a-47aa-82a8-caa3a29aded7.txt",
+    "export": {
+      "bytes": 60,
+      "inode": 165147,
+      "mtime_seconds": 1791768190,
+      "sha256": "54e54090653a8c6c9bd3ec31321d41d441efef4ba6a2f62d47f1633ac96242b7"
+    },
+    "runtime": {
+      "abi": "x86_64",
+      "target_sdk": 36,
+      "ready": true,
+      "runtime_sha256": "7c78885d92e9cb8769c3c8b855c6fd6de0c80bb108b6e4248c8f56c67157248f",
+      "codex_installed": true,
+      "claude_installed": true,
+      "external_termux_required": false
+    },
+    "runtime_prefix_path": "/data/user/0/dev.mateuszsury.androidagent/files/terminal/runtime-7c78885d92e9cb87/usr",
+    "runtime_prefix_inode": 131085,
+    "runtime_ready": {
+      "bytes": 65,
+      "inode": 133529,
+      "mtime_seconds": 1791761661,
+      "sha256": "a986f013f120ba6329d9094084b98f9a5dfa14ae7e492165420487f333247717"
+    },
+    "disk_directory": "/data/user/0/dev.mateuszsury.androidagent/files/docker",
+    "disk_files": {
+      "user.qcow2": {
+        "bytes": 196736,
+        "inode": 165148,
+        "mtime_seconds": 1791768191,
+        "sha256": "8605f7d2f76747e6ddcb4e4efccd9a621b2a7d5b26dc50e7df24abe10a70e1c2"
+      },
+      "base.qcow2": {
+        "bytes": 503250944,
+        "inode": 165072,
+        "mtime_seconds": 1791762907,
+        "sha256": "66b07dfca5d425858bef81ec766b9bc8970b8982d0b1805578147d317af030b2"
+      },
+      "installed-manifest": {
+        "bytes": 1073,
+        "inode": 165081,
+        "mtime_seconds": 1791762908,
+        "sha256": "220e25c5e023d52b4a6740891e7c8c3a4d9fe101e636a2e84e983648909abc7b"
+      },
+      "vmlinuz-virt": {
+        "bytes": 12637184,
+        "inode": 165071,
+        "mtime_seconds": 1791762908,
+        "sha256": "2d76a33ca6a22b3f1620d09b1462f13a528e44eb37ef35643aabe0dffcb24049"
+      },
+      "initramfs-virt": {
+        "bytes": 10207893,
+        "inode": 165073,
+        "mtime_seconds": 1791762908,
+        "sha256": "c9bbe2a344e641a42c9db40235e8054d0cb757fc22de490f729e765effd60ac3"
+      }
+    },
+    "disk_info": {
+      "children": [
+        {
+          "name": "file",
+          "info": {
+            "children": [],
+            "virtual-size": 197120,
+            "filename": "/data/user/0/dev.mateuszsury.androidagent/files/docker/user.qcow2",
+            "format": "file",
+            "actual-size": 204800,
+            "format-specific": {
+              "type": "file",
+              "data": {}
+            },
+            "dirty-flag": false
+          }
+        }
+      ],
+      "backing-filename-format": "qcow2",
+      "virtual-size": 8589934592,
+      "filename": "/data/user/0/dev.mateuszsury.androidagent/files/docker/user.qcow2",
+      "cluster-size": 65536,
+      "format": "qcow2",
+      "actual-size": 204800,
+      "format-specific": {
+        "type": "qcow2",
+        "data": {
+          "compat": "1.1",
+          "compression-type": "zlib",
+          "lazy-refcounts": false,
+          "refcount-bits": 16,
+          "corrupt": false,
+          "extended-l2": false
+        }
+      },
+      "full-backing-filename": "/data/user/0/dev.mateuszsury.androidagent/files/docker/base.qcow2",
+      "backing-filename": "/data/user/0/dev.mateuszsury.androidagent/files/docker/base.qcow2",
+      "dirty-flag": false
+    },
+    "existing_overlay_before_seed": false,
+    "guest_payload_exercised": false,
+    "disk_scope": "New empty real overlay created by native qemu-img; no guest payload"
+  },
+  "tested_apk": {
+    "name": "androidagent-0.4.4.apk",
+    "bytes": 653558148,
+    "sha256": "c939d53f01be01eb32be96b306c7cdf4bc97854b69de7c994d13af689bd37e8a",
+    "source_commit": "bc73465374bf6b5df91ec00726d1ff58d38b9567"
+  },
+  "tested_instrumentation": {
+    "name": "androidagent-044-final-tests.apk",
+    "bytes": 168475,
+    "sha256": "b774e8a0b1b9f7db2aa94d877c74258d2145f2e9c591b572f8e5baeb65958c22",
+    "source_commit": "bc73465374bf6b5df91ec00726d1ff58d38b9567"
+  },
+  "host_observation": {
+    "started_utc": "2026-10-12T01:28:43.725592+00:00",
+    "completed_utc": "2026-10-12T01:30:10.861733+00:00",
+    "elapsed_ms": 87136,
+    "scope": "Android software emulator; guest clock/elapsed time and performance differ from physical ARM Android"
+  },
+  "update_method": "adb install --no-incremental -r; old app data and disk retained; no uninstall or VM reset"
+}

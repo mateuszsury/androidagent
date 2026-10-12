@@ -1,0 +1,75 @@
+{
+  "tests": [
+    {
+      "name": "navigation probe 1: global Back then immediate DeviceActivity",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 4050
+    },
+    {
+      "name": "navigation probe 2: global Back then immediate DeviceActivity",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 3985
+    },
+    {
+      "name": "navigation probe 3: global Back then immediate DeviceActivity",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 4097
+    },
+    {
+      "name": "navigation probe 4: global Back then immediate DeviceActivity",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 4114
+    },
+    {
+      "name": "navigation probe 5: global Back then immediate DeviceActivity",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 3900
+    },
+    {
+      "name": "navigation probe 6: global Back then immediate DeviceActivity",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 3950
+    },
+    {
+      "name": "navigation probe 7: global Back then immediate DeviceActivity",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 4051
+    },
+    {
+      "name": "navigation probe 8: global Back then immediate DeviceActivity",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 3899
+    },
+    {
+      "name": "navigation probe 9: global Back then immediate DeviceActivity",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 3933
+    },
+    {
+      "name": "navigation probe 10: global Back then immediate DeviceActivity",
+      "pass": true,
+      "detail": "",
+      "duration_ms": 3852
+    }
+  ],
+  "version": "0.4.4",
+  "failures": 0,
+  "api": 30,
+  "model": "Android SDK built for x86_64",
+  "run_id": "9bb4887c-2608-4836-a533-6fe2ecb89042",
+  "navigation_only": true,
+  "navigation_cleanup": "global_back",
+  "navigation_iterations": 10,
+  "notification_fixture_requested": false,
+  "notification_fixture_applied": false,
+  "notification_fixture_scope": "No notification-consent preference reset"
+}

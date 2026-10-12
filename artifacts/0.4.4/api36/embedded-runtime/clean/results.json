@@ -1,0 +1,241 @@
+{
+  "run_id": "1f119466-ef94-499d-b8f6-dc3444acc52b",
+  "phase": "verify",
+  "version": "0.4.4",
+  "version_code": 404,
+  "api": 36,
+  "model": "Android SDK built for x86_64",
+  "supported_abis": [
+    "x86_64"
+  ],
+  "process_uid": 10159,
+  "page_size_bytes": 4096,
+  "target_sdk": 36,
+  "debuggable": false,
+  "native_library_dir": "/data/app/~~DHMhtTGmvfp2U2vSNX7mYg==/dev.mateuszsury.androidagent-UDxvklb9BKQ97o489_VcZQ==/lib/x86_64",
+  "started_epoch_ms": 1791758252404,
+  "completed_epoch_ms": 1791758360659,
+  "elapsed_ms": 108255,
+  "migration_from_0_4_2": false,
+  "versions": {
+    "runtime": {
+      "abi": "x86_64",
+      "target_sdk": 36,
+      "ready": true,
+      "runtime_sha256": "7c78885d92e9cb8769c3c8b855c6fd6de0c80bb108b6e4248c8f56c67157248f",
+      "codex_installed": false,
+      "claude_installed": false,
+      "external_termux_required": false
+    },
+    "bash": "GNU bash, version 5.3.20(1)-release (x86_64-pc-linux-android)",
+    "node": "v24.18.0",
+    "python": "Python 3.14.6",
+    "curl": "curl 8.22.0 (x86_64-pc-linux-android) libcurl/8.22.0 OpenSSL/3.6.5 zlib/1.3.2 libssh2/1.11.1 nghttp2/1.70.0 ngtcp2/1.25.0 nghttp3/1.18.0",
+    "jq": "jq-1.8.2",
+    "git": "git version 2.56.0",
+    "codex": "codex-cli 0.162.1",
+    "claude": "2.1.296 (Claude Code)",
+    "final_runtime": {
+      "abi": "x86_64",
+      "target_sdk": 36,
+      "ready": true,
+      "runtime_sha256": "7c78885d92e9cb8769c3c8b855c6fd6de0c80bb108b6e4248c8f56c67157248f",
+      "codex_installed": true,
+      "claude_installed": true,
+      "external_termux_required": false
+    }
+  },
+  "client_installation_source": "SHA256-verified official archives transferred through local adb reverse fixture; Android HTTPS download is not exercised",
+  "fixture": "Production embedded runtime under app UID; no external Termux, no account login, no model conversation",
+  "failures": 0,
+  "tests": [
+    {
+      "name": "Release app has no dependency on com.termux",
+      "pass": true,
+      "error": "",
+      "elapsed_ms": 1
+    },
+    {
+      "name": "Bundled terminal bootstrap initializes without external service",
+      "pass": true,
+      "error": "",
+      "elapsed_ms": 51745
+    },
+    {
+      "name": "Runtime executes actual bash and child binaries under Android app UID",
+      "pass": true,
+      "error": "",
+      "elapsed_ms": 418
+    },
+    {
+      "name": "Bundled node executes its real version command",
+      "pass": true,
+      "error": "",
+      "elapsed_ms": 216
+    },
+    {
+      "name": "Bundled python executes its real version command",
+      "pass": true,
+      "error": "",
+      "elapsed_ms": 232
+    },
+    {
+      "name": "Bundled curl executes its real version command",
+      "pass": true,
+      "error": "",
+      "elapsed_ms": 212
+    },
+    {
+      "name": "Bundled jq executes its real version command",
+      "pass": true,
+      "error": "",
+      "elapsed_ms": 108
+    },
+    {
+      "name": "Bundled git executes its real version command",
+      "pass": true,
+      "error": "",
+      "elapsed_ms": 212
+    },
+    {
+      "name": "Linux shebang paths /bin/bash and /usr/bin/env execute bundled tools",
+      "pass": true,
+      "error": "",
+      "elapsed_ms": 316
+    },
+    {
+      "name": "PTY provides terminal stdin/stdout, exact quoted argv, and child exit status",
+      "pass": true,
+      "error": "",
+      "elapsed_ms": 316
+    },
+    {
+      "name": "A terminal acquires a lasting foreground service when a temporary host is already listening",
+      "pass": true,
+      "error": "",
+      "elapsed_ms": 1255
+    },
+    {
+      "name": "Terminal UI starts a real shell and sends stdin after onResume",
+      "pass": true,
+      "error": "",
+      "elapsed_ms": 1893
+    },
+    {
+      "name": "Node writes HOME file and invokes a nested process with exact bytes",
+      "pass": true,
+      "error": "",
+      "elapsed_ms": 1179
+    },
+    {
+      "name": "Python starts a real child process and reads its exit status",
+      "pass": true,
+      "error": "",
+      "elapsed_ms": 327
+    },
+    {
+      "name": "Shell propagates a failing command instead of reporting success",
+      "pass": true,
+      "error": "",
+      "elapsed_ms": 208
+    },
+    {
+      "name": "Embedded shell uses advancing host clock",
+      "pass": true,
+      "error": "",
+      "elapsed_ms": 1240
+    },
+    {
+      "name": "Cancelling the PRoot process terminates its running child",
+      "pass": true,
+      "error": "",
+      "elapsed_ms": 288
+    },
+    {
+      "name": "Cancelling one native branch preserves an unrelated same-UID process",
+      "pass": true,
+      "error": "",
+      "elapsed_ms": 575
+    },
+    {
+      "name": "Bootstrap repeated initialization preserves HOME and stays ready",
+      "pass": true,
+      "error": "",
+      "elapsed_ms": 6
+    },
+    {
+      "name": "Client installation rejects an archive with incorrect bytes and SHA256",
+      "pass": true,
+      "error": "",
+      "elapsed_ms": 1
+    },
+    {
+      "name": "Official codex client installs and executes without sign-in",
+      "pass": true,
+      "error": "",
+      "elapsed_ms": 23765
+    },
+    {
+      "name": "Official claude client installs and executes without sign-in",
+      "pass": true,
+      "error": "",
+      "elapsed_ms": 16636
+    },
+    {
+      "name": "Retry repairs a missing client symlink using the verified local installation",
+      "pass": true,
+      "error": "",
+      "elapsed_ms": 216
+    },
+    {
+      "name": "Official Codex account query reports signed-out state without logging in",
+      "pass": true,
+      "error": "",
+      "elapsed_ms": 359
+    },
+    {
+      "name": "Official Claude account query reports signed-out state without logging in",
+      "pass": true,
+      "error": "",
+      "elapsed_ms": 1148
+    },
+    {
+      "name": "Official Codex exposes device login separately from setup",
+      "pass": true,
+      "error": "",
+      "elapsed_ms": 212
+    },
+    {
+      "name": "Official Claude exposes account login separately from setup",
+      "pass": true,
+      "error": "",
+      "elapsed_ms": 956
+    },
+    {
+      "name": "Runtime UI and real helper callback show installed clients separately from account login",
+      "pass": true,
+      "error": "",
+      "elapsed_ms": 4159
+    }
+  ],
+  "host_observation": {
+    "started_utc": "2026-10-12T02:00:58.121951+00:00",
+    "completed_utc": "2026-10-12T02:10:41.981324+00:00",
+    "elapsed_ms": 583859,
+    "guest_clock_delta_at_start_ms": -12205717,
+    "scope": "Software Android emulator guest clocks can drift; host timing does not represent physical ARM Android performance"
+  },
+  "tested_apk": {
+    "name": "androidagent-0.4.4.apk",
+    "bytes": 653558148,
+    "sha256": "c939d53f01be01eb32be96b306c7cdf4bc97854b69de7c994d13af689bd37e8a",
+    "source_commit": "bc73465374bf6b5df91ec00726d1ff58d38b9567"
+  },
+  "tested_instrumentation": {
+    "name": "tests.apk",
+    "bytes": 176667,
+    "sha256": "817a88ede5890440ed370613bf40015d7da42ae807fec32e93aed3959c828442",
+    "source_commit": "d514f3883f76b976fff1f0a542428eafbf195bc2"
+  },
+  "install_mode": "--clean"
+}

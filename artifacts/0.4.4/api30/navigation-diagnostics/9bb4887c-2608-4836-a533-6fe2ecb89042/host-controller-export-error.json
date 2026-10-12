@@ -1,0 +1,29 @@
+{
+  "run_id": "9bb4887c-2608-4836-a533-6fe2ecb89042",
+  "mode": "global_back",
+  "tested_apk": {
+    "name": "androidagent-0.4.4.apk",
+    "version": "0.4.4",
+    "version_code": 404,
+    "bytes": 653558148,
+    "sha256": "c939d53f01be01eb32be96b306c7cdf4bc97854b69de7c994d13af689bd37e8a",
+    "source_commit": "bc73465374bf6b5df91ec00726d1ff58d38b9567",
+    "certificate_sha256": "b0fe60ab6fb41c33051f1fe9c16b2d24e476fdf66be225870db831cd7e2fb66b",
+    "protected_0.4.3_bytes_unchanged": true
+  },
+  "tested_instrumentation": {
+    "name": "androidagent-0.4.4-tests-v2.apk",
+    "bytes": 176667,
+    "sha256": "817a88ede5890440ed370613bf40015d7da42ae807fec32e93aed3959c828442",
+    "source_commit": "d514f3883f76b976fff1f0a542428eafbf195bc2",
+    "test_only": true,
+    "bundled_in_product": false
+  },
+  "host_started_utc": "2026-10-12T01:53:36.227259+00:00",
+  "host_completed_utc": "2026-10-12T02:01:08.763825+00:00",
+  "host_elapsed_seconds": 452.537,
+  "transport_exit_code": 0,
+  "scope": "Instrumented software Android11 emulator diagnostic, no model or physical phone proof",
+  "result": "INTERRUPTED",
+  "shortMsg": "See instrumentation stream"
+}

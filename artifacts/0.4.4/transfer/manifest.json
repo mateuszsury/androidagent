@@ -1,0 +1,2514 @@
+{
+  "bytes": 653558148,
+  "chunk_bytes": 8388608,
+  "name": "androidagent-0.4.4.apk",
+  "parts": [
+    {
+      "bytes": 8388608,
+      "part": 0,
+      "sha256": "20bc0e60d2cd1209963f8836b97e711a652cee2d8b0dba72fe93e8ac7bb1ec1e",
+      "shaGit": "9e41ef9e58b2a88465c7255d4cb5a4a34cf4f56d"
+    },
+    {
+      "bytes": 8388608,
+      "part": 1,
+      "sha256": "337b02a55b30d15772b711041d64c088eca0d5debf704ead11792facb819ccd6",
+      "shaGit": "2c8f2c76a074b32421b10760bc24870929335599"
+    },
+    {
+      "bytes": 8388608,
+      "part": 2,
+      "sha256": "ff5352c7d87519d5469c99c65725678679662fccf0e161fc9957dbc4b9dd54a4",
+      "shaGit": "464009fa5d34ff724ef7c88adc6bd248bc241759"
+    },
+    {
+      "bytes": 8388608,
+      "part": 3,
+      "sha256": "b255cb47103c6d35d9c31cdac0593a2f16af84e1992da0a7ec41af4519a9eb3e",
+      "shaGit": "ac9e8cc7156ab3c3d6915c43a47d6ed7a6be564f"
+    },
+    {
+      "bytes": 8388608,
+      "part": 4,
+      "sha256": "61f51698ae48cab6e9c0cc00df16149a0ab317a70797c35e0416a0fcf5514731",
+      "shaGit": "84e7e3b12bf140adb4f3c76a6a44857e14b37180"
+    },
+    {
+      "bytes": 8388608,
+      "part": 5,
+      "sha256": "d632533e9e751e1677511af6316a6196ef041b79b61dcbf23161ac2248d0a797",
+      "shaGit": "11a71df75c93bfdcd787fb925ee390293299cf98"
+    },
+    {
+      "bytes": 8388608,
+      "part": 6,
+      "sha256": "d7dc3749ec91f09bf58e7ef230944f8e6db13001536d91dcc1e8926bdc175f09",
+      "shaGit": "82a3b836feef0d920be890a017189d99227da831"
+    },
+    {
+      "bytes": 8388608,
+      "part": 7,
+      "sha256": "5678474ecb00a2aecc057eea6cd99e8a7eaa4d1fe8d2d227d962cb616207d851",
+      "shaGit": "6be973bda7f7856caf100e1c2a635a744ec2ed73"
+    },
+    {
+      "bytes": 8388608,
+      "part": 8,
+      "sha256": "6605235d31eb8cbf19d3b8824d2b89760e97f0589169b258abe0821784c3cc94",
+      "shaGit": "98ff842d59c3b7a22d5a607087503189792b040c"
+    },
+    {
+      "bytes": 8388608,
+      "part": 9,
+      "sha256": "551eb7bc07675d83ed2d7978917770198185cd29f78e3fa5865f871fef805a8f",
+      "shaGit": "115870ea7ad2a3dbdf251c7ba5bf6c26a7d4bea8"
+    },
+    {
+      "bytes": 8388608,
+      "part": 10,
+      "sha256": "a588f73c3195e69646ba282b613c6d29d212c81c0413422016f032429286e36e",
+      "shaGit": "359aef1a292233582dc370bd0cc3b6075583fde3"
+    },
+    {
+      "bytes": 8388608,
+      "part": 11,
+      "sha256": "6bfb8fcd2dbb78e7348625bb7dd81960eb188ac04f1a6c2baafc4fc13c6059a7",
+      "shaGit": "9b15f85455da36ca4e4cec6c8d529afc90eb70a6"
+    },
+    {
+      "bytes": 8388608,
+      "part": 12,
+      "sha256": "ddbbed3d0971b1939453e7fdc524135dae9aed35b65e509c692f2cefa262cd4c",
+      "shaGit": "add5a57b4239ccc5917aeea67c72dce5822b0318"
+    },
+    {
+      "bytes": 8388608,
+      "part": 13,
+      "sha256": "e53add46d27ac761b28e7b9c89a11dfc16899d5ffbe9582920be8827e0dd04ff",
+      "shaGit": "bc7587daea699b7888b9293709a16cbd4723538e"
+    },
+    {
+      "bytes": 8388608,
+      "part": 14,
+      "sha256": "7c8f958419342203a2191fc919d2b78ac14f3bcc847804d020fdf17b2d0748b1",
+      "shaGit": "a4edb56ce1488039c000ba5d1cf159122882b1b7"
+    },
+    {
+      "bytes": 8388608,
+      "part": 15,
+      "sha256": "ec56f9d7e7fdcbcc7522957fe89eb0f53e6aaa40c4cef832c1a751d130d28ae1",
+      "shaGit": "b3e25fad4f033b289a2d6675c67e65700ba1e78c"
+    },
+    {
+      "bytes": 8388608,
+      "part": 16,
+      "sha256": "e8c311958ff5b9a987844d76b1e1f0997bd4301288efeb6f6cff25287bb8d791",
+      "shaGit": "ac5532401796cf92193e228dcb4763ed3dc3c7e1"
+    },
+    {
+      "bytes": 8388608,
+      "part": 17,
+      "sha256": "ed6335a9beef229ae4182ebf48926ab15ed4e3b62a3a5756e4f71c670a139dfa",
+      "shaGit": "b2cd8726906ea460a32718910d054199aa8921b1"
+    },
+    {
+      "bytes": 8388608,
+      "part": 18,
+      "sha256": "6bf3f433d764de56978aa2d0dda73f9fa32bf082444ac60f00525af7684b3560",
+      "shaGit": "44f0b15c8e98dfab058c816519610ee711d61953"
+    },
+    {
+      "bytes": 8388608,
+      "part": 19,
+      "sha256": "a61067faf19292ff3b5bc5ec7291f24710ae605c2bff5a07870c8b6250590337",
+      "shaGit": "ea6b44b33ac12929b7cc22cd077c090e2aafaa9a"
+    },
+    {
+      "bytes": 8388608,
+      "part": 20,
+      "sha256": "c667c1c78dd3ba378a7b18cd4ffce4017883fba10e8769bdf34b25115f7bc277",
+      "shaGit": "fff21490c0fd02121af264411e55b4a48def57a5"
+    },
+    {
+      "bytes": 8388608,
+      "part": 21,
+      "sha256": "cf417a4fccc58299faa5794431445a0cf416907d8c02d9c526354bdbba0cdc6f",
+      "shaGit": "b981feda53b446014db45207ac6e7b3f5dc735a9"
+    },
+    {
+      "bytes": 8388608,
+      "part": 22,
+      "sha256": "2d9053a23f186ffa0d6bfa6a174b523b904214f81e69984a57c4478e1e018486",
+      "shaGit": "e26c7bca544c28f7c4a272c8d15f5b6368d48e2b"
+    },
+    {
+      "bytes": 8388608,
+      "part": 23,
+      "sha256": "918c8509a527ecbc3dddbc9c633c3c30d837c2d72432ee9b845d0bb17f48cee0",
+      "shaGit": "8839fcfbff4839a14e3f553a5fb6ab3365f84afc"
+    },
+    {
+      "bytes": 8388608,
+      "part": 24,
+      "sha256": "dcaea195ba8ac46c54a172250166b4abc88e12cd28f31d40fbfb9cdce3248f5b",
+      "shaGit": "88b0afe4158261d303616fffbfdfa34c2f486972"
+    },
+    {
+      "bytes": 8388608,
+      "part": 25,
+      "sha256": "ef51e4485fd493df110a653542fe51a205c0455145bcdb4a5544b97930cabc3c",
+      "shaGit": "17d081e8e5bd6a0f4b3b3d1c9136fc1468fe5e79"
+    },
+    {
+      "bytes": 8388608,
+      "part": 26,
+      "sha256": "e2fefcaffc7c1ecc9f4896e3d4e6027cd60ea56dd03de245821252c7d5750a12",
+      "shaGit": "382ef7c6d1fb00c82b94e84a6e6bb7e2f66f9109"
+    },
+    {
+      "bytes": 8388608,
+      "part": 27,
+      "sha256": "df577d3779ca54461a6efe3c76bec5838fa71383c6bc86cbd1c4b7edc162a375",
+      "shaGit": "bc77beffcae18f5d395f11c665fe72ecaddef9a8"
+    },
+    {
+      "bytes": 8388608,
+      "part": 28,
+      "sha256": "b6f7484e374c4f544c1191d0746b4458a6f98eadbd0a068b996d5cabd0da506c",
+      "shaGit": "48e015151039b11afc74bd43c559c9a0c007ce86"
+    },
+    {
+      "bytes": 8388608,
+      "part": 29,
+      "sha256": "1654b06a853080ffa8b166898ee39c081d1d33a13dd6635f7af92dee91a343aa",
+      "shaGit": "7baab58bdc5860ad22aa2516014be155124475e7"
+    },
+    {
+      "bytes": 8388608,
+      "part": 30,
+      "sha256": "e662d2883c460838696f8e5ed3e7be7ac95463c565bdf3e214d63b755865356b",
+      "shaGit": "cd65d5cce07651769681141b4276bf3eb2e16c8d"
+    },
+    {
+      "bytes": 8388608,
+      "part": 31,
+      "sha256": "0c0a382dfc4364154b37678dbba2668c0f3816de86e60dd2ea959ecc7efc2f96",
+      "shaGit": "7c9fb524aad644754c1d1bd93573153c7012826e"
+    },
+    {
+      "bytes": 8388608,
+      "part": 32,
+      "sha256": "19b086f6a3af8d4cd38777a151319ddb89cb9b02f9ca25fb678dd0ce8c99d2ce",
+      "shaGit": "6fcc72f772d8e1d02a14e04f2c579bcf1bf7c167"
+    },
+    {
+      "bytes": 8388608,
+      "part": 33,
+      "sha256": "f2080cbf44dc552bcb5a7712494160cb093ba8e46e534cbf088a6c84f7cc0540",
+      "shaGit": "3b20c710300b565833b157ba32927b2acc8105f9"
+    },
+    {
+      "bytes": 8388608,
+      "part": 34,
+      "sha256": "72cb48440bc02e18c60c2f0bb549b72f0b1ba355964a55e21c0bd4e1cb5a2d69",
+      "shaGit": "b37c209edf10cb8d58f2ef1b169723b29aa58acd"
+    },
+    {
+      "bytes": 8388608,
+      "part": 35,
+      "sha256": "500e7831706c5e1c575b775d876be63a46e63fdc3b8465be809266c87e432d58",
+      "shaGit": "76653b5479dc67dc57c52a4eea7cfc3044038cc4"
+    },
+    {
+      "bytes": 8388608,
+      "part": 36,
+      "sha256": "53d153f3412fdf0dca99b46891343179baba3434c0cd3a313283ac9e04e5e750",
+      "shaGit": "e1085d6cc1de13ba8d68fd49c0ecf751e35cf3df"
+    },
+    {
+      "bytes": 8388608,
+      "part": 37,
+      "sha256": "23c7cfe729055772b7c7a3b46b7b4f621a3c59132d80a2744c3b0e065e4f782a",
+      "shaGit": "8f25c00bf307c27fa5ae78d896e9cea4ce0bccd3"
+    },
+    {
+      "bytes": 8388608,
+      "part": 38,
+      "sha256": "e47914557f2d523d4a9bea2e067831e7bed9a3af1991c229c4c2b03f682bd16d",
+      "shaGit": "88a3536999f183db795d6bb85efd234f261c7ac8"
+    },
+    {
+      "bytes": 8388608,
+      "part": 39,
+      "sha256": "5622f1b2df021260f82da4abcf8128ee144ae0d96bc337a864212393ab761040",
+      "shaGit": "7e4a9c340177120b1fa96c6924858867e99eb6a9"
+    },
+    {
+      "bytes": 8388608,
+      "part": 40,
+      "sha256": "81ee7cf5e89c5eb35e6dc08b5432fce65c69cdc1d8ee66e66a2aa6a05549ffec",
+      "shaGit": "190e1f840e52fbf8a61537c8058613c8b9b0ea51"
+    },
+    {
+      "bytes": 8388608,
+      "part": 41,
+      "sha256": "1438d4e96681bf4a32287703d3d471d865c46cbc03b505045ae3b67f60ad041c",
+      "shaGit": "6447a7769c8dc3b60ac92c928211bf5d4c00ec48"
+    },
+    {
+      "bytes": 8388608,
+      "part": 42,
+      "sha256": "eee57f3fc5eb6e0230c335e71aadafb5722a656b17db81d9037ed40299bb18b6",
+      "shaGit": "13864328fc83afc00c21a420e4b19e80ca283fbc"
+    },
+    {
+      "bytes": 8388608,
+      "part": 43,
+      "sha256": "9256f4264bd0a90a6ce76ac8a33c24010d238ce0782e9b8e8974bbb55bb571c4",
+      "shaGit": "9a71bc73d3424664a86f5329f692bd70fb6eb0e0"
+    },
+    {
+      "bytes": 8388608,
+      "part": 44,
+      "sha256": "90d389edb057ab17beb648c7fcb37a56f257af98973ebdbe82c92dafdc8634e5",
+      "shaGit": "205d204cc75f7df9ec3498d3835522e7ae1b4311"
+    },
+    {
+      "bytes": 8388608,
+      "part": 45,
+      "sha256": "8bd028de10240f46db52bae480865889b4226062cde8472c2939a4f5ca175384",
+      "shaGit": "13eb5fe64b389f3fba382d86a70eaa92dc6ed2ba"
+    },
+    {
+      "bytes": 8388608,
+      "part": 46,
+      "sha256": "4e1b3c2c9b922fe41f43d3ce76e42a3ea9473f3485e8f41b0417fef1e4bc48ce",
+      "shaGit": "c6f9b96eae2b2dbb1257ec3c2adada0654999b9b"
+    },
+    {
+      "bytes": 8388608,
+      "part": 47,
+      "sha256": "59130e6b933371f47c7e8b86d066843d2c01873ecdad81fb64c4a60a8694463f",
+      "shaGit": "a3ad70342bfefda99105075e77b8c9a1577ce7cb"
+    },
+    {
+      "bytes": 8388608,
+      "part": 48,
+      "sha256": "51008aa16b933fd337eae5469481718599aaa45565ee28eb139195a5746834f0",
+      "shaGit": "fc046b1bc2883323911e9641715822552ed85d1a"
+    },
+    {
+      "bytes": 8388608,
+      "part": 49,
+      "sha256": "0a15f83faccf512b46c34bd22140f8501082d6d3a6ab0e84cbc61a635ec10519",
+      "shaGit": "44a7603cdf8cf81c57e7e9095cb65b8c7ae2e9e4"
+    },
+    {
+      "bytes": 8388608,
+      "part": 50,
+      "sha256": "019dc56ea01027c72d2c8185eb2bcf83e4b3acb1f5c6487bd70c7a1d79b0d429",
+      "shaGit": "7a7d9891e7e4c4c75674168df222f062a2c62177"
+    },
+    {
+      "bytes": 8388608,
+      "part": 51,
+      "sha256": "8c7b9af01010af84f1859d00ac190523f421092226c88456d196a7f0e43376dd",
+      "shaGit": "6841c46ca507e2ec94b9ed6a1389a6f7d92e4e3f"
+    },
+    {
+      "bytes": 8388608,
+      "part": 52,
+      "sha256": "d6ccd5d2be76c3fcfc0ca06a9e6360605e87b4dd3ea673b5d5a3299e25309f44",
+      "shaGit": "12a39666418d2a334b727606a1efa2aaf7443f5c"
+    },
+    {
+      "bytes": 8388608,
+      "part": 53,
+      "sha256": "e8d0aafe2b4bc134844a982f82003f98412960189759a74cb34c0eab93de6fe0",
+      "shaGit": "022847ff666b2ed7f7badfc24d55ad8611751a53"
+    },
+    {
+      "bytes": 8388608,
+      "part": 54,
+      "sha256": "a5037f6908a30eaeac2ad12ba5c76f829b3b6a2549c090895c46c0047e6f5585",
+      "shaGit": "3f61e93aeebe0b71d8f5c6b87084ca9f34fa4d6a"
+    },
+    {
+      "bytes": 8388608,
+      "part": 55,
+      "sha256": "63facccefca361722611ae6f27ba054eb349649b193907f0ad0a9382adbf5ac6",
+      "shaGit": "c8b80e8f42d177018ba9bddb081f4d74ac7817d4"
+    },
+    {
+      "bytes": 8388608,
+      "part": 56,
+      "sha256": "4a08d2b27ca05dfb1987530a5fe0f765b486d95427e31a6d78079b551bf6a6f0",
+      "shaGit": "7a2fe3db590dc118b81c6eacc081a12a5be2c1b7"
+    },
+    {
+      "bytes": 8388608,
+      "part": 57,
+      "sha256": "c66250fc692d05fe176b915ddd60946978470327ad5c7126eac613b569d40a2f",
+      "shaGit": "b301021f67cc1d1c10c5042f8265583dd04fc95b"
+    },
+    {
+      "bytes": 8388608,
+      "part": 58,
+      "sha256": "f28e24e54b79971679545b390823d39b7b274ea091409630eb445ea2135e3a87",
+      "shaGit": "1bfde9ceb5e1a138eef3fb178d1e330dd157ef59"
+    },
+    {
+      "bytes": 8388608,
+      "part": 59,
+      "sha256": "8217597793aa9e52d79a5dbcfe31f9542a1fc4983654be0d4adf8c6d3d281204",
+      "shaGit": "808d093ef5f21a4ca6c01324d38cc4bceaa28adb"
+    },
+    {
+      "bytes": 8388608,
+      "part": 60,
+      "sha256": "84de08620e09fe0934280ac88f8b7ce555c1b8035bc0a1f5d063d4aa11099a3a",
+      "shaGit": "e82f389d60e1c9a847f3d80db2589dc614c984ad"
+    },
+    {
+      "bytes": 8388608,
+      "part": 61,
+      "sha256": "8145f5ec37cf8e61a5a2a99b9f7c0b586abc67d90b26f794ef6ac69f5a094649",
+      "shaGit": "08ec7bcbe94078ee9e3a7a41620eb0dc782c8cda"
+    },
+    {
+      "bytes": 8388608,
+      "part": 62,
+      "sha256": "a3cdd3d68c334cc8d0abeb0bff959cec4cd0f1643f4a4fb6e9665a4235379d79",
+      "shaGit": "0a00815d2770d024d32fc700e2ce665e8341404e"
+    },
+    {
+      "bytes": 8388608,
+      "part": 63,
+      "sha256": "6ead6fc180ed451720f3e92ad0cd7beb03adabf191f7f2608e5d3cd6e1467ba5",
+      "shaGit": "5658f8d5b9b3ae719e6fc37e938edc6d03141221"
+    },
+    {
+      "bytes": 8388608,
+      "part": 64,
+      "sha256": "69a73dd446f11dbca3856ad25d801d9a18d2289349cb8798512bcc171db12ad5",
+      "shaGit": "0ff837c95d5aa0b7ec341e74a83a5f1d42957dac"
+    },
+    {
+      "bytes": 8388608,
+      "part": 65,
+      "sha256": "831c3fb3364c9e720a3492fc245552fc4d93d025dc4843713356f3bf2eeb7d92",
+      "shaGit": "2254e50037913dfbec4c58598096009a5005686f"
+    },
+    {
+      "bytes": 8388608,
+      "part": 66,
+      "sha256": "574828e4eb4d2baacc09efdd92b792d117121922541f8fbb8bae994c73c4032c",
+      "shaGit": "ff0a44df19e3116f11f5ce3a0d9c58902eb901b1"
+    },
+    {
+      "bytes": 8388608,
+      "part": 67,
+      "sha256": "0f863206742f44cdc996d0e68c9813900ba905d1acc747cbaefcabbd5d4423f0",
+      "shaGit": "ea902393d7c8b82ab9ddbb3ee30706b742b356f0"
+    },
+    {
+      "bytes": 8388608,
+      "part": 68,
+      "sha256": "57bebe493345b9d10b652c5f74e0a46d413d27fbe4ae709ea7519e91e1850490",
+      "shaGit": "a50f30741f37a28cf8efca9b973e7423384d0192"
+    },
+    {
+      "bytes": 8388608,
+      "part": 69,
+      "sha256": "f3cbcd8cba27120de1a24abac829eebbc665b3eacb29d01cc0365c2b226eabfb",
+      "shaGit": "d3b5a6036af76ad8a5f76856d228d4804ce0b0b9"
+    },
+    {
+      "bytes": 8388608,
+      "part": 70,
+      "sha256": "44f4883ddb1097c712dce855f64f8ac4671806c67933bd7bbe85dc9af833f463",
+      "shaGit": "0852e0d450435ea1881b0ed21ed2e8d1950f45fd"
+    },
+    {
+      "bytes": 8388608,
+      "part": 71,
+      "sha256": "502f148bead2952afe286322f7bf91cd505c81f924d2bcc04d3fc6bdd5c89462",
+      "shaGit": "c94d3f47ad9f24c1087dd861e8dda6829464e9bd"
+    },
+    {
+      "bytes": 8388608,
+      "part": 72,
+      "sha256": "739d8b7e95bea3d6a24125d2b19ddb17e5fd15e84db984b73a67bee48bfc6b6f",
+      "shaGit": "91fd94018f2e3b2cb74ea7aeca7cdebefa26db45"
+    },
+    {
+      "bytes": 8388608,
+      "part": 73,
+      "sha256": "de3392bb6342017c16194699f9dab0b795d723ef7c66e78ab06a14cab29b5f78",
+      "shaGit": "4842229c12ef0603dc1234fade4ec6455322ed5d"
+    },
+    {
+      "bytes": 8388608,
+      "part": 74,
+      "sha256": "bc415b180cafff310d720ca501526d7a001bbf5ac5ae2d09043fa7bc4e7beaa0",
+      "shaGit": "45006db263016db7b228de09d6b96e1959f3120c"
+    },
+    {
+      "bytes": 8388608,
+      "part": 75,
+      "sha256": "1f68f2ef24073379030932c0680ea8c5b6b6b1acf3d267121eab5f2a8323fbe4",
+      "shaGit": "b83e4827374773257508a92887a8f1659754cb39"
+    },
+    {
+      "bytes": 8388608,
+      "part": 76,
+      "sha256": "814dc90d52a0226c58400ebd0023a3be8f29a37523fdd2717cae992d735b7afb",
+      "shaGit": "24e6c25d756fc8f8248d5f87996d44b886ec4d6b"
+    },
+    {
+      "bytes": 7635332,
+      "part": 77,
+      "sha256": "33f1461ef8312814731c00520bf89ef11c77acf839a64473de82334bdf844e42",
+      "shaGit": "48ce39d992564eb7eae746ee67fef0126848a4d3"
+    }
+  ],
+  "report": {
+    "bytes": 96144,
+    "metadata": {
+      "android_emulators": [
+        {
+          "abi": "x86_64",
+          "acceleration": "software QEMU TCG, no KVM; emulator guest clock drift",
+          "api": 30,
+          "canonical_checks": 160,
+          "checks": [
+            {
+              "bytes": 5947,
+              "elapsed_ms": 30937,
+              "failed": 0,
+              "fixture": "Actual in-place 0.4.3 to 0.4.4 Android update; production HOME/history and real QCOW2 retained; no guest engine boot in this suite",
+              "host_observation": {
+                "completed_utc": "2026-10-12T01:27:04.488606+00:00",
+                "elapsed_ms": 96993,
+                "scope": "Android software emulator; guest clock/elapsed time and performance differ from physical ARM Android",
+                "started_utc": "2026-10-12T01:25:27.495823+00:00"
+              },
+              "name": "update-preservation/seed043",
+              "observations": {},
+              "passed": 3,
+              "path": "artifacts/0.4.4/api30/update-preservation/seed043/results.json",
+              "process_uid": 10134,
+              "run_id": "43e4bbb9-862a-47aa-82a8-caa3a29aded7",
+              "sha256": "3f11eb5220760b28d4c9c4050748fffd97a9ed632959f3a5ffa32238b3c8451c",
+              "tested_apk": {
+                "bytes": 653533571,
+                "name": "androidagent-0.4.3.apk",
+                "sha256": "92edfd2974159fd523cfa6a7d0a6bd3235deb0cdfe62ab5df42a3c3567ae7537",
+                "source_commit": "db41298e352a28f0b4e2a4b6a4ccdc504777e10b"
+              },
+              "tested_instrumentation": {
+                "bytes": 168475,
+                "name": "androidagent-044-final-tests.apk",
+                "sha256": "b774e8a0b1b9f7db2aa94d877c74258d2145f2e9c591b572f8e5baeb65958c22",
+                "source_commit": "bc73465374bf6b5df91ec00726d1ff58d38b9567"
+              },
+              "tested_version": "0.4.3",
+              "update_method": "adb install --no-incremental -r; old app data and disk retained; no uninstall or VM reset"
+            },
+            {
+              "bytes": 6413,
+              "elapsed_ms": 23261,
+              "failed": 0,
+              "fixture": "Actual in-place 0.4.3 to 0.4.4 Android update; production HOME/history and real QCOW2 retained; no guest engine boot in this suite",
+              "host_observation": {
+                "completed_utc": "2026-10-12T01:30:10.861733+00:00",
+                "elapsed_ms": 87136,
+                "scope": "Android software emulator; guest clock/elapsed time and performance differ from physical ARM Android",
+                "started_utc": "2026-10-12T01:28:43.725592+00:00"
+              },
+              "name": "update-preservation/verify044",
+              "observations": {},
+              "passed": 7,
+              "path": "artifacts/0.4.4/api30/update-preservation/verify044/results.json",
+              "process_uid": 10134,
+              "run_id": "cf9a41b5-e90e-4bb9-b801-7a5e916cb542",
+              "sha256": "81f223cd0f758591231839a2ebfc652bc03d044a1cf51701dc4697c7c0dae45a",
+              "tested_apk": {
+                "bytes": 653558148,
+                "name": "androidagent-0.4.4.apk",
+                "sha256": "c939d53f01be01eb32be96b306c7cdf4bc97854b69de7c994d13af689bd37e8a",
+                "source_commit": "bc73465374bf6b5df91ec00726d1ff58d38b9567"
+              },
+              "tested_instrumentation": {
+                "bytes": 168475,
+                "name": "androidagent-044-final-tests.apk",
+                "sha256": "b774e8a0b1b9f7db2aa94d877c74258d2145f2e9c591b572f8e5baeb65958c22",
+                "source_commit": "bc73465374bf6b5df91ec00726d1ff58d38b9567"
+              },
+              "tested_version": "0.4.4",
+              "update_method": "adb install --no-incremental -r; old app data and disk retained; no uninstall or VM reset"
+            },
+            {
+              "bytes": 6339,
+              "elapsed_ms": 1605,
+              "failed": 0,
+              "fixture": "Isolated production DockerDiagnostics with synthetic console fragments; no QEMU or Docker engine proof",
+              "host_observation": {
+                "completed_utc": "2026-10-12T01:30:32.369892+00:00",
+                "elapsed_ms": 21460,
+                "scope": "Android software emulator; guest clock/elapsed time and performance differ from physical ARM Android",
+                "started_utc": "2026-10-12T01:30:10.909863+00:00"
+              },
+              "name": "update-preservation/diagnostics044",
+              "observations": {
+                "diagnostic_fd_stability": {
+                  "after": 48,
+                  "before": 48,
+                  "gc_requested": false,
+                  "iterations": 200
+                }
+              },
+              "passed": 5,
+              "path": "artifacts/0.4.4/api30/update-preservation/diagnostics044/results.json",
+              "process_uid": 10134,
+              "run_id": "c53a150f-0da5-4b9f-8a8c-e5d7bb73b709",
+              "sha256": "a4cb4a363362b4feba28390c6e6d97644564888dc2bf0a19d8deeb217c70bacc",
+              "tested_apk": {
+                "bytes": 653558148,
+                "name": "androidagent-0.4.4.apk",
+                "sha256": "c939d53f01be01eb32be96b306c7cdf4bc97854b69de7c994d13af689bd37e8a",
+                "source_commit": "bc73465374bf6b5df91ec00726d1ff58d38b9567"
+              },
+              "tested_instrumentation": {
+                "bytes": 168475,
+                "name": "androidagent-044-final-tests.apk",
+                "sha256": "b774e8a0b1b9f7db2aa94d877c74258d2145f2e9c591b572f8e5baeb65958c22",
+                "source_commit": "bc73465374bf6b5df91ec00726d1ff58d38b9567"
+              },
+              "tested_version": "0.4.4",
+              "update_method": "adb install --no-incremental -r; old app data and disk retained; no uninstall or VM reset"
+            },
+            {
+              "bytes": 13214,
+              "failed": 0,
+              "host_observation": {
+                "completed_utc": "2026-10-12T02:18:29.438448+00:00",
+                "elapsed_ms": 600116,
+                "scope": "Software x86_64 Android emulator with TCG guest clock drift; not physical ARM Android performance",
+                "started_utc": "2026-10-12T02:08:29.321920+00:00"
+              },
+              "name": "app",
+              "navigation_cleanup": "global_back",
+              "navigation_iterations": 0,
+              "navigation_only": false,
+              "passed": 83,
+              "path": "artifacts/0.4.4/api30/app/results.json",
+              "run_id": "704158f7-9c71-43a8-b2e4-6b2174d1f171",
+              "sha256": "640ca632e9e0cd8107bb66b078cd5c56ef1849bede5afcd101fbafefb9cc5e92",
+              "tested_apk": {
+                "bytes": 653558148,
+                "certificate_sha256": "b0fe60ab6fb41c33051f1fe9c16b2d24e476fdf66be225870db831cd7e2fb66b",
+                "name": "androidagent-0.4.4.apk",
+                "protected_0.4.3_bytes_unchanged": true,
+                "sha256": "c939d53f01be01eb32be96b306c7cdf4bc97854b69de7c994d13af689bd37e8a",
+                "source_commit": "bc73465374bf6b5df91ec00726d1ff58d38b9567",
+                "version": "0.4.4",
+                "version_code": 404
+              },
+              "tested_instrumentation": {
+                "bundled_in_product": false,
+                "bytes": 176667,
+                "name": "androidagent-0.4.4-tests-v2.apk",
+                "sha256": "817a88ede5890440ed370613bf40015d7da42ae807fec32e93aed3959c828442",
+                "source_commit": "d514f3883f76b976fff1f0a542428eafbf195bc2",
+                "test_only": true
+              },
+              "tested_version": "0.4.4"
+            },
+            {
+              "bytes": 1880,
+              "elapsed_ms": 1681,
+              "failed": 0,
+              "fixture": "Actual DockerVm.install in isolated Android cache; sentinel backing/overlay files. Real ARM QCOW2 migration is separate.",
+              "host_observation": {
+                "completed_utc": "2026-10-12T02:19:22.020596+00:00",
+                "elapsed_ms": 11423,
+                "scope": "Software x86_64 Android emulator with TCG guest clock drift; not physical ARM Android performance",
+                "started_utc": "2026-10-12T02:19:10.598333+00:00"
+              },
+              "name": "docker-migration",
+              "observations": {},
+              "passed": 4,
+              "path": "artifacts/0.4.4/api30/docker-migration/results.json",
+              "process_uid": 10134,
+              "run_id": "6b6a3dc8-f007-4c45-8f72-9fa2b012b734",
+              "sha256": "85353d95467fea9d07d381139200ba8b694b72922bc705a80633addca490dccd",
+              "tested_apk": {
+                "bytes": 653558148,
+                "certificate_sha256": "b0fe60ab6fb41c33051f1fe9c16b2d24e476fdf66be225870db831cd7e2fb66b",
+                "name": "androidagent-0.4.4.apk",
+                "protected_0.4.3_bytes_unchanged": true,
+                "sha256": "c939d53f01be01eb32be96b306c7cdf4bc97854b69de7c994d13af689bd37e8a",
+                "source_commit": "bc73465374bf6b5df91ec00726d1ff58d38b9567",
+                "version": "0.4.4",
+                "version_code": 404
+              },
+              "tested_instrumentation": {
+                "bundled_in_product": false,
+                "bytes": 176667,
+                "name": "androidagent-0.4.4-tests-v2.apk",
+                "sha256": "817a88ede5890440ed370613bf40015d7da42ae807fec32e93aed3959c828442",
+                "source_commit": "d514f3883f76b976fff1f0a542428eafbf195bc2",
+                "test_only": true
+              },
+              "tested_version": "0.4.4"
+            },
+            {
+              "bytes": 6449,
+              "failed": 0,
+              "host_observation": {
+                "completed_utc": "2026-10-12T02:23:03.414525+00:00",
+                "elapsed_ms": 177463,
+                "scope": "Software x86_64 Android emulator with TCG guest clock drift; not physical ARM Android performance",
+                "started_utc": "2026-10-12T02:20:05.951603+00:00"
+              },
+              "name": "usb",
+              "passed": 40,
+              "path": "artifacts/0.4.4/api30/usb/results.json",
+              "run_id": "6fd6a41a-27a7-4fa9-b16b-750d5ba05997",
+              "sha256": "ade9337e467a76f3d67a4d44144561863f9a044b11bc42c05cfdf4463fc09942",
+              "tested_apk": {
+                "bytes": 653558148,
+                "certificate_sha256": "b0fe60ab6fb41c33051f1fe9c16b2d24e476fdf66be225870db831cd7e2fb66b",
+                "name": "androidagent-0.4.4.apk",
+                "protected_0.4.3_bytes_unchanged": true,
+                "sha256": "c939d53f01be01eb32be96b306c7cdf4bc97854b69de7c994d13af689bd37e8a",
+                "source_commit": "bc73465374bf6b5df91ec00726d1ff58d38b9567",
+                "version": "0.4.4",
+                "version_code": 404
+              },
+              "tested_instrumentation": {
+                "bundled_in_product": false,
+                "bytes": 176667,
+                "name": "androidagent-0.4.4-tests-v2.apk",
+                "sha256": "817a88ede5890440ed370613bf40015d7da42ae807fec32e93aed3959c828442",
+                "source_commit": "d514f3883f76b976fff1f0a542428eafbf195bc2",
+                "test_only": true
+              },
+              "tested_version": "0.4.4"
+            },
+            {
+              "bytes": 14559,
+              "failed": 0,
+              "host_observation": {
+                "completed_utc": "2026-10-12T02:27:15.502177+00:00",
+                "elapsed_ms": 207133,
+                "scope": "Software x86_64 Android emulator with TCG guest clock drift; not physical ARM Android performance",
+                "started_utc": "2026-10-12T02:23:48.369033+00:00"
+              },
+              "name": "docker-ui",
+              "observations": {
+                "duplicate_start_barrier": {
+                  "docker_worker_count": 1,
+                  "guest_elapsed_ms": 825980,
+                  "guest_wall_ms": 1791771816660,
+                  "latest_start_id": 2,
+                  "retained_process_alive": false,
+                  "service": {
+                    "active_since_guest_ms": 825943,
+                    "foreground": true,
+                    "last_activity_guest_ms": 825945,
+                    "pid": 3703,
+                    "started": true
+                  },
+                  "service_dump": "ACTIVITY MANAGER SERVICES (dumpsys activity services)\n  User 0 active services:\n  * ServiceRecord{47386d7 u0 dev.mateuszsury.androidagent/.DockerService}\n    intent={cmp=dev.mateuszsury.androidagent/.DockerService}\n    packageName=dev.mateuszsury.androidagent\n    processName=dev.mateuszsury.androidagent\n    baseDir=/data/app/~~TPDIaq1KA93l3v6JDC3nRw==/dev.mateuszsury.androidagent-zPMcFM5xJxa2ye-TqNpV0w==/base.apk\n    dataDir=/data/user/0/dev.mateuszsury.androidagent\n    app=ProcessRecord{5a0397a 3703:dev.mateuszsury.androidagent/u0a134}\n    allowWhileInUsePermissionInFgs=true\n    recentCallingPackage=dev.mateuszsury.androidagent\n    isForeground=true foregroundId=730 foregroundNoti=Notification(channel=docker shortcut=null contentView=null vibrate=null sound=null defaults=0x0 flags=0x42 color=0x00000000 actions=1 vis=PRIVATE)\n    createTime=-59ms startingBgTimeout=--\n    lastActivity=-57ms restartTime=-59ms createdFromFg=true\n    startRequested=true delayedStop=false stopIfKilled=true callStart=true lastStartId=2\n",
+                  "service_exists": true,
+                  "threads": [
+                    {
+                      "alive": true,
+                      "id": 2,
+                      "name": "main",
+                      "stack": [
+                        "android.os.MessageQueue.nativePollOnce(Native Method)",
+                        "android.os.MessageQueue.next(MessageQueue.java:335)",
+                        "android.os.Looper.loop(Looper.java:183)",
+                        "android.app.ActivityThread.main(ActivityThread.java:7656)",
+                        "java.lang.reflect.Method.invoke(Native Method)",
+                        "com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:592)",
+                        "com.android.internal.os.ZygoteInit.main(ZygoteInit.java:947)"
+                      ],
+                      "state": "RUNNABLE"
+                    },
+                    {
+                      "alive": true,
+                      "id": 339,
+                      "name": "docker-vm",
+                      "stack": [
+                        "dev.mateuszsury.androidagent.DockerVm.boot(DockerVm.java:73)",
+                        "dev.mateuszsury.androidagent.DockerService.lambda$onStartCommand$3$dev-mateuszsury-androidagent-DockerService(DockerService.java:58)",
+                        "dev.mateuszsury.androidagent.DockerService$$ExternalSyntheticLambda2.run(D8$$SyntheticClass:0)",
+                        "java.lang.Thread.run(Thread.java:923)"
+                      ],
+                      "state": "BLOCKED"
+                    }
+                  ],
+                  "vm_alive": false,
+                  "vm_detail": "Usunięto zadania i cache Dockera",
+                  "vm_state": "stopped",
+                  "vm_status": {
+                    "abi": "x86_64",
+                    "clock_mode": "instruction_count",
+                    "detail": "Usunięto zadania i cache Dockera",
+                    "diagnostics": {
+                      "abi": "x86_64",
+                      "app_pid": 3703,
+                      "available": true,
+                      "boot_id": "edf12748-4ae3-4f83-ad19-0741b97529ea",
+                      "console_bytes": 167,
+                      "console_truncated": false,
+                      "cores": 2,
+                      "diagnostic_error": "",
+                      "emulator": true,
+                      "exit_code": 137,
+                      "exit_recorded_at_epoch_ms": 1791771816059,
+                      "finished": true,
+                      "guest_bytes": 0,
+                      "phase": "exited",
+                      "previous_app_session_interrupted": null,
+                      "process_started": true,
+                      "ram_mb": 1024,
+                      "reason": "user_stop",
+                      "run_id": "edf12748-4ae3-4f83-ad19-0741b97529ea",
+                      "started_at_epoch_ms": 1791771774439,
+                      "termination_reason": "user_stop",
+                      "total_output_bytes": 167,
+                      "truncated": false
+                    },
+                    "guest": {},
+                    "host_free_bytes": 3794231296,
+                    "last_guest_response_host_ms": 0,
+                    "last_probe_error": "ConnectException: Failed to connect to /127.0.0.1:18780",
+                    "preview_url": "http://127.0.0.1:18781",
+                    "ram_mb": 1024,
+                    "ready": false,
+                    "root_required": false,
+                    "startup_budget_seconds": 900,
+                    "state": "stopped",
+                    "vcpus": 2
+                  }
+                },
+                "original_stop_deadline_guest_ms": 856230,
+                "original_three_condition_loop": {
+                  "docker_worker_count": 0,
+                  "guest_elapsed_ms": 843385,
+                  "guest_wall_ms": 1791771834065,
+                  "retained_process_alive": true,
+                  "service_dump": "ACTIVITY MANAGER SERVICES (dumpsys activity services)\n  (nothing)\n",
+                  "service_exists": false,
+                  "threads": [
+                    {
+                      "alive": true,
+                      "id": 2,
+                      "name": "main",
+                      "stack": [
+                        "android.os.MessageQueue.nativePollOnce(Native Method)",
+                        "android.os.MessageQueue.next(MessageQueue.java:335)",
+                        "android.os.Looper.loop(Looper.java:183)",
+                        "android.app.ActivityThread.main(ActivityThread.java:7656)",
+                        "java.lang.reflect.Method.invoke(Native Method)",
+                        "com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:592)",
+                        "com.android.internal.os.ZygoteInit.main(ZygoteInit.java:947)"
+                      ],
+                      "state": "RUNNABLE"
+                    },
+                    {
+                      "alive": true,
+                      "id": 341,
+                      "name": "docker-process-exit",
+                      "stack": [
+                        "libcore.io.Linux.fsync(Native Method)",
+                        "libcore.io.ForwardingOs.fsync(ForwardingOs.java:108)",
+                        "libcore.io.BlockGuardOs.fsync(BlockGuardOs.java:186)",
+                        "libcore.io.ForwardingOs.fsync(ForwardingOs.java:108)",
+                        "android.system.Os.fsync(Os.java:180)",
+                        "dev.mateuszsury.androidagent.DockerDiagnostics.atomicWrite(DockerDiagnostics.java:500)",
+                        "dev.mateuszsury.androidagent.DockerDiagnostics.persistMetadata(DockerDiagnostics.java:382)",
+                        "dev.mateuszsury.androidagent.DockerDiagnostics.recordExit(DockerDiagnostics.java:152)",
+                        "dev.mateuszsury.androidagent.DockerVm.lambda$boot$1(DockerVm.java:165)",
+                        "dev.mateuszsury.androidagent.DockerVm$$ExternalSyntheticLambda1.run(D8$$SyntheticClass:0)",
+                        "java.lang.Thread.run(Thread.java:923)"
+                      ],
+                      "state": "RUNNABLE"
+                    }
+                  ],
+                  "vm_alive": false,
+                  "vm_detail": "Środowisko zatrzymane",
+                  "vm_state": "stopped",
+                  "vm_status": {
+                    "abi": "x86_64",
+                    "clock_mode": "instruction_count",
+                    "detail": "Środowisko zatrzymane",
+                    "diagnostics": {
+                      "abi": "x86_64",
+                      "app_pid": 3703,
+                      "available": true,
+                      "boot_id": "f0a3081f-a5f2-496e-aa90-9953e7da89ee",
+                      "console_bytes": 166,
+                      "console_truncated": false,
+                      "cores": 1,
+                      "diagnostic_error": "",
+                      "emulator": true,
+                      "exit_code": null,
+                      "exit_recorded_at_epoch_ms": null,
+                      "finished": true,
+                      "guest_bytes": 0,
+                      "phase": "termination_requested",
+                      "previous_app_session_interrupted": null,
+                      "process_started": null,
+                      "ram_mb": 512,
+                      "reason": "user_stop",
+                      "run_id": "f0a3081f-a5f2-496e-aa90-9953e7da89ee",
+                      "started_at_epoch_ms": 1791771816687,
+                      "termination_reason": "user_stop",
+                      "total_output_bytes": 166,
+                      "truncated": false
+                    },
+                    "guest": {},
+                    "host_free_bytes": 3794018304,
+                    "last_guest_response_host_ms": 0,
+                    "last_probe_error": "ConnectException: Failed to connect to /127.0.0.1:18780",
+                    "preview_url": "http://127.0.0.1:18781",
+                    "ram_mb": 512,
+                    "ready": false,
+                    "root_required": false,
+                    "startup_budget_seconds": 900,
+                    "state": "stopped",
+                    "vcpus": 1
+                  }
+                },
+                "stop_before_cleanup": {
+                  "actual_exit_code": 137,
+                  "docker_worker_count": 0,
+                  "guest_elapsed_ms": 843460,
+                  "guest_wall_ms": 1791771834139,
+                  "retained_process_alive": false,
+                  "service_dump": "ACTIVITY MANAGER SERVICES (dumpsys activity services)\n  (nothing)\n",
+                  "service_exists": false,
+                  "threads": [
+                    {
+                      "alive": true,
+                      "id": 2,
+                      "name": "main",
+                      "stack": [
+                        "android.os.MessageQueue.nativePollOnce(Native Method)",
+                        "android.os.MessageQueue.next(MessageQueue.java:335)",
+                        "android.os.Looper.loop(Looper.java:183)",
+                        "android.app.ActivityThread.main(ActivityThread.java:7656)",
+                        "java.lang.reflect.Method.invoke(Native Method)",
+                        "com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:592)",
+                        "com.android.internal.os.ZygoteInit.main(ZygoteInit.java:947)"
+                      ],
+                      "state": "RUNNABLE"
+                    }
+                  ],
+                  "vm_alive": false,
+                  "vm_detail": "Środowisko zatrzymane",
+                  "vm_state": "stopped",
+                  "vm_status": {
+                    "abi": "x86_64",
+                    "clock_mode": "instruction_count",
+                    "detail": "Środowisko zatrzymane",
+                    "diagnostics": {
+                      "abi": "x86_64",
+                      "app_pid": 3703,
+                      "available": true,
+                      "boot_id": "f0a3081f-a5f2-496e-aa90-9953e7da89ee",
+                      "console_bytes": 166,
+                      "console_truncated": false,
+                      "cores": 1,
+                      "diagnostic_error": "",
+                      "emulator": true,
+                      "exit_code": null,
+                      "exit_recorded_at_epoch_ms": null,
+                      "finished": true,
+                      "guest_bytes": 0,
+                      "phase": "termination_requested",
+                      "previous_app_session_interrupted": null,
+                      "process_started": null,
+                      "ram_mb": 512,
+                      "reason": "user_stop",
+                      "run_id": "f0a3081f-a5f2-496e-aa90-9953e7da89ee",
+                      "started_at_epoch_ms": 1791771816687,
+                      "termination_reason": "user_stop",
+                      "total_output_bytes": 166,
+                      "truncated": false
+                    },
+                    "guest": {},
+                    "host_free_bytes": 3794018304,
+                    "last_guest_response_host_ms": 0,
+                    "last_probe_error": "ConnectException: Failed to connect to /127.0.0.1:18780",
+                    "preview_url": "http://127.0.0.1:18781",
+                    "ram_mb": 512,
+                    "ready": false,
+                    "root_required": false,
+                    "startup_budget_seconds": 900,
+                    "state": "stopped",
+                    "vcpus": 1
+                  }
+                },
+                "stop_race_events": [
+                  {
+                    "guest_elapsed_ms": 825941,
+                    "guest_nano_time": 825941429057,
+                    "guest_wall_ms": 1791771816620,
+                    "name": "before_duplicate_starts"
+                  },
+                  {
+                    "guest_elapsed_ms": 826005,
+                    "guest_nano_time": 826005497551,
+                    "guest_wall_ms": 1791771816685,
+                    "name": "duplicate_starts_delivered_before_preparing"
+                  },
+                  {
+                    "guest_elapsed_ms": 826006,
+                    "guest_nano_time": 826006228619,
+                    "guest_wall_ms": 1791771816685,
+                    "name": "lifecycle_barrier_released"
+                  },
+                  {
+                    "guest_elapsed_ms": 826229,
+                    "guest_nano_time": 826229674668,
+                    "guest_wall_ms": 1791771816909,
+                    "name": "qemu_alive_before_stop"
+                  },
+                  {
+                    "guest_elapsed_ms": 826230,
+                    "guest_nano_time": 826230191516,
+                    "guest_wall_ms": 1791771816909,
+                    "name": "stop_intent_delivered"
+                  },
+                  {
+                    "guest_elapsed_ms": 843459,
+                    "guest_nano_time": 843459259838,
+                    "guest_wall_ms": 1791771834138,
+                    "name": "original_three_condition_loop_ended"
+                  },
+                  {
+                    "guest_elapsed_ms": 843483,
+                    "guest_nano_time": 843483609497,
+                    "guest_wall_ms": 1791771834163,
+                    "name": "all_condition_wait_ended"
+                  },
+                  {
+                    "guest_elapsed_ms": 843484,
+                    "guest_nano_time": 843484950542,
+                    "guest_wall_ms": 1791771834164,
+                    "name": "cleanup_requested"
+                  },
+                  {
+                    "guest_elapsed_ms": 843485,
+                    "guest_nano_time": 843485620378,
+                    "guest_wall_ms": 1791771834165,
+                    "name": "cleanup_returned"
+                  }
+                ]
+              },
+              "passed": 10,
+              "path": "artifacts/0.4.4/api30/docker-ui/results.json",
+              "run_id": "a1c96ab5-6c51-41c3-9a14-f3cee692682a",
+              "sha256": "bda28fc4d93841ad9d0f7c132863df1c6d50b69ef86d9c29515552c0cdde40b6",
+              "stop_race_only": false,
+              "tested_apk": {
+                "bytes": 653558148,
+                "certificate_sha256": "b0fe60ab6fb41c33051f1fe9c16b2d24e476fdf66be225870db831cd7e2fb66b",
+                "name": "androidagent-0.4.4.apk",
+                "protected_0.4.3_bytes_unchanged": true,
+                "sha256": "c939d53f01be01eb32be96b306c7cdf4bc97854b69de7c994d13af689bd37e8a",
+                "source_commit": "bc73465374bf6b5df91ec00726d1ff58d38b9567",
+                "version": "0.4.4",
+                "version_code": 404
+              },
+              "tested_instrumentation": {
+                "bundled_in_product": false,
+                "bytes": 176667,
+                "name": "androidagent-0.4.4-tests-v2.apk",
+                "sha256": "817a88ede5890440ed370613bf40015d7da42ae807fec32e93aed3959c828442",
+                "source_commit": "d514f3883f76b976fff1f0a542428eafbf195bc2",
+                "test_only": true
+              },
+              "tested_version": "0.4.4"
+            },
+            {
+              "bytes": 2531,
+              "failed": 0,
+              "fixture": "Local HTTP server; production DockerPreviewActivity; no model or Docker engine",
+              "host_observation": {
+                "completed_utc": "2026-10-12T02:28:53.543644+00:00",
+                "elapsed_ms": 53863,
+                "scope": "Software x86_64 Android emulator with TCG guest clock drift; not physical ARM Android performance",
+                "started_utc": "2026-10-12T02:27:59.680872+00:00"
+              },
+              "name": "webview",
+              "passed": 8,
+              "path": "artifacts/0.4.4/api30/webview/results.json",
+              "run_id": "0323e72b-428b-4b40-92ef-fb74edc31c0f",
+              "sha256": "2877ec218c3dffd7facc6160e72c29887c71638d66a99353bdf2f6da2d7d4391",
+              "tested_apk": {
+                "bytes": 653558148,
+                "certificate_sha256": "b0fe60ab6fb41c33051f1fe9c16b2d24e476fdf66be225870db831cd7e2fb66b",
+                "name": "androidagent-0.4.4.apk",
+                "protected_0.4.3_bytes_unchanged": true,
+                "sha256": "c939d53f01be01eb32be96b306c7cdf4bc97854b69de7c994d13af689bd37e8a",
+                "source_commit": "bc73465374bf6b5df91ec00726d1ff58d38b9567",
+                "version": "0.4.4",
+                "version_code": 404
+              },
+              "tested_instrumentation": {
+                "bundled_in_product": false,
+                "bytes": 176667,
+                "name": "androidagent-0.4.4-tests-v2.apk",
+                "sha256": "817a88ede5890440ed370613bf40015d7da42ae807fec32e93aed3959c828442",
+                "source_commit": "d514f3883f76b976fff1f0a542428eafbf195bc2",
+                "test_only": true
+              },
+              "tested_version": "0.4.4"
+            }
+          ],
+          "dpi": 300,
+          "emulator_version": "37.2.12 (isolated PHADDD-fixed build)",
+          "extra_diagnostic": {
+            "bytes": 3003,
+            "failed": 0,
+            "host_observation": {
+              "completed_utc": "2026-10-12T02:01:08.763825+00:00",
+              "elapsed_seconds": 452.537,
+              "scope": "Instrumented software Android11 emulator diagnostic, no model or physical phone proof",
+              "started_utc": "2026-10-12T01:53:36.227259+00:00"
+            },
+            "navigation_cleanup": "global_back",
+            "navigation_iterations": 10,
+            "navigation_only": true,
+            "passed": 10,
+            "path": "artifacts/0.4.4/api30/navigation-diagnostics/9bb4887c-2608-4836-a533-6fe2ecb89042/results.json",
+            "run_id": "9bb4887c-2608-4836-a533-6fe2ecb89042",
+            "sha256": "9d5a343967c07ae98925efd79e2b50f2860440d18c083caa393a8d80885e0486",
+            "tested_apk": {
+              "bytes": 653558148,
+              "certificate_sha256": "b0fe60ab6fb41c33051f1fe9c16b2d24e476fdf66be225870db831cd7e2fb66b",
+              "name": "androidagent-0.4.4.apk",
+              "protected_0.4.3_bytes_unchanged": true,
+              "sha256": "c939d53f01be01eb32be96b306c7cdf4bc97854b69de7c994d13af689bd37e8a",
+              "source_commit": "bc73465374bf6b5df91ec00726d1ff58d38b9567",
+              "version": "0.4.4",
+              "version_code": 404
+            },
+            "tested_instrumentation": {
+              "bundled_in_product": false,
+              "bytes": 176667,
+              "name": "androidagent-0.4.4-tests-v2.apk",
+              "sha256": "817a88ede5890440ed370613bf40015d7da42ae807fec32e93aed3959c828442",
+              "source_commit": "d514f3883f76b976fff1f0a542428eafbf195bc2",
+              "test_only": true
+            },
+            "tested_version": "0.4.4"
+          },
+          "new_product_checks": 157,
+          "old_seed_checks": 3,
+          "page_size_bytes": 4096,
+          "ram_mb": 3072,
+          "resolution": "720x1480",
+          "scope": "Actual nondebuggable Android app UI, app-UID runtime, native permissions, MCP, USB transport fixtures and WebView; no physical ARM Android proof.",
+          "vcpus": 2
+        },
+        {
+          "abi": "x86_64",
+          "acceleration": "software QEMU TCG, no KVM; emulator guest clock drift",
+          "api": 36,
+          "canonical_checks": 190,
+          "checks": [
+            {
+              "bytes": 5940,
+              "elapsed_ms": 18972,
+              "failed": 0,
+              "fixture": "Actual in-place 0.4.3 to 0.4.4 Android update; production HOME/history and real QCOW2 retained; no guest engine boot in this suite",
+              "host_observation": {
+                "completed_utc": "2026-10-12T01:17:06.785987+00:00",
+                "elapsed_ms": 55383,
+                "scope": "Android software emulator; guest clock/elapsed time and performance differ from physical ARM Android",
+                "started_utc": "2026-10-12T01:16:11.403482+00:00"
+              },
+              "name": "update-preservation/seed043",
+              "observations": {},
+              "passed": 3,
+              "path": "artifacts/0.4.4/api36/update-preservation/seed043/results.json",
+              "process_uid": 10156,
+              "run_id": "06353e1e-1901-472e-a577-8060779a5e99",
+              "sha256": "b8a302ba93202ea5ed7d71f27ec6fe2615bc312dd7754120527d7b95f26fe950",
+              "tested_apk": {
+                "bytes": 653533571,
+                "name": "androidagent-0.4.3.apk",
+                "sha256": "92edfd2974159fd523cfa6a7d0a6bd3235deb0cdfe62ab5df42a3c3567ae7537",
+                "source_commit": "db41298e352a28f0b4e2a4b6a4ccdc504777e10b"
+              },
+              "tested_instrumentation": {
+                "bytes": 168475,
+                "name": "androidagent-044-final-tests.apk",
+                "sha256": "b774e8a0b1b9f7db2aa94d877c74258d2145f2e9c591b572f8e5baeb65958c22",
+                "source_commit": "bc73465374bf6b5df91ec00726d1ff58d38b9567"
+              },
+              "tested_version": "0.4.3",
+              "update_method": "adb install --no-incremental -r; old app data and disk retained; no uninstall or VM reset"
+            },
+            {
+              "bytes": 6406,
+              "elapsed_ms": 23525,
+              "failed": 0,
+              "fixture": "Actual in-place 0.4.3 to 0.4.4 Android update; production HOME/history and real QCOW2 retained; no guest engine boot in this suite",
+              "host_observation": {
+                "completed_utc": "2026-10-12T01:19:50.360322+00:00",
+                "elapsed_ms": 94224,
+                "scope": "Android software emulator; guest clock/elapsed time and performance differ from physical ARM Android",
+                "started_utc": "2026-10-12T01:18:16.136487+00:00"
+              },
+              "name": "update-preservation/verify044",
+              "observations": {},
+              "passed": 7,
+              "path": "artifacts/0.4.4/api36/update-preservation/verify044/results.json",
+              "process_uid": 10156,
+              "run_id": "891d32cd-00d0-4087-97eb-76d01e5485b3",
+              "sha256": "9120dc6035b94b85bacc6310548033339dbb6ef62a3eb0ef057a233265314871",
+              "tested_apk": {
+                "bytes": 653558148,
+                "name": "androidagent-0.4.4.apk",
+                "sha256": "c939d53f01be01eb32be96b306c7cdf4bc97854b69de7c994d13af689bd37e8a",
+                "source_commit": "bc73465374bf6b5df91ec00726d1ff58d38b9567"
+              },
+              "tested_instrumentation": {
+                "bytes": 168475,
+                "name": "androidagent-044-final-tests.apk",
+                "sha256": "b774e8a0b1b9f7db2aa94d877c74258d2145f2e9c591b572f8e5baeb65958c22",
+                "source_commit": "bc73465374bf6b5df91ec00726d1ff58d38b9567"
+              },
+              "tested_version": "0.4.4",
+              "update_method": "adb install --no-incremental -r; old app data and disk retained; no uninstall or VM reset"
+            },
+            {
+              "bytes": 6332,
+              "elapsed_ms": 1228,
+              "failed": 0,
+              "fixture": "Isolated production DockerDiagnostics with synthetic console fragments; no QEMU or Docker engine proof",
+              "host_observation": {
+                "completed_utc": "2026-10-12T01:20:16.585636+00:00",
+                "elapsed_ms": 26147,
+                "scope": "Android software emulator; guest clock/elapsed time and performance differ from physical ARM Android",
+                "started_utc": "2026-10-12T01:19:50.439385+00:00"
+              },
+              "name": "update-preservation/diagnostics044",
+              "observations": {
+                "diagnostic_fd_stability": {
+                  "after": 77,
+                  "before": 77,
+                  "gc_requested": false,
+                  "iterations": 200
+                }
+              },
+              "passed": 5,
+              "path": "artifacts/0.4.4/api36/update-preservation/diagnostics044/results.json",
+              "process_uid": 10156,
+              "run_id": "39acb6bb-6938-46fa-987b-6d5064b75a21",
+              "sha256": "b883bfdccdadccda0825f6d8a819bc5adfe4271f17725294f3717688a7fc6693",
+              "tested_apk": {
+                "bytes": 653558148,
+                "name": "androidagent-0.4.4.apk",
+                "sha256": "c939d53f01be01eb32be96b306c7cdf4bc97854b69de7c994d13af689bd37e8a",
+                "source_commit": "bc73465374bf6b5df91ec00726d1ff58d38b9567"
+              },
+              "tested_instrumentation": {
+                "bytes": 168475,
+                "name": "androidagent-044-final-tests.apk",
+                "sha256": "b774e8a0b1b9f7db2aa94d877c74258d2145f2e9c591b572f8e5baeb65958c22",
+                "source_commit": "bc73465374bf6b5df91ec00726d1ff58d38b9567"
+              },
+              "tested_version": "0.4.4",
+              "update_method": "adb install --no-incremental -r; old app data and disk retained; no uninstall or VM reset"
+            },
+            {
+              "bytes": 13453,
+              "failed": 0,
+              "host_observation": {
+                "completed_utc": "2026-10-12T01:30:05.041835+00:00",
+                "elapsed_ms": 522927,
+                "scope": "Software x86_64 Android emulator with TCG guest clock drift; not physical ARM Android performance",
+                "started_utc": "2026-10-12T01:21:22.115300+00:00"
+              },
+              "name": "app",
+              "passed": 84,
+              "path": "artifacts/0.4.4/api36/app/results.json",
+              "run_id": "f321295b-edb5-4718-b848-e1981f1b814c",
+              "sha256": "1d0a693e2c0672346f41cdd7bd4f23de0595684a140789e40bb051be759ea65c",
+              "tested_apk": {
+                "bytes": 653558148,
+                "certificate_sha256": "b0fe60ab6fb41c33051f1fe9c16b2d24e476fdf66be225870db831cd7e2fb66b",
+                "name": "androidagent-0.4.4.apk",
+                "protected_0.4.3_bytes_unchanged": true,
+                "sha256": "c939d53f01be01eb32be96b306c7cdf4bc97854b69de7c994d13af689bd37e8a",
+                "source_commit": "bc73465374bf6b5df91ec00726d1ff58d38b9567",
+                "version": "0.4.4",
+                "version_code": 404
+              },
+              "tested_instrumentation": {
+                "bundled_in_product": false,
+                "bytes": 168475,
+                "name": "androidagent-0.4.4-tests.apk",
+                "sha256": "b774e8a0b1b9f7db2aa94d877c74258d2145f2e9c591b572f8e5baeb65958c22",
+                "source_commit": "bc73465374bf6b5df91ec00726d1ff58d38b9567",
+                "test_only": true
+              },
+              "tested_version": "0.4.4"
+            },
+            {
+              "bytes": 1877,
+              "elapsed_ms": 1630,
+              "failed": 0,
+              "fixture": "Actual DockerVm.install in isolated Android cache; sentinel backing/overlay files. Real ARM QCOW2 migration is separate.",
+              "host_observation": {
+                "completed_utc": "2026-10-12T01:31:07.300779+00:00",
+                "elapsed_ms": 14002,
+                "scope": "Software x86_64 Android emulator with TCG guest clock drift; not physical ARM Android performance",
+                "started_utc": "2026-10-12T01:30:53.298743+00:00"
+              },
+              "name": "docker-migration",
+              "observations": {},
+              "passed": 4,
+              "path": "artifacts/0.4.4/api36/docker-migration/results.json",
+              "process_uid": 10156,
+              "run_id": "0ba3328d-3991-4cb7-a132-e8af5ddaae19",
+              "sha256": "72fe219a2257e48bec812e3245a4ce1203cdcbec2631f8ef777ad4d1f9cec9b7",
+              "tested_apk": {
+                "bytes": 653558148,
+                "certificate_sha256": "b0fe60ab6fb41c33051f1fe9c16b2d24e476fdf66be225870db831cd7e2fb66b",
+                "name": "androidagent-0.4.4.apk",
+                "protected_0.4.3_bytes_unchanged": true,
+                "sha256": "c939d53f01be01eb32be96b306c7cdf4bc97854b69de7c994d13af689bd37e8a",
+                "source_commit": "bc73465374bf6b5df91ec00726d1ff58d38b9567",
+                "version": "0.4.4",
+                "version_code": 404
+              },
+              "tested_instrumentation": {
+                "bundled_in_product": false,
+                "bytes": 168475,
+                "name": "androidagent-0.4.4-tests.apk",
+                "sha256": "b774e8a0b1b9f7db2aa94d877c74258d2145f2e9c591b572f8e5baeb65958c22",
+                "source_commit": "bc73465374bf6b5df91ec00726d1ff58d38b9567",
+                "test_only": true
+              },
+              "tested_version": "0.4.4"
+            },
+            {
+              "bytes": 6598,
+              "failed": 0,
+              "host_observation": {
+                "completed_utc": "2026-10-12T01:34:26.759101+00:00",
+                "elapsed_ms": 149033,
+                "scope": "Software x86_64 Android emulator with TCG guest clock drift; not physical ARM Android performance",
+                "started_utc": "2026-10-12T01:31:57.726461+00:00"
+              },
+              "name": "usb",
+              "passed": 41,
+              "path": "artifacts/0.4.4/api36/usb/results.json",
+              "run_id": "41de9c72-f7d5-44b4-bcf6-b9af6f5343d8",
+              "sha256": "efc671c2c203433b358b0c0e9aa4869f6614d7c649a5b7cf77914677694827fb",
+              "tested_apk": {
+                "bytes": 653558148,
+                "certificate_sha256": "b0fe60ab6fb41c33051f1fe9c16b2d24e476fdf66be225870db831cd7e2fb66b",
+                "name": "androidagent-0.4.4.apk",
+                "protected_0.4.3_bytes_unchanged": true,
+                "sha256": "c939d53f01be01eb32be96b306c7cdf4bc97854b69de7c994d13af689bd37e8a",
+                "source_commit": "bc73465374bf6b5df91ec00726d1ff58d38b9567",
+                "version": "0.4.4",
+                "version_code": 404
+              },
+              "tested_instrumentation": {
+                "bundled_in_product": false,
+                "bytes": 168475,
+                "name": "androidagent-0.4.4-tests.apk",
+                "sha256": "b774e8a0b1b9f7db2aa94d877c74258d2145f2e9c591b572f8e5baeb65958c22",
+                "source_commit": "bc73465374bf6b5df91ec00726d1ff58d38b9567",
+                "test_only": true
+              },
+              "tested_version": "0.4.4"
+            },
+            {
+              "bytes": 15160,
+              "failed": 0,
+              "host_observation": {
+                "completed_utc": "2026-10-12T01:55:56.340646+00:00",
+                "elapsed_ms": 116256,
+                "scope": "Software x86_64 Android emulator with TCG guest clock drift; not physical ARM Android performance",
+                "started_utc": "2026-10-12T01:54:00.085032+00:00"
+              },
+              "name": "docker-ui",
+              "observations": {
+                "duplicate_start_barrier": {
+                  "docker_worker_count": 1,
+                  "guest_elapsed_ms": 2570849,
+                  "guest_wall_ms": 1791758148128,
+                  "latest_start_id": 2,
+                  "retained_process_alive": false,
+                  "service": {
+                    "active_since_guest_ms": 2570812,
+                    "foreground": true,
+                    "last_activity_guest_ms": 2570813,
+                    "pid": 7796,
+                    "started": true
+                  },
+                  "service_dump": "ACTIVITY MANAGER SERVICES (dumpsys activity services)\n  User 0 active services:\n  * ServiceRecord{f80309f u0 dev.mateuszsury.androidagent/.DockerService c:dev.mateuszsury.androidagent}\n    intent={cmp=dev.mateuszsury.androidagent/.DockerService}\n    packageName=dev.mateuszsury.androidagent\n    processName=dev.mateuszsury.androidagent\n    targetSdkVersion=36\n    baseDir=/data/app/~~7y7c6WV8vd7viyviNACGdQ==/dev.mateuszsury.androidagent-cozDE7taECdnRqmyLHAfPw==/base.apk\n    dataDir=/data/user/0/dev.mateuszsury.androidagent\n    app=ProcessRecord{a21c6ab 7796:dev.mateuszsury.androidagent/u0a156}\n    useNewWiuLogic_forCapabilities()=true\n    useNewWiuLogic_forStart()=true\n    useNewBfslLogic()=true\n    mAllowWiu_noBinding=PROC_STATE_TOP\n    mAllowWiu_inBindService=DENIED\n    mAllowWiu_byBindings=DENIED\n    getFgsAllowWiu_legacy=PROC_STATE_TOP\n    getFgsAllowWiu_new=PROC_STATE_TOP\n    getFgsAllowWiu_forStart=PROC_STATE_TOP\n    getFgsAllowWiu_forCapabilities=PROC_STATE_TOP\n    allowUiJobScheduling=true\n    recentCallingPackage=dev.mateuszsury.androidagent\n    recentCallingUid=10156\n    mAllowStart_noBinding=PROC_STATE_TOP\n    mAllowStart_inBindService=DENIED\n    mAllowStart_byBindings=DENIED\n    getFgsAllowStart_legacy=PROC_STATE_TOP\n    getFgsAllowStart_new=PROC_STATE_TOP\n    getFgsAllowStart=PROC_STATE_TOP\n    startForegroundCount=1\n    infoAllowStartForeground=[callingPackage: dev.mateuszsury.androidagent; callingUid: 10156; uidState: TOP ; uidBFSL: [BFSL]; intent: Intent { xflg=0x4 cmp=dev.mateuszsury.androidagent/.DockerService (has extras) }; code:PROC_STATE_TOP; tempAllowListReason:<null>; allowWiu:12; targetSdkVersion:36; callerTargetSdkVersion:36; startForegroundCount:0; bindFromPackage:null: isBindService:false]\n    isForeground=true foregroundId=730 types=0x40000000 foregroundNoti=Notification(channel=docker shortcut=null contentView=null vibrate=null sound=null defaults=0 flags=ONGOING_EVENT|FOREGROUND_SERVICE color=0x00000000 actions=1 vis=PRIVATE)\n    createTime=-63ms startingBgTimeout=--\n    lastActivity=-62ms restartTime=-63ms createdFromFg=true\n    startRequested=true delayedStop=false stopIfKilled=true callStart=true lastStartId=2\n startCommandResult=2\n",
+                  "service_exists": true,
+                  "threads": [
+                    {
+                      "alive": true,
+                      "id": 2,
+                      "name": "main",
+                      "stack": [
+                        "android.os.MessageQueue.nativePollOnce(Native Method)",
+                        "android.os.MessageQueue.nextLegacy(MessageQueue.java:913)",
+                        "android.os.MessageQueue.next(MessageQueue.java:1025)",
+                        "android.os.Looper.loopOnce(Looper.java:196)",
+                        "android.os.Looper.loop(Looper.java:338)",
+                        "android.app.ActivityThread.main(ActivityThread.java:9067)",
+                        "java.lang.reflect.Method.invoke(Native Method)",
+                        "com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:593)",
+                        "com.android.internal.os.ZygoteInit.main(ZygoteInit.java:932)"
+                      ],
+                      "state": "RUNNABLE"
+                    },
+                    {
+                      "alive": true,
+                      "id": 98,
+                      "name": "docker-vm",
+                      "stack": [
+                        "dev.mateuszsury.androidagent.DockerVm.boot(DockerVm.java:73)",
+                        "dev.mateuszsury.androidagent.DockerService.lambda$onStartCommand$3$dev-mateuszsury-androidagent-DockerService(DockerService.java:58)",
+                        "dev.mateuszsury.androidagent.DockerService$$ExternalSyntheticLambda2.run(D8$$SyntheticClass:0)",
+                        "java.lang.Thread.run(Thread.java:1119)"
+                      ],
+                      "state": "BLOCKED"
+                    }
+                  ],
+                  "vm_alive": false,
+                  "vm_detail": "Usunięto zadania i cache Dockera",
+                  "vm_state": "stopped",
+                  "vm_status": {
+                    "abi": "x86_64",
+                    "clock_mode": "instruction_count",
+                    "detail": "Usunięto zadania i cache Dockera",
+                    "diagnostics": {
+                      "abi": "x86_64",
+                      "app_pid": 7796,
+                      "available": true,
+                      "boot_id": "08cd8ade-8b64-4690-b183-47733eb6b958",
+                      "console_bytes": 168,
+                      "console_truncated": false,
+                      "cores": 2,
+                      "diagnostic_error": "",
+                      "emulator": true,
+                      "exit_code": 137,
+                      "exit_recorded_at_epoch_ms": 1791758147668,
+                      "finished": true,
+                      "guest_bytes": 0,
+                      "phase": "exited",
+                      "previous_app_session_interrupted": null,
+                      "process_started": true,
+                      "ram_mb": 1024,
+                      "reason": "user_stop",
+                      "run_id": "08cd8ade-8b64-4690-b183-47733eb6b958",
+                      "started_at_epoch_ms": 1791758128856,
+                      "termination_reason": "user_stop",
+                      "total_output_bytes": 168,
+                      "truncated": false
+                    },
+                    "guest": {},
+                    "host_free_bytes": 2670100480,
+                    "last_guest_response_host_ms": 0,
+                    "last_probe_error": "ConnectException: Failed to connect to /127.0.0.1:18780",
+                    "preview_url": "http://127.0.0.1:18781",
+                    "ram_mb": 1024,
+                    "ready": false,
+                    "root_required": false,
+                    "startup_budget_seconds": 900,
+                    "state": "stopped",
+                    "vcpus": 2
+                  }
+                },
+                "original_stop_deadline_guest_ms": 2601103,
+                "original_three_condition_loop": {
+                  "actual_exit_code": 137,
+                  "docker_worker_count": 0,
+                  "guest_elapsed_ms": 2576198,
+                  "guest_wall_ms": 1791758153476,
+                  "retained_process_alive": false,
+                  "service_dump": "ACTIVITY MANAGER SERVICES (dumpsys activity services)\n  (nothing)\n",
+                  "service_exists": false,
+                  "threads": [
+                    {
+                      "alive": true,
+                      "id": 2,
+                      "name": "main",
+                      "stack": [
+                        "android.os.MessageQueue.nativePollOnce(Native Method)",
+                        "android.os.MessageQueue.nextLegacy(MessageQueue.java:913)",
+                        "android.os.MessageQueue.next(MessageQueue.java:1025)",
+                        "android.os.Looper.loopOnce(Looper.java:196)",
+                        "android.os.Looper.loop(Looper.java:338)",
+                        "android.app.ActivityThread.main(ActivityThread.java:9067)",
+                        "java.lang.reflect.Method.invoke(Native Method)",
+                        "com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:593)",
+                        "com.android.internal.os.ZygoteInit.main(ZygoteInit.java:932)"
+                      ],
+                      "state": "RUNNABLE"
+                    }
+                  ],
+                  "vm_alive": false,
+                  "vm_detail": "Środowisko zatrzymane",
+                  "vm_state": "stopped",
+                  "vm_status": {
+                    "abi": "x86_64",
+                    "clock_mode": "instruction_count",
+                    "detail": "Środowisko zatrzymane",
+                    "diagnostics": {
+                      "abi": "x86_64",
+                      "app_pid": 7796,
+                      "available": true,
+                      "boot_id": "146abb28-7797-4589-9dcf-175acecd628d",
+                      "console_bytes": 167,
+                      "console_truncated": false,
+                      "cores": 1,
+                      "diagnostic_error": "",
+                      "emulator": true,
+                      "exit_code": 137,
+                      "exit_recorded_at_epoch_ms": 1791758153469,
+                      "finished": true,
+                      "guest_bytes": 0,
+                      "phase": "exited",
+                      "previous_app_session_interrupted": null,
+                      "process_started": true,
+                      "ram_mb": 512,
+                      "reason": "user_stop",
+                      "run_id": "146abb28-7797-4589-9dcf-175acecd628d",
+                      "started_at_epoch_ms": 1791758148159,
+                      "termination_reason": "user_stop",
+                      "total_output_bytes": 167,
+                      "truncated": false
+                    },
+                    "guest": {},
+                    "host_free_bytes": 2669965312,
+                    "last_guest_response_host_ms": 0,
+                    "last_probe_error": "ConnectException: Failed to connect to /127.0.0.1:18780",
+                    "preview_url": "http://127.0.0.1:18781",
+                    "ram_mb": 512,
+                    "ready": false,
+                    "root_required": false,
+                    "startup_budget_seconds": 900,
+                    "state": "stopped",
+                    "vcpus": 1
+                  }
+                },
+                "stop_before_cleanup": {
+                  "actual_exit_code": 137,
+                  "docker_worker_count": 0,
+                  "guest_elapsed_ms": 2576227,
+                  "guest_wall_ms": 1791758153505,
+                  "retained_process_alive": false,
+                  "service_dump": "ACTIVITY MANAGER SERVICES (dumpsys activity services)\n  (nothing)\n",
+                  "service_exists": false,
+                  "threads": [
+                    {
+                      "alive": true,
+                      "id": 2,
+                      "name": "main",
+                      "stack": [
+                        "android.os.MessageQueue.nativePollOnce(Native Method)",
+                        "android.os.MessageQueue.nextLegacy(MessageQueue.java:913)",
+                        "android.os.MessageQueue.next(MessageQueue.java:1025)",
+                        "android.os.Looper.loopOnce(Looper.java:196)",
+                        "android.os.Looper.loop(Looper.java:338)",
+                        "android.app.ActivityThread.main(ActivityThread.java:9067)",
+                        "java.lang.reflect.Method.invoke(Native Method)",
+                        "com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:593)",
+                        "com.android.internal.os.ZygoteInit.main(ZygoteInit.java:932)"
+                      ],
+                      "state": "RUNNABLE"
+                    }
+                  ],
+                  "vm_alive": false,
+                  "vm_detail": "Środowisko zatrzymane",
+                  "vm_state": "stopped",
+                  "vm_status": {
+                    "abi": "x86_64",
+                    "clock_mode": "instruction_count",
+                    "detail": "Środowisko zatrzymane",
+                    "diagnostics": {
+                      "abi": "x86_64",
+                      "app_pid": 7796,
+                      "available": true,
+                      "boot_id": "146abb28-7797-4589-9dcf-175acecd628d",
+                      "console_bytes": 167,
+                      "console_truncated": false,
+                      "cores": 1,
+                      "diagnostic_error": "",
+                      "emulator": true,
+                      "exit_code": 137,
+                      "exit_recorded_at_epoch_ms": 1791758153469,
+                      "finished": true,
+                      "guest_bytes": 0,
+                      "phase": "exited",
+                      "previous_app_session_interrupted": null,
+                      "process_started": true,
+                      "ram_mb": 512,
+                      "reason": "user_stop",
+                      "run_id": "146abb28-7797-4589-9dcf-175acecd628d",
+                      "started_at_epoch_ms": 1791758148159,
+                      "termination_reason": "user_stop",
+                      "total_output_bytes": 167,
+                      "truncated": false
+                    },
+                    "guest": {},
+                    "host_free_bytes": 2669965312,
+                    "last_guest_response_host_ms": 0,
+                    "last_probe_error": "ConnectException: Failed to connect to /127.0.0.1:18780",
+                    "preview_url": "http://127.0.0.1:18781",
+                    "ram_mb": 512,
+                    "ready": false,
+                    "root_required": false,
+                    "startup_budget_seconds": 900,
+                    "state": "stopped",
+                    "vcpus": 1
+                  }
+                },
+                "stop_race_events": [
+                  {
+                    "guest_elapsed_ms": 2570812,
+                    "guest_nano_time": 2570812149685,
+                    "guest_wall_ms": 1791758148090,
+                    "name": "before_duplicate_starts"
+                  },
+                  {
+                    "guest_elapsed_ms": 2570879,
+                    "guest_nano_time": 2570879034448,
+                    "guest_wall_ms": 1791758148157,
+                    "name": "duplicate_starts_delivered_before_preparing"
+                  },
+                  {
+                    "guest_elapsed_ms": 2570879,
+                    "guest_nano_time": 2570879437527,
+                    "guest_wall_ms": 1791758148157,
+                    "name": "lifecycle_barrier_released"
+                  },
+                  {
+                    "guest_elapsed_ms": 2571102,
+                    "guest_nano_time": 2571102396315,
+                    "guest_wall_ms": 1791758148380,
+                    "name": "qemu_alive_before_stop"
+                  },
+                  {
+                    "guest_elapsed_ms": 2571103,
+                    "guest_nano_time": 2571103195114,
+                    "guest_wall_ms": 1791758148381,
+                    "name": "stop_intent_delivered"
+                  },
+                  {
+                    "guest_elapsed_ms": 2576226,
+                    "guest_nano_time": 2576226318011,
+                    "guest_wall_ms": 1791758153504,
+                    "name": "original_three_condition_loop_ended"
+                  },
+                  {
+                    "guest_elapsed_ms": 2576260,
+                    "guest_nano_time": 2576260078922,
+                    "guest_wall_ms": 1791758153538,
+                    "name": "all_condition_wait_ended"
+                  },
+                  {
+                    "guest_elapsed_ms": 2576261,
+                    "guest_nano_time": 2576261555182,
+                    "guest_wall_ms": 1791758153539,
+                    "name": "cleanup_requested"
+                  },
+                  {
+                    "guest_elapsed_ms": 2576262,
+                    "guest_nano_time": 2576262708383,
+                    "guest_wall_ms": 1791758153540,
+                    "name": "cleanup_returned"
+                  }
+                ]
+              },
+              "passed": 10,
+              "path": "artifacts/0.4.4/api36/docker-ui/results.json",
+              "run_id": "8c412d5c-2780-4d53-8f10-d8252cc7e6e9",
+              "sha256": "ebffc28a686373891e695979ba1ebb2757c380fe81617865cea5572e672f9858",
+              "stop_race_only": false,
+              "tested_apk": {
+                "bytes": 653558148,
+                "certificate_sha256": "b0fe60ab6fb41c33051f1fe9c16b2d24e476fdf66be225870db831cd7e2fb66b",
+                "name": "androidagent-0.4.4.apk",
+                "protected_0.4.3_bytes_unchanged": true,
+                "sha256": "c939d53f01be01eb32be96b306c7cdf4bc97854b69de7c994d13af689bd37e8a",
+                "source_commit": "bc73465374bf6b5df91ec00726d1ff58d38b9567",
+                "version": "0.4.4",
+                "version_code": 404
+              },
+              "tested_instrumentation": {
+                "bundled_in_product": false,
+                "bytes": 176667,
+                "name": "androidagent-0.4.4-tests-v2.apk",
+                "sha256": "817a88ede5890440ed370613bf40015d7da42ae807fec32e93aed3959c828442",
+                "source_commit": "d514f3883f76b976fff1f0a542428eafbf195bc2",
+                "test_only": true
+              },
+              "tested_version": "0.4.4"
+            },
+            {
+              "bytes": 2532,
+              "failed": 0,
+              "fixture": "Local HTTP server; production DockerPreviewActivity; no model or Docker engine",
+              "host_observation": {
+                "completed_utc": "2026-10-12T01:58:02.130959+00:00",
+                "elapsed_ms": 45517,
+                "scope": "Software x86_64 Android emulator with TCG guest clock drift; not physical ARM Android performance",
+                "started_utc": "2026-10-12T01:57:16.614246+00:00"
+              },
+              "name": "webview",
+              "passed": 8,
+              "path": "artifacts/0.4.4/api36/webview/results.json",
+              "run_id": "0bccdc88-3c44-46e0-b38f-003a148cfda9",
+              "sha256": "cce298713bfcfa38116aef752d8687626f40a1cc68bdd9ab3371b41fe427090f",
+              "tested_apk": {
+                "bytes": 653558148,
+                "certificate_sha256": "b0fe60ab6fb41c33051f1fe9c16b2d24e476fdf66be225870db831cd7e2fb66b",
+                "name": "androidagent-0.4.4.apk",
+                "protected_0.4.3_bytes_unchanged": true,
+                "sha256": "c939d53f01be01eb32be96b306c7cdf4bc97854b69de7c994d13af689bd37e8a",
+                "source_commit": "bc73465374bf6b5df91ec00726d1ff58d38b9567",
+                "version": "0.4.4",
+                "version_code": 404
+              },
+              "tested_instrumentation": {
+                "bundled_in_product": false,
+                "bytes": 176667,
+                "name": "androidagent-0.4.4-tests-v2.apk",
+                "sha256": "817a88ede5890440ed370613bf40015d7da42ae807fec32e93aed3959c828442",
+                "source_commit": "d514f3883f76b976fff1f0a542428eafbf195bc2",
+                "test_only": true
+              },
+              "tested_version": "0.4.4"
+            },
+            {
+              "bytes": 7099,
+              "client_installation_source": "SHA256-verified official archives transferred through local adb reverse fixture; Android HTTPS download is not exercised",
+              "elapsed_ms": 108255,
+              "failed": 0,
+              "fixture": "Production embedded runtime under app UID; no external Termux, no account login, no model conversation",
+              "host_observation": {
+                "completed_utc": "2026-10-12T02:10:41.981324+00:00",
+                "elapsed_ms": 583859,
+                "guest_clock_delta_at_start_ms": -12205717,
+                "scope": "Software Android emulator guest clocks can drift; host timing does not represent physical ARM Android performance",
+                "started_utc": "2026-10-12T02:00:58.121951+00:00"
+              },
+              "name": "embedded-runtime/clean",
+              "passed": 28,
+              "path": "artifacts/0.4.4/api36/embedded-runtime/clean/results.json",
+              "process_uid": 10159,
+              "run_id": "1f119466-ef94-499d-b8f6-dc3444acc52b",
+              "sha256": "f72bb52f12986befe3dc2d703f769af7d273add2308f41629741bb35da52bc29",
+              "tested_apk": {
+                "bytes": 653558148,
+                "name": "androidagent-0.4.4.apk",
+                "sha256": "c939d53f01be01eb32be96b306c7cdf4bc97854b69de7c994d13af689bd37e8a",
+                "source_commit": "bc73465374bf6b5df91ec00726d1ff58d38b9567"
+              },
+              "tested_instrumentation": {
+                "bytes": 176667,
+                "name": "tests.apk",
+                "sha256": "817a88ede5890440ed370613bf40015d7da42ae807fec32e93aed3959c828442",
+                "source_commit": "d514f3883f76b976fff1f0a542428eafbf195bc2"
+              },
+              "tested_version": "0.4.4",
+              "versions": {
+                "bash": "GNU bash, version 5.3.20(1)-release (x86_64-pc-linux-android)",
+                "claude": "2.1.296 (Claude Code)",
+                "codex": "codex-cli 0.162.1",
+                "curl": "curl 8.22.0 (x86_64-pc-linux-android) libcurl/8.22.0 OpenSSL/3.6.5 zlib/1.3.2 libssh2/1.11.1 nghttp2/1.70.0 ngtcp2/1.25.0 nghttp3/1.18.0",
+                "final_runtime": {
+                  "abi": "x86_64",
+                  "claude_installed": true,
+                  "codex_installed": true,
+                  "external_termux_required": false,
+                  "ready": true,
+                  "runtime_sha256": "7c78885d92e9cb8769c3c8b855c6fd6de0c80bb108b6e4248c8f56c67157248f",
+                  "target_sdk": 36
+                },
+                "git": "git version 2.56.0",
+                "jq": "jq-1.8.2",
+                "node": "v24.18.0",
+                "python": "Python 3.14.6",
+                "runtime": {
+                  "abi": "x86_64",
+                  "claude_installed": false,
+                  "codex_installed": false,
+                  "external_termux_required": false,
+                  "ready": true,
+                  "runtime_sha256": "7c78885d92e9cb8769c3c8b855c6fd6de0c80bb108b6e4248c8f56c67157248f",
+                  "target_sdk": 36
+                }
+              }
+            }
+          ],
+          "dpi": 300,
+          "emulator_version": "37.2.12 (isolated PHADDD-fixed build)",
+          "extra_diagnostic": {
+            "bytes": 16333,
+            "failed": 0,
+            "fixture": "One actual DockerService/QEMU start/stop. No model, guest Docker Engine readiness or physical ARM proof. Product/app data not reset.",
+            "host_observation": {
+              "completed_utc": "2026-10-12T01:53:37.797649+00:00",
+              "elapsed_ms": 41284,
+              "events": [
+                {
+                  "guest_elapsed_ms": 2537484,
+                  "guest_nano_time": 2537484561074,
+                  "guest_wall_ms": 1791758114762,
+                  "host_monotonic_ms": 181376114,
+                  "host_utc": "2026-10-12T01:53:10.865293+00:00",
+                  "name": "before_duplicate_starts"
+                },
+                {
+                  "guest_elapsed_ms": 2537557,
+                  "guest_nano_time": 2537557125210,
+                  "guest_wall_ms": 1791758114835,
+                  "host_monotonic_ms": 181377040,
+                  "host_utc": "2026-10-12T01:53:11.790762+00:00",
+                  "name": "duplicate_starts_delivered_before_preparing"
+                },
+                {
+                  "guest_elapsed_ms": 2537558,
+                  "guest_nano_time": 2537558626000,
+                  "guest_wall_ms": 1791758114836,
+                  "host_monotonic_ms": 181377064,
+                  "host_utc": "2026-10-12T01:53:11.815094+00:00",
+                  "name": "lifecycle_barrier_released"
+                },
+                {
+                  "guest_elapsed_ms": 2537665,
+                  "guest_nano_time": 2537665284537,
+                  "guest_wall_ms": 1791758114943,
+                  "host_monotonic_ms": 181377923,
+                  "host_utc": "2026-10-12T01:53:12.673881+00:00",
+                  "name": "qemu_alive_before_stop"
+                },
+                {
+                  "guest_elapsed_ms": 2537669,
+                  "guest_nano_time": 2537669474509,
+                  "guest_wall_ms": 1791758114947,
+                  "host_monotonic_ms": 181377945,
+                  "host_utc": "2026-10-12T01:53:12.696484+00:00",
+                  "name": "stop_intent_delivered"
+                },
+                {
+                  "guest_elapsed_ms": 2542846,
+                  "guest_nano_time": 2542846198777,
+                  "guest_wall_ms": 1791758120124,
+                  "host_monotonic_ms": 181399177,
+                  "host_utc": "2026-10-12T01:53:33.927747+00:00",
+                  "name": "original_three_condition_loop_ended"
+                },
+                {
+                  "guest_elapsed_ms": 2542876,
+                  "guest_nano_time": 2542876352041,
+                  "guest_wall_ms": 1791758120154,
+                  "host_monotonic_ms": 181399568,
+                  "host_utc": "2026-10-12T01:53:34.318806+00:00",
+                  "name": "all_condition_wait_ended"
+                },
+                {
+                  "guest_elapsed_ms": 2542878,
+                  "guest_nano_time": 2542878053663,
+                  "guest_wall_ms": 1791758120156,
+                  "host_monotonic_ms": 181399595,
+                  "host_utc": "2026-10-12T01:53:34.345936+00:00",
+                  "name": "cleanup_requested"
+                },
+                {
+                  "guest_elapsed_ms": 2542878,
+                  "guest_nano_time": 2542878697475,
+                  "guest_wall_ms": 1791758120156,
+                  "host_monotonic_ms": 181399620,
+                  "host_utc": "2026-10-12T01:53:34.371062+00:00",
+                  "name": "cleanup_returned"
+                }
+              ],
+              "scope": "Software Android emulator; host receipt timestamps and both guest clocks recorded independently",
+              "started_utc": "2026-10-12T01:52:56.513881+00:00"
+            },
+            "observations": {
+              "duplicate_start_barrier": {
+                "docker_worker_count": 1,
+                "guest_elapsed_ms": 2537527,
+                "guest_wall_ms": 1791758114806,
+                "latest_start_id": 2,
+                "retained_process_alive": false,
+                "service": {
+                  "active_since_guest_ms": 2537485,
+                  "foreground": true,
+                  "last_activity_guest_ms": 2537486,
+                  "pid": 7710,
+                  "started": true
+                },
+                "service_dump": "ACTIVITY MANAGER SERVICES (dumpsys activity services)\n  User 0 active services:\n  * ServiceRecord{c4f5ea u0 dev.mateuszsury.androidagent/.DockerService c:dev.mateuszsury.androidagent}\n    intent={cmp=dev.mateuszsury.androidagent/.DockerService}\n    packageName=dev.mateuszsury.androidagent\n    processName=dev.mateuszsury.androidagent\n    targetSdkVersion=36\n    baseDir=/data/app/~~7y7c6WV8vd7viyviNACGdQ==/dev.mateuszsury.androidagent-cozDE7taECdnRqmyLHAfPw==/base.apk\n    dataDir=/data/user/0/dev.mateuszsury.androidagent\n    app=ProcessRecord{3f1b0d3 7710:dev.mateuszsury.androidagent/u0a156}\n    useNewWiuLogic_forCapabilities()=true\n    useNewWiuLogic_forStart()=true\n    useNewBfslLogic()=true\n    mAllowWiu_noBinding=PROC_STATE_TOP\n    mAllowWiu_inBindService=DENIED\n    mAllowWiu_byBindings=DENIED\n    getFgsAllowWiu_legacy=PROC_STATE_TOP\n    getFgsAllowWiu_new=PROC_STATE_TOP\n    getFgsAllowWiu_forStart=PROC_STATE_TOP\n    getFgsAllowWiu_forCapabilities=PROC_STATE_TOP\n    allowUiJobScheduling=true\n    recentCallingPackage=dev.mateuszsury.androidagent\n    recentCallingUid=10156\n    mAllowStart_noBinding=PROC_STATE_TOP\n    mAllowStart_inBindService=DENIED\n    mAllowStart_byBindings=DENIED\n    getFgsAllowStart_legacy=PROC_STATE_TOP\n    getFgsAllowStart_new=PROC_STATE_TOP\n    getFgsAllowStart=PROC_STATE_TOP\n    startForegroundCount=1\n    infoAllowStartForeground=[callingPackage: dev.mateuszsury.androidagent; callingUid: 10156; uidState: TOP ; uidBFSL: [BFSL]; intent: Intent { xflg=0x4 cmp=dev.mateuszsury.androidagent/.DockerService (has extras) }; code:PROC_STATE_TOP; tempAllowListReason:<null>; allowWiu:12; targetSdkVersion:36; callerTargetSdkVersion:36; startForegroundCount:0; bindFromPackage:null: isBindService:false]\n    isForeground=true foregroundId=730 types=0x40000000 foregroundNoti=Notification(channel=docker shortcut=null contentView=null vibrate=null sound=null defaults=0 flags=ONGOING_EVENT|FOREGROUND_SERVICE color=0x00000000 actions=1 vis=PRIVATE)\n    createTime=-68ms startingBgTimeout=--\n    lastActivity=-67ms restartTime=-68ms createdFromFg=true\n    startRequested=true delayedStop=false stopIfKilled=true callStart=true lastStartId=2\n startCommandResult=2\n",
+                "service_exists": true,
+                "threads": [
+                  {
+                    "alive": true,
+                    "id": 2,
+                    "name": "main",
+                    "stack": [
+                      "android.os.MessageQueue.nativePollOnce(Native Method)",
+                      "android.os.MessageQueue.nextLegacy(MessageQueue.java:913)",
+                      "android.os.MessageQueue.next(MessageQueue.java:1025)",
+                      "android.os.Looper.loopOnce(Looper.java:196)",
+                      "android.os.Looper.loop(Looper.java:338)",
+                      "android.app.ActivityThread.main(ActivityThread.java:9067)",
+                      "java.lang.reflect.Method.invoke(Native Method)",
+                      "com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:593)",
+                      "com.android.internal.os.ZygoteInit.main(ZygoteInit.java:932)"
+                    ],
+                    "state": "RUNNABLE"
+                  },
+                  {
+                    "alive": true,
+                    "id": 50,
+                    "name": "docker-vm",
+                    "stack": [
+                      "dev.mateuszsury.androidagent.DockerVm.boot(DockerVm.java:73)",
+                      "dev.mateuszsury.androidagent.DockerService.lambda$onStartCommand$3$dev-mateuszsury-androidagent-DockerService(DockerService.java:58)",
+                      "dev.mateuszsury.androidagent.DockerService$$ExternalSyntheticLambda2.run(D8$$SyntheticClass:0)",
+                      "java.lang.Thread.run(Thread.java:1119)"
+                    ],
+                    "state": "BLOCKED"
+                  }
+                ],
+                "vm_alive": false,
+                "vm_detail": "Gotowy do uruchomienia",
+                "vm_state": "stopped",
+                "vm_status": {
+                  "abi": "x86_64",
+                  "clock_mode": "instruction_count",
+                  "detail": "Gotowy do uruchomienia",
+                  "diagnostics": {
+                    "abi": "x86_64",
+                    "app_pid": 7492,
+                    "available": true,
+                    "boot_id": "0d661aa5-d534-4ca3-8bdd-9797535e562b",
+                    "console_bytes": 167,
+                    "console_truncated": false,
+                    "cores": 1,
+                    "diagnostic_error": "",
+                    "emulator": true,
+                    "exit_code": 137,
+                    "exit_recorded_at_epoch_ms": 1791757959498,
+                    "finished": true,
+                    "guest_bytes": 0,
+                    "phase": "exited",
+                    "previous_app_session_interrupted": null,
+                    "process_started": true,
+                    "ram_mb": 512,
+                    "reason": "user_stop",
+                    "run_id": "0d661aa5-d534-4ca3-8bdd-9797535e562b",
+                    "started_at_epoch_ms": 1791757954000,
+                    "termination_reason": "user_stop",
+                    "total_output_bytes": 167,
+                    "truncated": false
+                  },
+                  "guest": {},
+                  "host_free_bytes": 2669826048,
+                  "last_guest_response_host_ms": 0,
+                  "last_probe_error": "",
+                  "preview_url": "http://127.0.0.1:18781",
+                  "ram_mb": 0,
+                  "ready": false,
+                  "root_required": false,
+                  "startup_budget_seconds": 900,
+                  "state": "stopped",
+                  "vcpus": 0
+                }
+              },
+              "original_stop_deadline_guest_ms": 2567669,
+              "original_three_condition_loop": {
+                "actual_exit_code": 137,
+                "docker_worker_count": 0,
+                "guest_elapsed_ms": 2542817,
+                "guest_wall_ms": 1791758120096,
+                "retained_process_alive": false,
+                "service_dump": "ACTIVITY MANAGER SERVICES (dumpsys activity services)\n  (nothing)\n",
+                "service_exists": false,
+                "threads": [
+                  {
+                    "alive": true,
+                    "id": 2,
+                    "name": "main",
+                    "stack": [
+                      "android.os.MessageQueue.nativePollOnce(Native Method)",
+                      "android.os.MessageQueue.nextLegacy(MessageQueue.java:913)",
+                      "android.os.MessageQueue.next(MessageQueue.java:1025)",
+                      "android.os.Looper.loopOnce(Looper.java:196)",
+                      "android.os.Looper.loop(Looper.java:338)",
+                      "android.app.ActivityThread.main(ActivityThread.java:9067)",
+                      "java.lang.reflect.Method.invoke(Native Method)",
+                      "com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:593)",
+                      "com.android.internal.os.ZygoteInit.main(ZygoteInit.java:932)"
+                    ],
+                    "state": "RUNNABLE"
+                  }
+                ],
+                "vm_alive": false,
+                "vm_detail": "Środowisko zatrzymane",
+                "vm_state": "stopped",
+                "vm_status": {
+                  "abi": "x86_64",
+                  "clock_mode": "instruction_count",
+                  "detail": "Środowisko zatrzymane",
+                  "diagnostics": {
+                    "abi": "x86_64",
+                    "app_pid": 7710,
+                    "available": true,
+                    "boot_id": "cb6b4390-3cbc-4c5a-bb3c-197832980c4f",
+                    "console_bytes": 167,
+                    "console_truncated": false,
+                    "cores": 1,
+                    "diagnostic_error": "",
+                    "emulator": true,
+                    "exit_code": 137,
+                    "exit_recorded_at_epoch_ms": 1791758120019,
+                    "finished": true,
+                    "guest_bytes": 0,
+                    "phase": "exited",
+                    "previous_app_session_interrupted": null,
+                    "process_started": true,
+                    "ram_mb": 512,
+                    "reason": "user_stop",
+                    "run_id": "cb6b4390-3cbc-4c5a-bb3c-197832980c4f",
+                    "started_at_epoch_ms": 1791758114838,
+                    "termination_reason": "user_stop",
+                    "total_output_bytes": 167,
+                    "truncated": false
+                  },
+                  "guest": {},
+                  "host_free_bytes": 2669797376,
+                  "last_guest_response_host_ms": 0,
+                  "last_probe_error": "ConnectException: Failed to connect to /127.0.0.1:18780",
+                  "preview_url": "http://127.0.0.1:18781",
+                  "ram_mb": 512,
+                  "ready": false,
+                  "root_required": false,
+                  "startup_budget_seconds": 900,
+                  "state": "stopped",
+                  "vcpus": 1
+                }
+              },
+              "stop_before_cleanup": {
+                "actual_exit_code": 137,
+                "docker_worker_count": 0,
+                "guest_elapsed_ms": 2542847,
+                "guest_wall_ms": 1791758120125,
+                "retained_process_alive": false,
+                "service_dump": "ACTIVITY MANAGER SERVICES (dumpsys activity services)\n  (nothing)\n",
+                "service_exists": false,
+                "threads": [
+                  {
+                    "alive": true,
+                    "id": 2,
+                    "name": "main",
+                    "stack": [
+                      "android.os.MessageQueue.nativePollOnce(Native Method)",
+                      "android.os.MessageQueue.nextLegacy(MessageQueue.java:913)",
+                      "android.os.MessageQueue.next(MessageQueue.java:1025)",
+                      "android.os.Looper.loopOnce(Looper.java:196)",
+                      "android.os.Looper.loop(Looper.java:338)",
+                      "android.app.ActivityThread.main(ActivityThread.java:9067)",
+                      "java.lang.reflect.Method.invoke(Native Method)",
+                      "com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:593)",
+                      "com.android.internal.os.ZygoteInit.main(ZygoteInit.java:932)"
+                    ],
+                    "state": "RUNNABLE"
+                  }
+                ],
+                "vm_alive": false,
+                "vm_detail": "Środowisko zatrzymane",
+                "vm_state": "stopped",
+                "vm_status": {
+                  "abi": "x86_64",
+                  "clock_mode": "instruction_count",
+                  "detail": "Środowisko zatrzymane",
+                  "diagnostics": {
+                    "abi": "x86_64",
+                    "app_pid": 7710,
+                    "available": true,
+                    "boot_id": "cb6b4390-3cbc-4c5a-bb3c-197832980c4f",
+                    "console_bytes": 167,
+                    "console_truncated": false,
+                    "cores": 1,
+                    "diagnostic_error": "",
+                    "emulator": true,
+                    "exit_code": 137,
+                    "exit_recorded_at_epoch_ms": 1791758120019,
+                    "finished": true,
+                    "guest_bytes": 0,
+                    "phase": "exited",
+                    "previous_app_session_interrupted": null,
+                    "process_started": true,
+                    "ram_mb": 512,
+                    "reason": "user_stop",
+                    "run_id": "cb6b4390-3cbc-4c5a-bb3c-197832980c4f",
+                    "started_at_epoch_ms": 1791758114838,
+                    "termination_reason": "user_stop",
+                    "total_output_bytes": 167,
+                    "truncated": false
+                  },
+                  "guest": {},
+                  "host_free_bytes": 2669797376,
+                  "last_guest_response_host_ms": 0,
+                  "last_probe_error": "ConnectException: Failed to connect to /127.0.0.1:18780",
+                  "preview_url": "http://127.0.0.1:18781",
+                  "ram_mb": 512,
+                  "ready": false,
+                  "root_required": false,
+                  "startup_budget_seconds": 900,
+                  "state": "stopped",
+                  "vcpus": 1
+                }
+              },
+              "stop_race_events": [
+                {
+                  "guest_elapsed_ms": 2537484,
+                  "guest_nano_time": 2537484561074,
+                  "guest_wall_ms": 1791758114762,
+                  "name": "before_duplicate_starts"
+                },
+                {
+                  "guest_elapsed_ms": 2537557,
+                  "guest_nano_time": 2537557125210,
+                  "guest_wall_ms": 1791758114835,
+                  "name": "duplicate_starts_delivered_before_preparing"
+                },
+                {
+                  "guest_elapsed_ms": 2537558,
+                  "guest_nano_time": 2537558626000,
+                  "guest_wall_ms": 1791758114836,
+                  "name": "lifecycle_barrier_released"
+                },
+                {
+                  "guest_elapsed_ms": 2537665,
+                  "guest_nano_time": 2537665284537,
+                  "guest_wall_ms": 1791758114943,
+                  "name": "qemu_alive_before_stop"
+                },
+                {
+                  "guest_elapsed_ms": 2537669,
+                  "guest_nano_time": 2537669474509,
+                  "guest_wall_ms": 1791758114947,
+                  "name": "stop_intent_delivered"
+                },
+                {
+                  "guest_elapsed_ms": 2542846,
+                  "guest_nano_time": 2542846198777,
+                  "guest_wall_ms": 1791758120124,
+                  "name": "original_three_condition_loop_ended"
+                },
+                {
+                  "guest_elapsed_ms": 2542876,
+                  "guest_nano_time": 2542876352041,
+                  "guest_wall_ms": 1791758120154,
+                  "name": "all_condition_wait_ended"
+                },
+                {
+                  "guest_elapsed_ms": 2542878,
+                  "guest_nano_time": 2542878053663,
+                  "guest_wall_ms": 1791758120156,
+                  "name": "cleanup_requested"
+                },
+                {
+                  "guest_elapsed_ms": 2542878,
+                  "guest_nano_time": 2542878697475,
+                  "guest_wall_ms": 1791758120156,
+                  "name": "cleanup_returned"
+                }
+              ]
+            },
+            "passed": 1,
+            "path": "artifacts/0.4.4/api36/docker-stop-diagnostics/500c636c-7dcb-427e-a89f-a8ef7d4b3892/results.json",
+            "run_id": "500c636c-7dcb-427e-a89f-a8ef7d4b3892",
+            "sha256": "dd869bd45d8cefcad852cd428f3f726fc034afd89135771dac5846c5bf5827a2",
+            "stop_race_only": true,
+            "tested_apk": {
+              "bytes": 653558148,
+              "name": "androidagent-0.4.4.apk",
+              "sha256": "c939d53f01be01eb32be96b306c7cdf4bc97854b69de7c994d13af689bd37e8a",
+              "source_commit": "bc73465374bf6b5df91ec00726d1ff58d38b9567"
+            },
+            "tested_instrumentation": {
+              "bytes": 176667,
+              "name": "androidagent-044-v2-tests.apk",
+              "sha256": "817a88ede5890440ed370613bf40015d7da42ae807fec32e93aed3959c828442",
+              "source_commit": "d514f3883f76b976fff1f0a542428eafbf195bc2"
+            },
+            "tested_version": "0.4.4"
+          },
+          "new_product_checks": 187,
+          "old_seed_checks": 3,
+          "page_size_bytes": 4096,
+          "ram_mb": 4096,
+          "resolution": "720x1480",
+          "scope": "Actual nondebuggable Android app UI, app-UID runtime, native permissions, MCP, USB transport fixtures and WebView; no physical ARM Android proof.",
+          "vcpus": 2
+        }
+      ],
+      "apk": {
+        "built_at_utc": "2026-10-12T01:12:43.919788+00:00",
+        "bytes": 653558148,
+        "certificate_sha256": "b0fe60ab6fb41c33051f1fe9c16b2d24e476fdf66be225870db831cd7e2fb66b",
+        "name": "androidagent-0.4.4.apk",
+        "path": "artifacts/androidagent-0.4.4.apk",
+        "sha256": "c939d53f01be01eb32be96b306c7cdf4bc97854b69de7c994d13af689bd37e8a",
+        "signature_scheme": "v3",
+        "signing_certificate_matches_previous_releases": true,
+        "source_commit": "bc73465374bf6b5df91ec00726d1ff58d38b9567"
+      },
+      "arm_qemu": {
+        "bytes": 114728,
+        "checks_by_scope": {
+          "base_kernel_integrity": 3,
+          "baseline_0_4_3": 5,
+          "runtime_0_4_4": 37
+        },
+        "clock_mode": "host",
+        "completed_utc": "2026-10-12T01:27:51.730790+00:00",
+        "containerd": "2.2.0",
+        "delayed_docker_ping_info_phase_seconds": 206.287,
+        "docker": "29.5.2",
+        "failed": 0,
+        "kernel": "6.18.55",
+        "limits": [
+          "No physical Android ARM host or tablet validation",
+          "HTTP serves real interactive HTML; JavaScript requires separate Android WebView suite",
+          "CPU quota limits x86 host, not a calibrated Lenovo benchmark"
+        ],
+        "passed": 45,
+        "path": "artifacts/0.4.4/docker-arm/arm-startup-migration-results.json",
+        "phases": [
+          {
+            "clock_mode": "host",
+            "containerd_delay_seconds": 0,
+            "dockerd_delay_seconds": 0,
+            "engine_ready_seconds": 12.124,
+            "host_cpu_quota": 1,
+            "host_ready_seconds": 38.952,
+            "name": "baseline-043-seed",
+            "ram_mb": 1024,
+            "vcpus": 1
+          },
+          {
+            "clock_mode": "host",
+            "containerd_delay_seconds": 20,
+            "dockerd_delay_seconds": 160,
+            "engine_ready_seconds": 241.816,
+            "host_cpu_quota": 0.25,
+            "host_ready_seconds": 311.192,
+            "name": "upgrade-dockerd-delayed",
+            "ram_mb": 1024,
+            "vcpus": 1
+          },
+          {
+            "clock_mode": "host",
+            "containerd_delay_seconds": 0,
+            "dockerd_delay_seconds": 0,
+            "engine_ready_seconds": 29.833,
+            "host_cpu_quota": 0.5,
+            "host_ready_seconds": 67.307,
+            "name": "restart-persistent",
+            "ram_mb": 1024,
+            "vcpus": 1
+          },
+          {
+            "clock_mode": "host",
+            "containerd_delay_seconds": 20,
+            "dockerd_delay_seconds": 0,
+            "engine_ready_seconds": 75.297,
+            "host_cpu_quota": 0.5,
+            "host_ready_seconds": 134.916,
+            "name": "cold-two-vcpu",
+            "ram_mb": 1024,
+            "vcpus": 2
+          }
+        ],
+        "qemu_version": "10.1.5",
+        "run_id": "c51d78ae-4891-4434-971b-fa1a59e6c74a",
+        "scope": "aarch64 Linux guest under native x86_64 host QEMU TCG; not physical Android",
+        "sha256": "e2045d7707177df87b28597b55446a8d50c56f8eefc3cf46d8d9f55e0c2c9cca",
+        "source_commit": "bc73465374bf6b5df91ec00726d1ff58d38b9567",
+        "started_utc": "2026-10-12T01:14:27.349950+00:00",
+        "verification": {
+          "bytes": 5335,
+          "path": "artifacts/0.4.4/docker-arm/arm-final-verification.json",
+          "sha256": "6403f27b4128bdf65cfd164d4725acc51fa12532510b422406e59d5938e29bfc"
+        }
+      },
+      "changes": [
+        "Actual containerd Version RPC and Docker ping/info readiness with absolute deadlines and bounded startup budgets.",
+        "Separate supervision, bounded diagnostics, CPU selection and evidence export before readiness and after errors.",
+        "App-owned process cleanup, FD ownership, safe log retention and duplicate service worker handling.",
+        "Existing QCOW2, images, projects, HOME and conversations retained; base disk and kernel unchanged."
+      ],
+      "debuggable": false,
+      "docker_guest_manifests": {
+        "arm64-v8a": {
+          "disk_gb": 8,
+          "files": {
+            "base.qcow2.gz": "7399ae1c32e046f67bc5bc1de6ff2b71af4ed1329eefe3600396ab6bc67821d4",
+            "initramfs-virt": "a90aadf9d2bbdb6d913271de3a8f1d9df97fe9aa20d9b83a603e88cc332f56ba",
+            "vmlinuz-virt": "0431ad6e5e0296080add279573c773287b55427bf3ec94fbc2c9f985d0b79966"
+          },
+          "migration": "same-base-and-kernel-owned-runtime-in-initramfs",
+          "runtime": {
+            "files": {
+              "agent.py": "f2c853323ea0b360d5ce2b99a5ba01359f0e0201782e3433e8b0eb6f310bafda",
+              "diagnostics.py": "5f027cd4f49397cded32bcc6fd46613f8ae8b01bef46081e2d72254fa1c3777c",
+              "engine.py": "f9557c59224b57b2c40cd1c84edd8177bc059a550727452592b5743c208a7834",
+              "init.sh": "a11e7d4e8c63b9943ff1cb51be073838b02baf5db286e1338a55fb5b01b523f3",
+              "python/androidagent_serial/__init__.py": "cb9242d4e3621486d3113e13355112cfaca78762d39bf1ad22f0555442185ab8",
+              "python/androidagent_serial/protocol_androidagent.py": "cbe09281482aa483ff82559c6af58cd84721b1417d0fa5893a3236996ef7c011",
+              "python/sitecustomize.py": "7c02f4375a14b0e90f7facb9bca29e8d3248ce79e5736c5c1252a4cd19ab9d46"
+            },
+            "revision": 3
+          },
+          "runtime_revision": 3,
+          "version": 3
+        },
+        "x86_64": {
+          "disk_gb": 8,
+          "files": {
+            "base.qcow2.gz": "81d9210c3418b6e6113f030b928a39ad2af6674ebc741acdfb4c17491a168906",
+            "initramfs-virt": "964df6c8205ebc5790088f92ada760f1f8e46d00c37b421448699d4b2e71abd0",
+            "vmlinuz-virt": "2d76a33ca6a22b3f1620d09b1462f13a528e44eb37ef35643aabe0dffcb24049"
+          },
+          "migration": "same-base-and-kernel-owned-runtime-in-initramfs",
+          "runtime": {
+            "files": {
+              "agent.py": "f2c853323ea0b360d5ce2b99a5ba01359f0e0201782e3433e8b0eb6f310bafda",
+              "diagnostics.py": "5f027cd4f49397cded32bcc6fd46613f8ae8b01bef46081e2d72254fa1c3777c",
+              "engine.py": "f9557c59224b57b2c40cd1c84edd8177bc059a550727452592b5743c208a7834",
+              "init.sh": "a11e7d4e8c63b9943ff1cb51be073838b02baf5db286e1338a55fb5b01b523f3",
+              "python/androidagent_serial/__init__.py": "cb9242d4e3621486d3113e13355112cfaca78762d39bf1ad22f0555442185ab8",
+              "python/androidagent_serial/protocol_androidagent.py": "cbe09281482aa483ff82559c6af58cd84721b1417d0fa5893a3236996ef7c011",
+              "python/sitecustomize.py": "7c02f4375a14b0e90f7facb9bca29e8d3248ce79e5736c5c1252a4cd19ab9d46"
+            },
+            "revision": 3
+          },
+          "runtime_revision": 3,
+          "version": 3
+        }
+      },
+      "docker_startup_budgets": {
+        "containerd_attempts_maximum": 2,
+        "containerd_seconds": 180,
+        "docker_ping_info_seconds": 360,
+        "emulator_outer_seconds": 900,
+        "guest_startup_seconds": 900,
+        "image_load_seconds": 180,
+        "image_probe_seconds": 15,
+        "image_tag_seconds": 60,
+        "physical_android_outer_seconds": 1200,
+        "sync_seconds": 60
+      },
+      "docker_supervision_subset": {
+        "bytes": 14982,
+        "counted_in_117_host_tests": true,
+        "passed": 51,
+        "path": "artifacts/0.4.4/docker-supervision-host-results.json",
+        "sha256": "9b3d9c06f26a41d24cd37e8966ebc4c5a401907368fd6a8e3ea90fddb248b0c4"
+      },
+      "host_tests": {
+        "bytes": 727,
+        "elapsed_seconds": 10.621,
+        "failed": 0,
+        "passed": 117,
+        "path": "artifacts/0.4.4/host-tests-results.json",
+        "sha256": "df53b84aea0a6c89390184aa0bce96056cb7f22faa6f6726c8ca04bbf5365e65",
+        "skipped": 0,
+        "source_commit": "bc73465374bf6b5df91ec00726d1ff58d38b9567"
+      },
+      "instrumentation_source_commits": [
+        "bc73465374bf6b5df91ec00726d1ff58d38b9567",
+        "d514f3883f76b976fff1f0a542428eafbf195bc2"
+      ],
+      "limits": [
+        "Physical Lenovo 0.4.4 installation, cold boot and acceptance are performed by the local task after independent APK/signature verification.",
+        "ARM Linux under x86 QEMU TCG and CPU quota is not physical Android or a calibrated Lenovo performance benchmark.",
+        "Emulator signed-out official clients use genuine SHA256-verified archives over an adb reverse fixture; no Android HTTPS or logged-in model conversation claimed for 0.4.4.",
+        "Android WebView JavaScript/canvas/storage tests and actual ARM Docker HTTP full-cycle tests are separate; no single physical ARM Android WebView/Docker end-to-end run yet.",
+        "UART/ESP/storage cases use transport fixtures; actual physical OTG devices were not attached.",
+        "Initial API30 instrumentation ANR did not recur in 10 diagnostic repetitions and final full suite; its original cause remains unknown."
+      ],
+      "min_sdk": 30,
+      "model_conversation_performed": false,
+      "model_login_used": false,
+      "observed_failures_and_diagnostics": [
+        {
+          "case": "API30 first app instrumentation run",
+          "evidence": {
+            "bytes": 1379,
+            "path": "artifacts/0.4.4/prototypes/api30-app-anr/interruption.json",
+            "sha256": "253a6f8d448907e65d78aa9bab33a52236b027ea373a55d3cc88e462265a04fd"
+          },
+          "follow_up": "Exact navigation with original asynchronous global Back repeated 10/10 without ANR; final default full app suite rerun recorded separately.",
+          "remaining_uncertainty": "No /data/anr or Dropbox trace; cause of initial 5002ms input dispatch timeout not established. Product bytes unchanged.",
+          "result": "INTERRUPTED_ANR after 45 passing checks"
+        },
+        {
+          "case": "API36 initial Docker UI Stop test",
+          "evidence": {
+            "bytes": 2587,
+            "path": "artifacts/0.4.4/prototypes/stop-race-harness-v1/api36/docker-ui/results.json",
+            "sha256": "bc7d8e25cb435ac6a786ba5ac153c66e994f9b06f2e8991e76bbb89419a3f459"
+          },
+          "follow_up": "V2 waits for all four original conditions within the same 30 second deadline and records stacks/clocks; full 10/10 and extra narrow 1/1 pass on unchanged product.",
+          "remaining_uncertainty": "Specific false condition in original sample was not captured; cause not claimed as proven.",
+          "result": "9/10 passing checks; previous wait did not cover every asserted process condition"
+        },
+        {
+          "case": "API30 navigation evidence collection",
+          "evidence": {
+            "bytes": 1156,
+            "path": "artifacts/0.4.4/api30/navigation-diagnostics/9bb4887c-2608-4836-a533-6fe2ecb89042/host-controller-export-error.json",
+            "sha256": "41eeb03f3035d9d6a965f70ae7383d4ec2db23995509d7a959e57fb31fa7773c"
+          },
+          "follow_up": "Actual run UUID and already-exported navigation results verified, controller record corrected; no rerun or product failure inferred.",
+          "result": "Controller initially read wrong export folder"
+        },
+        {
+          "case": "Earlier ARM harness attempt",
+          "counted_in_final_passes": false,
+          "evidence": {
+            "bytes": 671,
+            "path": "artifacts/0.4.4/initial-arm-test-interruption.json",
+            "sha256": "ce15664d87761860ec47b31f7571fb410c2286e1fe79c32dfad57a7bf09ead95"
+          },
+          "result": "Interrupted baseline before upgrade"
+        },
+        {
+          "case": "API30 emulator infrastructure before 0.4.4 tests",
+          "counted_as_app_failure": false,
+          "evidence": {
+            "bytes": 529,
+            "path": "artifacts/0.4.4/emulator-infrastructure.json",
+            "sha256": "5cb85b6df3beb801939c3c83b0db049a88c17c02723dc621cacb986bd001c7c9"
+          }
+        }
+      ],
+      "old_apks_preserved": [
+        {
+          "bytes": 460925925,
+          "path": "artifacts/androidagent-0.4.2.apk",
+          "sha256": "5300a530810554f5f693e5757e34e4683734b92c647b192f247c7f747aad80a0"
+        },
+        {
+          "bytes": 653533571,
+          "path": "artifacts/androidagent-0.4.3.apk",
+          "sha256": "92edfd2974159fd523cfa6a7d0a6bd3235deb0cdfe62ab5df42a3c3567ae7537"
+        }
+      ],
+      "package": "dev.mateuszsury.androidagent",
+      "physical_0_4_3_baseline": {
+        "analysis": {
+          "bytes": 1007,
+          "path": "artifacts/0.4.4/lenovo-0.4.3-startup-analysis.json",
+          "sha256": "31d35b16a18986714781ddeee6d4697fed1e8067b098fa0e42706ef21ad8219e"
+        },
+        "docker_boot_passed": false,
+        "report": {
+          "bytes": 2872,
+          "path": "artifacts/0.4.4/lenovo-0.4.3-device-results.json",
+          "sha256": "deac8af31511c9a8d8314fcc26dd52196081da3b16c90f75a03c186fdd74f983"
+        },
+        "reported_https_installation": {
+          "machine_report_limit": "Nine tool/version PASS results do not independently document the download transport; HTTPS is attributed to the local task report.",
+          "source_thread_id": "01a12cc3-2b04-77e0-ad4a-9cdf50d91d1a",
+          "source_type": "Local task report supplied in user delegation",
+          "statement": "Automatic app-UID bootstrap and genuine HTTPS downloads and launches of Codex0.162.1 and Claude2.1.296 passed on Lenovo0.4.3."
+        },
+        "scope": "Lenovo TB336FU Android16 ARM64; actual app-UID tools/client launches and failed Docker boot. Does not validate 0.4.4.",
+        "startup_log": {
+          "bytes": 32044,
+          "path": "artifacts/0.4.4/lenovo-0.4.3-startup.log",
+          "sha256": "4920d8d3acbb43990be42d13ac41ff0d162fd9ff3811fead4d25245bd4d7d9c6"
+        },
+        "tools_clients_passed": 9
+      },
+      "physical_android_0_4_4_validated": false,
+      "schema": 1,
+      "source_commit": "bc73465374bf6b5df91ec00726d1ff58d38b9567",
+      "suggested_local_acceptance": {
+        "account": "Official owner login remains separate from runtime installation; no tokens copied from cloud.",
+        "cycle": "ping/info, base image, build/run/exec/logs, real interactive preview, export, cancel, selected cleanup, stop, restart and retained prior data.",
+        "diagnostics": "Export via UI Zachowaj diagnostykę rozruchu or MCP docker_diagnostics during startup and after failure. Do not reset disk or disable Android protections.",
+        "docker_profile": "First cold boot1GB/2vCPU; host clock. Record host UTC and elapsed time through ready or explicit failure.",
+        "install": "adb install -r androidagent-0.4.4.apk after independent bytes/SHA256/certificate checks; retain app data."
+      },
+      "supported_abis": [
+        "arm64-v8a",
+        "x86_64"
+      ],
+      "target_sdk": 36,
+      "transfer": {
+        "apk_committed_to_main": false,
+        "auth_proxy_ca_changed": false,
+        "channel_diagnostics": {
+          "bytes": 1611,
+          "path": "artifacts/0.4.4/transfer-channel-diagnostics.json",
+          "sha256": "71ba410cb1acc2ffe4d630deda6d9f38974690c517ee1eeecf2524440cf1e7c0"
+        },
+        "every_part_remote_get_verified": true,
+        "last_part_bytes": 7635332,
+        "manifest_sha_location": "Emitted after this immutable final report is attached; separate transfer completion artifact avoids a circular report hash.",
+        "parts": 78,
+        "raw_chunk_bytes": 8388608,
+        "release_published_here": false,
+        "repository": "mateuszsury/androidagent",
+        "schema_version": 1,
+        "transports": "Existing GitHub connector for parts0-51; existing gh API for parts52-77; GET byte verification for every part.",
+        "verification": {
+          "bytes": 1044,
+          "path": "artifacts/0.4.4/apk-parts-remote-verification.json",
+          "sha256": "69c80eb139412637351b7b61a6e8de8431f5de906726b7a846073412b0948e9d"
+        }
+      },
+      "transfer_helper_tests": {
+        "bytes": 2075,
+        "failed": 0,
+        "passed": 8,
+        "path": "artifacts/0.4.4/connector-transfer-tests.json",
+        "scope": "Offline tests of connector staging with synthetic fixture bytes and an in-memory Git API; no APK installation, device/model test, account use or real GitHub transfer.",
+        "sha256": "195ec569125a661c39fbf4197ff9cf1901860c3d626c89aea044d6628f640578",
+        "source_commit": "d514f3883f76b976fff1f0a542428eafbf195bc2"
+      },
+      "verified_at_utc": "2026-10-12T02:32:29.195339+00:00",
+      "version": "0.4.4",
+      "version_code": 404
+    },
+    "name": "release-0.4.4.json",
+    "sha256": "72293caa17aab86a38dc214ea5ab23cfb836d3ee3d65e986c32ec0b312993588",
+    "shaGit": "b19ca9193c0ca64fe1a39e605e525e448ec6a33e"
+  },
+  "repository": "mateuszsury/androidagent",
+  "sha256": "c939d53f01be01eb32be96b306c7cdf4bc97854b69de7c994d13af689bd37e8a",
+  "version": 1
+}

@@ -1,0 +1,29 @@
+{
+  "name": "androidagent-0.4.4.apk",
+  "version": "0.4.4",
+  "version_code": 404,
+  "bytes": 653558148,
+  "sha256": "c939d53f01be01eb32be96b306c7cdf4bc97854b69de7c994d13af689bd37e8a",
+  "source_commit": "bc73465374bf6b5df91ec00726d1ff58d38b9567",
+  "certificate_sha256": "b0fe60ab6fb41c33051f1fe9c16b2d24e476fdf66be225870db831cd7e2fb66b",
+  "protected_0.4.3_bytes_unchanged": true,
+  "package": "dev.mateuszsury.androidagent",
+  "minimum_api": 30,
+  "target_api": 36,
+  "abis": [
+    "arm64-v8a",
+    "x86_64"
+  ],
+  "same_update_certificate_verified": true,
+  "new_instrumentation": {
+    "name": "androidagent-0.4.4-tests.apk",
+    "bytes": 168475,
+    "sha256": "b774e8a0b1b9f7db2aa94d877c74258d2145f2e9c591b572f8e5baeb65958c22",
+    "source_commit": "bc73465374bf6b5df91ec00726d1ff58d38b9567",
+    "test_only": true,
+    "bundled_in_product": false
+  },
+  "build_path": "tools/build-local.sh (aapt2, javac, d8, apksigner; existing pinned JNI assets)",
+  "runtime_revision": 3,
+  "built_utc": "2026-10-12T01:12:43.919788+00:00"
+}

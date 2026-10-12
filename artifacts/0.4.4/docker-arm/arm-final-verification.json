@@ -1,0 +1,169 @@
+{
+  "report": "artifacts/0.4.4/docker-arm/arm-startup-migration-results.json",
+  "report_bytes": 114728,
+  "report_sha256": "e2045d7707177df87b28597b55446a8d50c56f8eefc3cf46d8d9f55e0c2c9cca",
+  "run_id": "c51d78ae-4891-4434-971b-fa1a59e6c74a",
+  "version": "0.4.4",
+  "tests": 45,
+  "passed": 45,
+  "failures": 0,
+  "started_at": "2026-10-12T01:14:27.349950+00:00",
+  "completed_at": "2026-10-12T01:27:51.730790+00:00",
+  "source_commit": "bc73465374bf6b5df91ec00726d1ff58d38b9567",
+  "driver": {
+    "path": "/workspace/tools/usb-runtime/044-final-arm-driver.log",
+    "bytes": 2921,
+    "sha256": "6203e04aa8a89dc1294a426907b359d65bda94f2a9d6cfc93906306c016ab666"
+  },
+  "phases": [
+    {
+      "name": "baseline-043-seed",
+      "host_ready_seconds": 38.952,
+      "engine_ready_seconds": 12.124,
+      "vcpus": 1,
+      "ram_mb": 1024,
+      "host_cpu_quota": 1,
+      "clock_mode": "host",
+      "containerd_delay_seconds": 0,
+      "dockerd_delay_seconds": 0
+    },
+    {
+      "name": "upgrade-dockerd-delayed",
+      "host_ready_seconds": 311.192,
+      "engine_ready_seconds": 241.816,
+      "vcpus": 1,
+      "ram_mb": 1024,
+      "host_cpu_quota": 0.25,
+      "clock_mode": "host",
+      "containerd_delay_seconds": 20,
+      "dockerd_delay_seconds": 160
+    },
+    {
+      "name": "restart-persistent",
+      "host_ready_seconds": 67.307,
+      "engine_ready_seconds": 29.833,
+      "vcpus": 1,
+      "ram_mb": 1024,
+      "host_cpu_quota": 0.5,
+      "clock_mode": "host",
+      "containerd_delay_seconds": 0,
+      "dockerd_delay_seconds": 0
+    },
+    {
+      "name": "cold-two-vcpu",
+      "host_ready_seconds": 134.916,
+      "engine_ready_seconds": 75.297,
+      "vcpus": 2,
+      "ram_mb": 1024,
+      "host_cpu_quota": 0.5,
+      "clock_mode": "host",
+      "containerd_delay_seconds": 20,
+      "dockerd_delay_seconds": 0
+    }
+  ],
+  "qemu_versions": [
+    {
+      "log": "artifacts/0.4.4/docker-arm/arm-cold-two-vcpu.log",
+      "qemu_version": "10.1.5"
+    },
+    {
+      "log": "artifacts/0.4.4/docker-arm/arm-restart-persistent.log",
+      "qemu_version": "10.1.5"
+    },
+    {
+      "log": "artifacts/0.4.4/docker-arm/arm-baseline-043-seed.log",
+      "qemu_version": "10.1.5"
+    },
+    {
+      "log": "artifacts/0.4.4/docker-arm/arm-upgrade-dockerd-delayed.log",
+      "qemu_version": "10.1.5"
+    }
+  ],
+  "limits": [
+    "No physical Android ARM host or tablet validation",
+    "HTTP serves real interactive HTML; JavaScript requires separate Android WebView suite",
+    "CPU quota limits x86 host, not a calibrated Lenovo benchmark"
+  ],
+  "evidence_files": [
+    {
+      "name": "arm-baseline-043-seed.log",
+      "bytes": 35436,
+      "sha256": "c7e40d667d15370ab0ac4944f1e521e4b1677048ce66c6095febc7d44ec30b7f"
+    },
+    {
+      "name": "arm-cold-two-vcpu-pre-ready-diagnostics.json",
+      "bytes": 7599,
+      "sha256": "ded0929ea8da22d1f952361fb91f7737d3251c71d82216c6eae3cbbd10705e63"
+    },
+    {
+      "name": "arm-cold-two-vcpu-ready-diagnostics.json",
+      "bytes": 91836,
+      "sha256": "654c368003317a849ab2bbcecc65bb70d7995742065b3809dc51faf5cf5d94cf"
+    },
+    {
+      "name": "arm-cold-two-vcpu.log",
+      "bytes": 115137,
+      "sha256": "93ac79a6eef25327d8caa4a9b061d494cf4db5eeeb58600faad23a3f1ba38daa"
+    },
+    {
+      "name": "arm-launch-last.json",
+      "bytes": 195,
+      "sha256": "80a895b9916fc8872e3e06782dd557683c396b888a33f17a693f71813c3c6744"
+    },
+    {
+      "name": "arm-restart-persistent-pre-ready-diagnostics.json",
+      "bytes": 14146,
+      "sha256": "9fd0fe42d8a8607e729e87742209624c352dd3e8eb50d1e24fd0d4a2d2ef1907"
+    },
+    {
+      "name": "arm-restart-persistent-ready-diagnostics.json",
+      "bytes": 61018,
+      "sha256": "ffc2234fecc2ee8c70aea2ab0903f4b8864eacb2b66ce756fa78d7d5151812c3"
+    },
+    {
+      "name": "arm-restart-persistent-retention-diagnostics.json",
+      "bytes": 61109,
+      "sha256": "595ee179655a54dcb6c43348ac37b77adc6545f3b55295a59f1bfa5d49c874b7"
+    },
+    {
+      "name": "arm-restart-persistent.log",
+      "bytes": 67828,
+      "sha256": "902938d996e777b1fc24c3b769d218aa65ed0a0ce8da044c5289af798a3b703a"
+    },
+    {
+      "name": "arm-retained-build.txt",
+      "bytes": 18,
+      "sha256": "f5817b4894137753eb221e1c0bf910f5dfef374be15a4762d157da2327cab77d"
+    },
+    {
+      "name": "arm-startup-migration-results.json",
+      "bytes": 114728,
+      "sha256": "e2045d7707177df87b28597b55446a8d50c56f8eefc3cf46d8d9f55e0c2c9cca"
+    },
+    {
+      "name": "arm-upgrade-dockerd-delayed-pre-ready-diagnostics.json",
+      "bytes": 16287,
+      "sha256": "b849d07d20d22bb23a443971e74126ee4c223f2d7c8b472cce9c7565bf8d9870"
+    },
+    {
+      "name": "arm-upgrade-dockerd-delayed-ready-diagnostics.json",
+      "bytes": 93973,
+      "sha256": "a1afa86cd19d84952e0bfcd677137bc1b33053afc972b790461b79719294420c"
+    },
+    {
+      "name": "arm-upgrade-dockerd-delayed.log",
+      "bytes": 159774,
+      "sha256": "eb778e7a7be95ef46d4e18e0fe0dd7f106fb636fb1f2f6a513157f9e2cbdd3c4"
+    },
+    {
+      "name": "cold-cpu-clock-observed.json",
+      "bytes": 284,
+      "sha256": "e35e0cfed4fe454e78f15944f1dab744ced1be034c4a85074969a209d2e5bf8a"
+    },
+    {
+      "name": "upgrade-cpu-quota-observed.json",
+      "bytes": 184,
+      "sha256": "9ecc73b110eba3bed6b95ccf4eb866b8d21fe6ffd85fb49d14ea05e5c4d648e4"
+    }
+  ]
+}
