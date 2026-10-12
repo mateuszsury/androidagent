@@ -1,0 +1,443 @@
+  * 
+  * If you want to run VM as unprivileged user and let Qemu create tunX devices,
+  * then you must add that user to the group "qemu".
+  * If you use KVM for hardware-assisted virtualization, then you may also need
+  * to add that user to the group "kvm".
+  * 
+QEMU emulator version 10.1.5
+Copyright (c) 2003-2025 Fabrice Bellard and the QEMU Project developers
+Formatting '/vm/user.qcow2', fmt=qcow2 cluster_size=65536 extended_l2=off compression_type=zlib size=8589934592 backing_file=/vm/base.qcow2 backing_fmt=qcow2 lazy_refcounts=off refcount_bits=16
+[    0.000000] Booting Linux on physical CPU 0x0000000000 [0x410fd083]
+[    0.000000] Linux version 6.18.55-0-virt (buildozer@build-3-23-aarch64) (cc (Alpine 15.2.0) 15.2.0, GNU ld (GNU Binutils) 2.45.1) #1-Alpine SMP PREEMPT_DYNAMIC 2026-10-05 08:01:55
+[    0.000000] random: crng init done
+[    0.000000] Machine model: linux,dummy-virt
+[    0.000000] efi: UEFI not found.
+[    0.000000] OF: reserved mem: Reserved memory: No reserved-memory node in the DT
+[    0.000000] NUMA: Faking a node at [mem 0x0000000040000000-0x000000007fffffff]
+[    0.000000] NODE_DATA(0) allocated [mem 0x7fbfab00-0x7fbfcfbf]
+[    0.000000] Zone ranges:
+[    0.000000]   DMA      [mem 0x0000000040000000-0x000000007fffffff]
+[    0.000000]   DMA32    empty
+[    0.000000]   Normal   empty
+[    0.000000] Movable zone start for each node
+[    0.000000] Early memory node ranges
+[    0.000000]   node   0: [mem 0x0000000040000000-0x000000007fffffff]
+[    0.000000] Initmem setup node 0 [mem 0x0000000040000000-0x000000007fffffff]
+[    0.000000] psci: probing for conduit method from DT.
+[    0.000000] psci: PSCIv1.1 detected in firmware.
+[    0.000000] psci: Using standard PSCI v0.2 function IDs
+[    0.000000] psci: Trusted OS migration not required
+[    0.000000] psci: SMC Calling Convention v1.0
+[    0.000000] percpu: Embedded 34 pages/cpu s99608 r8192 d31464 u139264
+[    0.000000] Detected PIPT I-cache on CPU0
+[    0.000000] CPU features: detected: Spectre-v2
+[    0.000000] CPU features: detected: Spectre-v4
+[    0.000000] CPU features: detected: Spectre-BHB
+[    0.000000] CPU features: detected: ARM erratum 1742098
+[    0.000000] CPU features: detected: ARM errata 1165522, 1319367, or 1530923
+[    0.000000] alternatives: applying boot alternatives
+[    0.000000] Kernel command line: console=ttyAMA0 root=LABEL=androidagent rootfstype=ext4 rootflags=rw rw init=/opt/androidagent/init.sh modules=virtio_pci,virtio_blk,virtio_net,ext4 aa_containerd_test_delay=0 aa_dockerd_test_delay=0
+[    0.000000] Unknown kernel command line parameters "modules=virtio_pci,virtio_blk,virtio_net,ext4 aa_containerd_test_delay=0 aa_dockerd_test_delay=0", will be passed to user space.
+[    0.000000] printk: log buffer data + meta data: 131072 + 458752 = 589824 bytes
+[    0.000000] Dentry cache hash table entries: 131072 (order: 8, 1048576 bytes, linear)
+[    0.000000] Inode-cache hash table entries: 65536 (order: 7, 524288 bytes, linear)
+[    0.000000] software IO TLB: SWIOTLB bounce buffer size adjusted to 1MB
+[    0.000000] software IO TLB: area num 1.
+[    0.000000] software IO TLB: mapped [mem 0x000000007e900000-0x000000007ea00000] (1MB)
+[    0.000000] Fallback order for Node 0: 0 
+[    0.000000] Built 1 zonelists, mobility grouping on.  Total pages: 262144
+[    0.000000] Policy zone: DMA
+[    0.000000] mem auto-init: stack:all(zero), heap alloc:on, heap free:off
+[    0.000000] SLUB: HWalign=64, Order=0-3, MinObjects=0, CPUs=1, Nodes=1
+[    0.000000] Dynamic Preempt: none
+[    0.000000] rcu: Preemptible hierarchical RCU implementation.
+[    0.000000] rcu: 	RCU restricting CPUs from NR_CPUS=4096 to nr_cpu_ids=1.
+[    0.000000] 	Trampoline variant of Tasks RCU enabled.
+[    0.000000] 	Tracing variant of Tasks RCU enabled.
+[    0.000000] rcu: RCU calculated value of scheduler-enlistment delay is 100 jiffies.
+[    0.000000] rcu: Adjusting geometry for rcu_fanout_leaf=16, nr_cpu_ids=1
+[    0.000000] RCU Tasks: Setting shift to 0 and lim to 1 rcu_task_cb_adjust=1 rcu_task_cpu_ids=1.
+[    0.000000] RCU Tasks Trace: Setting shift to 0 and lim to 1 rcu_task_cb_adjust=1 rcu_task_cpu_ids=1.
+[    0.000000] NR_IRQS: 64, nr_irqs: 64, preallocated irqs: 0
+[    0.000000] Root IRQ handler: gic_handle_irq
+[    0.000000] GICv2m: range[mem 0x08020000-0x08020fff], SPI[80:143]
+[    0.000000] rcu: srcu_init: Setting srcu_struct sizes based on contention.
+[    0.000000] clocksource: jiffies: mask: 0xffffffff max_cycles: 0xffffffff, max_idle_ns: 1911260446275000 ns
+[    0.000000] arch_timer: cp15 timer running at 62.50MHz (virt).
+[    0.000000] clocksource: arch_sys_counter: mask: 0x1ffffffffffffff max_cycles: 0x1cd42e208c, max_idle_ns: 881590405314 ns
+[    0.000087] sched_clock: 57 bits at 63MHz, resolution 16ns, wraps every 4398046511096ns
+[    0.005166] kfence: initialized - using 2097152 bytes for 255 objects at 0x(____ptrval____)-0x(____ptrval____)
+[    0.016403] Console: colour dummy device 80x25
+[    0.020774] Calibrating delay loop (skipped), value calculated using timer frequency.. 125.00 BogoMIPS (lpj=62500)
+[    0.021287] pid_max: default: 32768 minimum: 301
+[    0.025680] LSM: initializing lsm=lockdown,capability,landlock,yama
+[    0.027718] landlock: Up and running.
+[    0.027888] Yama: becoming mindful.
+[    0.030651] Mount-cache hash table entries: 2048 (order: 2, 16384 bytes, linear)
+[    0.030722] Mountpoint-cache hash table entries: 2048 (order: 2, 16384 bytes, linear)
+[    0.103729] rcu: Hierarchical SRCU implementation.
+[    0.103848] rcu: 	Max phase no-delay instances is 400.
+[    0.112208] EFI services will not be available.
+[    0.114866] smp: Bringing up secondary CPUs ...
+[    0.116707] smp: Brought up 1 node, 1 CPU
+[    0.116756] SMP: Total of 1 processors activated.
+[    0.116814] CPU: All CPU(s) started at EL1
+[    0.117267] CPU features: detected: 32-bit EL0 Support
+[    0.117290] CPU features: detected: 32-bit EL1 Support
+[    0.117380] CPU features: detected: CRC32 instructions
+[    0.133766] alternatives: applying system-wide alternatives
+[    0.165747] Memory: 978040K/1048576K available (13312K kernel code, 1994K rwdata, 8460K rodata, 2048K init, 9282K bss, 66492K reserved, 0K cma-reserved)
+[    0.216657] devtmpfs: initialized
+[    0.260408] posixtimers hash table entries: 512 (order: 1, 8192 bytes, linear)
+[    0.261010] futex hash table entries: 256 (16384 bytes on 1 NUMA nodes, total 16 KiB, linear).
+[    0.262302] 23904 pages in range for non-PLT usage
+[    0.262373] 515424 pages in range for PLT usage
+[    0.267149] pinctrl core: initialized pinctrl subsystem
+[    0.271302] DMI not present or invalid.
+[    0.300587] NET: Registered PF_NETLINK/PF_ROUTE protocol family
+[    0.308227] DMA: preallocated 128 KiB GFP_KERNEL pool for atomic allocations
+[    0.308774] DMA: preallocated 128 KiB GFP_KERNEL|GFP_DMA pool for atomic allocations
+[    0.309185] DMA: preallocated 128 KiB GFP_KERNEL|GFP_DMA32 pool for atomic allocations
+[    0.309649] audit: initializing netlink subsys (disabled)
+[    0.319381] thermal_sys: Registered thermal governor 'step_wise'
+[    0.321193] audit: type=2000 audit(0.244:1): state=initialized audit_enabled=0 res=1
+[    0.323186] cpuidle: using governor ladder
+[    0.323418] cpuidle: using governor menu
+[    0.325236] hw-breakpoint: found 6 breakpoint and 4 watchpoint registers.
+[    0.325993] ASID allocator initialised with 65536 entries
+[    0.328225] Serial: AMBA PL011 UART driver
+[    0.372798] 9000000.pl011: ttyAMA0 at MMIO 0x9000000 (irq = 13, base_baud = 0) is a PL011 rev1
+[    0.377544] printk: console [ttyAMA0] enabled
+[    0.431224] HugeTLB: registered 1.00 GiB page size, pre-allocated 0 pages
+[    0.431526] HugeTLB: 0 KiB vmemmap can be freed for a 1.00 GiB page
+[    0.431569] HugeTLB: registered 32.0 MiB page size, pre-allocated 0 pages
+[    0.431577] HugeTLB: 0 KiB vmemmap can be freed for a 32.0 MiB page
+[    0.431587] HugeTLB: registered 2.00 MiB page size, pre-allocated 0 pages
+[    0.431595] HugeTLB: 0 KiB vmemmap can be freed for a 2.00 MiB page
+[    0.431606] HugeTLB: registered 64.0 KiB page size, pre-allocated 0 pages
+[    0.431613] HugeTLB: 0 KiB vmemmap can be freed for a 64.0 KiB page
+[    0.460457] ACPI: Interpreter disabled.
+[    0.461331] iommu: Default domain type: Translated
+[    0.461393] iommu: DMA domain TLB invalidation policy: lazy mode
+[    0.520223] clocksource: Switched to clocksource arch_sys_counter
+[    0.576964] VFS: Disk quotas dquot_6.6.0
+[    0.577254] VFS: Dquot-cache hash table entries: 512 (order 0, 4096 bytes)
+[    0.580523] pnp: PnP ACPI: disabled
+[    0.612553] NET: Registered PF_INET protocol family
+[    0.614278] IP idents hash table entries: 16384 (order: 5, 131072 bytes, linear)
+[    0.700485] tcp_listen_portaddr_hash hash table entries: 512 (order: 1, 8192 bytes, linear)
+[    0.700814] Table-perturb hash table entries: 65536 (order: 6, 262144 bytes, linear)
+[    0.701075] TCP established hash table entries: 8192 (order: 4, 65536 bytes, linear)
+[    0.701625] TCP bind hash table entries: 8192 (order: 6, 262144 bytes, linear)
+[    0.701971] TCP: Hash tables configured (established 8192 bind 8192)
+[    0.704912] MPTCP token hash table entries: 1024 (order: 3, 24576 bytes, linear)
+[    0.705604] UDP hash table entries: 512 (order: 3, 32768 bytes, linear)
+[    0.706111] UDP-Lite hash table entries: 512 (order: 3, 32768 bytes, linear)
+[    0.708871] NET: Registered PF_UNIX/PF_LOCAL protocol family
+[    0.709728] NET: Registered PF_XDP protocol family
+[    0.710332] PCI: CLS 0 bytes, default 64
+[    0.723501] Unpacking initramfs...
+[    0.732755] kvm [1]: HYP mode not available
+[    0.738548] Initialise system trusted keyrings
+[    0.756834] workingset: timestamp_bits=44 max_order=18 bucket_order=0
+[    0.852638] Key type asymmetric registered
+[    0.852858] Asymmetric key parser 'x509' registered
+[    0.853731] Block layer SCSI generic (bsg) driver version 0.4 loaded (major 248)
+[    0.957212] io scheduler mq-deadline registered
+[    0.957396] io scheduler kyber registered
+[    0.957958] io scheduler bfq registered
+[    0.967743] pci-host-generic 4010000000.pcie: host bridge /pcie@10000000 ranges:
+[    0.968976] pci-host-generic 4010000000.pcie:       IO 0x003eff0000..0x003effffff -> 0x0000000000
+[    0.969746] pci-host-generic 4010000000.pcie:      MEM 0x0010000000..0x003efeffff -> 0x0010000000
+[    0.969899] pci-host-generic 4010000000.pcie:      MEM 0x8000000000..0xffffffffff -> 0x8000000000
+[    0.970862] pci-host-generic 4010000000.pcie: Memory resource size exceeds max for 32 bits
+[    0.984618] pci-host-generic 4010000000.pcie: ECAM at [mem 0x4010000000-0x401fffffff] for [bus 00-ff]
+[    0.987502] pci-host-generic 4010000000.pcie: PCI host bridge to bus 0000:00
+[    0.987974] pci_bus 0000:00: root bus resource [bus 00-ff]
+[    0.988161] pci_bus 0000:00: root bus resource [io  0x0000-0xffff]
+[    0.988229] pci_bus 0000:00: root bus resource [mem 0x10000000-0x3efeffff]
+[    0.988242] pci_bus 0000:00: root bus resource [mem 0x8000000000-0xffffffffff]
+[    0.990725] pci 0000:00:00.0: [1b36:0008] type 00 class 0x060000 conventional PCI endpoint
+[    0.995234] pci 0000:00:01.0: [1b36:000d] type 00 class 0x0c0330 PCIe Root Complex Integrated Endpoint
+[    0.995511] pci 0000:00:01.0: BAR 0 [mem 0x00000000-0x00003fff 64bit]
+[    0.995870] pci 0000:00:01.0: enabling Extended Tags
+[    0.998651] pci 0000:00:01.0: BAR 0 [mem 0x8000000000-0x8000003fff 64bit]: assigned
+[    0.999314] pci_bus 0000:00: resource 4 [io  0x0000-0xffff]
+[    0.999348] pci_bus 0000:00: resource 5 [mem 0x10000000-0x3efeffff]
+[    0.999358] pci_bus 0000:00: resource 6 [mem 0x8000000000-0xffffffffff]
+[    1.000613] pci 0000:00:01.0: enabling device (0000 -> 0002)
+[    1.023650] pci 0000:00:01.0: quirk_usb_early_handoff+0x0/0xa40 took 22870 usecs
+[    1.035794] Serial: 8250/16550 driver, 4 ports, IRQ sharing enabled
+[    1.061375] hv_vmbus: registering driver hyperv_keyboard
+[    1.086438] rtc-pl031 9010000.pl031: registered as rtc0
+[    1.087336] rtc-pl031 9010000.pl031: setting system clock to 2026-10-12T01:14:41 UTC (1791767681)
+[    1.093261] NET: Registered PF_INET6 protocol family
+[    1.120107] Segment Routing with IPv6
+[    1.120339] In-situ OAM (IOAM) with IPv6
+[    1.216305] registered taskstats version 1
+[    1.221085] Loading compiled-in X.509 certificates
+[    1.302968] Freeing initrd memory: 6424K
+[    1.498951] Loaded X.509 cert 'alpinelinux.org: Alpine Linux kernel key: 87fa969a47f3e2a6aa35859eb932a17c95abcd82'
+[    1.536936] Demotion targets for Node 0: null
+[    1.539530] Key type .fscrypt registered
+[    1.539562] Key type fscrypt-provisioning registered
+[    1.587754] clk: Disabling unused clocks
+[    1.588592] PM: genpd: Disabling unused power domains
+[    1.647855] Freeing unused kernel memory: 2048K
+[    1.649898] Run /init as init process
+Alpine Init 3.13.0-r0
+[    1.861229] Alpine Init 3.13.0-r0
+ * Loading boot drivers: [    1.873468] Loading boot drivers...
+[    2.261492] loop: module loaded
+ok.
+[    2.270811] Loading boot drivers: ok.
+ * Mounting root: [    2.309536] Mounting root...
+[    2.708937] virtio_blk virtio1: 1/0/0 default/read/poll queues
+[    2.713223] virtio_blk virtio1: [vda] 1 512-byte logical blocks (512 B/512 B)
+[    2.733915] virtio_blk virtio2: 1/0/0 default/read/poll queues
+[    2.735987] virtio_blk virtio2: [vdb] 16777216 512-byte logical blocks (8.59 GB/8.00 GiB)
+[    5.810184] EXT4-fs (vdb): mounted filesystem 3594430b-1902-4239-9cbb-d2ef045a776e r/w with ordered data mode. Quota mode: none.
+ok.
+[    5.814396] Mounting root: ok.
+ANDROIDAGENT_RUNTIME_REVISION_2_INSTALLED
+mount: mounting sys on /sys failed: Resource busy
+[    6.770075] bridge: filtering via arp/ip/ip6tables is no longer available by default. Update your scripts to load br_netfilter if you need this.
+[    6.805979] Bridge firewalling registered
+[    7.062294] tun: Universal TUN/TAP device driver, 1.6
+[    7.136616] usbcore: registered new interface driver usbfs
+[    7.136860] usbcore: registered new interface driver hub
+[    7.137140] usbcore: registered new device driver usb
+[    7.206951] xhci_hcd 0000:00:01.0: xHCI Host Controller
+[    7.207493] xhci_hcd 0000:00:01.0: new USB bus registered, assigned bus number 1
+[    7.211464] xhci_hcd 0000:00:01.0: hcc params 0x00087001 hci version 0x100 quirks 0x0000000000000010
+[    7.218109] xhci_hcd 0000:00:01.0: xHCI Host Controller
+[    7.218153] xhci_hcd 0000:00:01.0: new USB bus registered, assigned bus number 2
+[    7.218231] xhci_hcd 0000:00:01.0: Host supports USB 3.0 SuperSpeed
+[    7.223088] usb usb1: New USB device found, idVendor=1d6b, idProduct=0002, bcdDevice= 6.18
+[    7.223126] usb usb1: New USB device strings: Mfr=3, Product=2, SerialNumber=1
+[    7.223143] usb usb1: Product: xHCI Host Controller
+[    7.223157] usb usb1: Manufacturer: Linux 6.18.55-0-virt xhci-hcd
+[    7.223183] usb usb1: SerialNumber: 0000:00:01.0
+[    7.229828] hub 1-0:1.0: USB hub found
+[    7.231561] hub 1-0:1.0: 8 ports detected
+[    7.237385] usb usb2: We don't know the algorithms for LPM for this host, disabling LPM.
+[    7.237913] usb usb2: New USB device found, idVendor=1d6b, idProduct=0003, bcdDevice= 6.18
+[    7.237934] usb usb2: New USB device strings: Mfr=3, Product=2, SerialNumber=1
+[    7.237942] usb usb2: Product: xHCI Host Controller
+[    7.237949] usb usb2: Manufacturer: Linux 6.18.55-0-virt xhci-hcd
+[    7.237956] usb usb2: SerialNumber: 0000:00:01.0
+[    7.241161] hub 2-0:1.0: USB hub found
+[    7.241642] hub 2-0:1.0: 8 ports detected
+[    7.302523] SCSI subsystem initialized
+[    7.323698] usbcore: registered new interface driver usb-storage
+udhcpc: started, v1.37.0
+[    7.463001] NET: Registered PF_PACKET protocol family
+udhcpc: broadcasting discover
+udhcpc: broadcasting select for 10.0.2.15, server 10.0.2.2
+udhcpc: lease of 10.0.2.15 obtained from 10.0.2.2, lease time 86400
+ANDROIDAGENT_DOCKER_GUEST_STARTED
+==> /var/log/containerd.log <==
+
+==> /var/log/engine.log <==
+
+==> /var/log/docker.log <==
+
+==> /var/log/agent.log <==
+
+==> /var/log/base-images.log <==
+
+==> /var/log/engine.log <==
+ANDROIDAGENT_ENGINE {"stage": "containerd", "detail": "Uruchamianie containerd; sprawdzanie rzeczywistego RPC", "elapsed_seconds": 0.046, "runtime_revision": 2, "attempt": 1}
+
+==> /var/log/containerd.log <==
+time="2026-10-12T01:14:53.305286928Z" level=info msg="starting containerd" revision=1c4457e00facac03ce1d75f7b6777a7a851e5c41 version=v2.2.0
+time="2026-10-12T01:14:53.420480384Z" level=info msg="loading plugin" id=io.containerd.content.v1.content type=io.containerd.content.v1
+time="2026-10-12T01:14:53.430505952Z" level=info msg="loading plugin" id=io.containerd.image-verifier.v1.bindir type=io.containerd.image-verifier.v1
+time="2026-10-12T01:14:53.431228496Z" level=info msg="loading plugin" id=io.containerd.internal.v1.opt type=io.containerd.internal.v1
+time="2026-10-12T01:14:53.435458896Z" level=info msg="loading plugin" id=io.containerd.warning.v1.deprecations type=io.containerd.warning.v1
+time="2026-10-12T01:14:53.435838336Z" level=info msg="loading plugin" id=io.containerd.mount-handler.v1.erofs type=io.containerd.mount-handler.v1
+time="2026-10-12T01:14:53.436142848Z" level=info msg="loading plugin" id=io.containerd.snapshotter.v1.blockfile type=io.containerd.snapshotter.v1
+time="2026-10-12T01:14:53.437869584Z" level=info msg="skip loading plugin" error="no scratch file generator: skip plugin" id=io.containerd.snapshotter.v1.blockfile type=io.containerd.snapshotter.v1
+time="2026-10-12T01:14:53.438151584Z" level=info msg="loading plugin" id=io.containerd.snapshotter.v1.btrfs type=io.containerd.snapshotter.v1
+time="2026-10-12T01:14:53.440698400Z" level=info msg="skip loading plugin" error="path /var/lib/docker/containerd/daemon/io.containerd.snapshotter.v1.btrfs (ext4) must be a btrfs filesystem to be used with the btrfs snapshotter: skip plugin" id=io.containerd.snapshotter.v1.btrfs type=io.containerd.snapshotter.v1
+time="2026-10-12T01:14:53.440966832Z" level=info msg="loading plugin" id=io.containerd.snapshotter.v1.devmapper type=io.containerd.snapshotter.v1
+time="2026-10-12T01:14:53.441289008Z" level=info msg="skip loading plugin" error="devmapper not configured: skip plugin" id=io.containerd.snapshotter.v1.devmapper type=io.containerd.snapshotter.v1
+time="2026-10-12T01:14:53.441540432Z" level=info msg="loading plugin" id=io.containerd.snapshotter.v1.erofs type=io.containerd.snapshotter.v1
+time="2026-10-12T01:14:53.449947872Z" level=info msg="skip loading plugin" error="EROFS unsupported, please `modprobe erofs`: skip plugin" id=io.containerd.snapshotter.v1.erofs type=io.containerd.snapshotter.v1
+time="2026-10-12T01:14:53.450527008Z" level=info msg="loading plugin" id=io.containerd.snapshotter.v1.native type=io.containerd.snapshotter.v1
+time="2026-10-12T01:14:53.452410816Z" level=info msg="loading plugin" id=io.containerd.snapshotter.v1.overlayfs type=io.containerd.snapshotter.v1
+time="2026-10-12T01:14:53.459598352Z" level=info msg="loading plugin" id=io.containerd.snapshotter.v1.zfs type=io.containerd.snapshotter.v1
+time="2026-10-12T01:14:53.460727824Z" level=info msg="skip loading plugin" error="lstat /var/lib/docker/containerd/daemon/io.containerd.snapshotter.v1.zfs: no such file or directory: skip plugin" id=io.containerd.snapshotter.v1.zfs type=io.containerd.snapshotter.v1
+time="2026-10-12T01:14:53.460918352Z" level=info msg="loading plugin" id=io.containerd.event.v1.exchange type=io.containerd.event.v1
+time="2026-10-12T01:14:53.461232336Z" level=info msg="loading plugin" id=io.containerd.monitor.task.v1.cgroups type=io.containerd.monitor.task.v1
+time="2026-10-12T01:14:53.465666976Z" level=info msg="loading plugin" id=io.containerd.metadata.v1.bolt type=io.containerd.metadata.v1
+time="2026-10-12T01:14:53.468122256Z" level=info msg="metadata content store policy set" policy=shared
+time="2026-10-12T01:14:53.544728928Z" level=info msg="loading plugin" id=io.containerd.gc.v1.scheduler type=io.containerd.gc.v1
+time="2026-10-12T01:14:53.552436752Z" level=info msg="loading plugin" id=io.containerd.nri.v1.nri type=io.containerd.nri.v1
+time="2026-10-12T01:14:53.560566528Z" level=info msg="built-in NRI default validator is disabled"
+time="2026-10-12T01:14:53.561269024Z" level=info msg="runtime interface created"
+time="2026-10-12T01:14:53.561564304Z" level=info msg="created NRI interface"
+time="2026-10-12T01:14:53.561873104Z" level=info msg="loading plugin" id=io.containerd.differ.v1.erofs type=io.containerd.differ.v1
+time="2026-10-12T01:14:53.564674944Z" level=info msg="skip loading plugin" error="failed to check mkfs.erofs availability: failed to run mkfs.erofs --help: exec: \"mkfs.erofs\": executable file not found in $PATH: skip plugin" id=io.containerd.differ.v1.erofs type=io.containerd.differ.v1
+time="2026-10-12T01:14:53.564947168Z" level=info msg="loading plugin" id=io.containerd.differ.v1.walking type=io.containerd.differ.v1
+time="2026-10-12T01:14:53.565734192Z" level=info msg="loading plugin" id=io.containerd.lease.v1.manager type=io.containerd.lease.v1
+time="2026-10-12T01:14:53.566268112Z" level=info msg="loading plugin" id=io.containerd.mount-manager.v1.bolt type=io.containerd.mount-manager.v1
+time="2026-10-12T01:14:53.576941808Z" level=info msg="loading plugin" id=io.containerd.service.v1.containers-service type=io.containerd.service.v1
+time="2026-10-12T01:14:53.578268864Z" level=info msg="loading plugin" id=io.containerd.service.v1.content-service type=io.containerd.service.v1
+time="2026-10-12T01:14:53.579723872Z" level=info msg="loading plugin" id=io.containerd.service.v1.diff-service type=io.containerd.service.v1
+time="2026-10-12T01:14:53.581392080Z" level=info msg="loading plugin" id=io.containerd.service.v1.images-service type=io.containerd.service.v1
+time="2026-10-12T01:14:53.582283824Z" level=info msg="loading plugin" id=io.containerd.service.v1.introspection-service type=io.containerd.service.v1
+time="2026-10-12T01:14:53.583943696Z" level=info msg="loading plugin" id=io.containerd.service.v1.namespaces-service type=io.containerd.service.v1
+time="2026-10-12T01:14:53.584689696Z" level=info msg="loading plugin" id=io.containerd.service.v1.snapshots-service type=io.containerd.service.v1
+time="2026-10-12T01:14:53.584970176Z" level=info msg="loading plugin" id=io.containerd.shim.v1.manager type=io.containerd.shim.v1
+time="2026-10-12T01:14:53.585539344Z" level=info msg="loading plugin" id=io.containerd.runtime.v2.task type=io.containerd.runtime.v2
+time="2026-10-12T01:14:53.589877344Z" level=info msg="loading plugin" id=io.containerd.service.v1.tasks-service type=io.containerd.service.v1
+time="2026-10-12T01:14:53.590890176Z" level=info msg="loading plugin" id=io.containerd.grpc.v1.containers type=io.containerd.grpc.v1
+time="2026-10-12T01:14:53.598155472Z" level=info msg="loading plugin" id=io.containerd.grpc.v1.content type=io.containerd.grpc.v1
+time="2026-10-12T01:14:53.599005232Z" level=info msg="loading plugin" id=io.containerd.grpc.v1.diff type=io.containerd.grpc.v1
+time="2026-10-12T01:14:53.599427408Z" level=info msg="loading plugin" id=io.containerd.grpc.v1.events type=io.containerd.grpc.v1
+time="2026-10-12T01:14:53.599882528Z" level=info msg="loading plugin" id=io.containerd.grpc.v1.images type=io.containerd.grpc.v1
+time="2026-10-12T01:14:53.600101456Z" level=info msg="loading plugin" id=io.containerd.grpc.v1.introspection type=io.containerd.grpc.v1
+time="2026-10-12T01:14:53.600923728Z" level=info msg="loading plugin" id=io.containerd.grpc.v1.leases type=io.containerd.grpc.v1
+time="2026-10-12T01:14:53.601192112Z" level=info msg="loading plugin" id=io.containerd.grpc.v1.mounts type=io.containerd.grpc.v1
+time="2026-10-12T01:14:53.601555328Z" level=info msg="loading plugin" id=io.containerd.grpc.v1.namespaces type=io.containerd.grpc.v1
+time="2026-10-12T01:14:53.601833152Z" level=info msg="loading plugin" id=io.containerd.sandbox.store.v1.local type=io.containerd.sandbox.store.v1
+time="2026-10-12T01:14:53.601999744Z" level=info msg="loading plugin" id=io.containerd.transfer.v1.local type=io.containerd.transfer.v1
+time="2026-10-12T01:14:53.605348848Z" level=info msg="loading plugin" id=io.containerd.podsandbox.controller.v1.podsandbox type=io.containerd.podsandbox.controller.v1
+time="2026-10-12T01:14:53.610233104Z" level=warning msg="failed to load plugin" error="unable to load CRI runtime service plugin dependency: no plugins registered for io.containerd.cri.v1.runtime: plugin: not found" id=io.containerd.podsandbox.controller.v1.podsandbox type=io.containerd.podsandbox.controller.v1
+time="2026-10-12T01:14:53.610604608Z" level=info msg="loading plugin" id=io.containerd.sandbox.controller.v1.shim type=io.containerd.sandbox.controller.v1
+time="2026-10-12T01:14:53.613077440Z" level=info msg="loading plugin" id=io.containerd.grpc.v1.sandbox-controllers type=io.containerd.grpc.v1
+time="2026-10-12T01:14:53.613914880Z" level=info msg="loading plugin" id=io.containerd.grpc.v1.sandboxes type=io.containerd.grpc.v1
+time="2026-10-12T01:14:53.614148688Z" level=info msg="loading plugin" id=io.containerd.grpc.v1.snapshots type=io.containerd.grpc.v1
+time="2026-10-12T01:14:53.614494096Z" level=info msg="loading plugin" id=io.containerd.streaming.v1.manager type=io.containerd.streaming.v1
+time="2026-10-12T01:14:53.615694816Z" level=info msg="loading plugin" id=io.containerd.grpc.v1.streaming type=io.containerd.grpc.v1
+time="2026-10-12T01:14:53.616457104Z" level=info msg="loading plugin" id=io.containerd.grpc.v1.tasks type=io.containerd.grpc.v1
+time="2026-10-12T01:14:53.616680320Z" level=info msg="loading plugin" id=io.containerd.grpc.v1.transfer type=io.containerd.grpc.v1
+time="2026-10-12T01:14:53.617049536Z" level=info msg="loading plugin" id=io.containerd.grpc.v1.version type=io.containerd.grpc.v1
+time="2026-10-12T01:14:53.617159168Z" level=info msg="loading plugin" id=io.containerd.monitor.container.v1.restart type=io.containerd.monitor.container.v1
+time="2026-10-12T01:14:53.620715056Z" level=info msg="loading plugin" id=io.containerd.tracing.processor.v1.otlp type=io.containerd.tracing.processor.v1
+time="2026-10-12T01:14:53.621278768Z" level=info msg="skip loading plugin" error="skip plugin: tracing endpoint not configured" id=io.containerd.tracing.processor.v1.otlp type=io.containerd.tracing.processor.v1
+time="2026-10-12T01:14:53.621523792Z" level=info msg="loading plugin" id=io.containerd.internal.v1.tracing type=io.containerd.internal.v1
+time="2026-10-12T01:14:53.621894240Z" level=info msg="skip loading plugin" error="skip plugin: tracing endpoint not configured" id=io.containerd.internal.v1.tracing type=io.containerd.internal.v1
+time="2026-10-12T01:14:53.621993120Z" level=info msg="loading plugin" id=io.containerd.ttrpc.v1.otelttrpc type=io.containerd.ttrpc.v1
+time="2026-10-12T01:14:53.622107760Z" level=info msg="loading plugin" id=io.containerd.grpc.v1.healthcheck type=io.containerd.grpc.v1
+time="2026-10-12T01:14:53.631098976Z" level=info msg=serving... address=/var/run/docker/containerd/containerd.sock.ttrpc
+time="2026-10-12T01:14:53.632044272Z" level=info msg=serving... address=/var/run/docker/containerd/containerd.sock
+time="2026-10-12T01:14:53.633728144Z" level=info msg="containerd successfully booted in 0.363863s"
+
+==> /var/log/engine.log <==
+ANDROIDAGENT_ENGINE {"stage": "containerd_ready", "detail": "containerd odpowiada na Version RPC", "elapsed_seconds": 2.267, "runtime_revision": 2, "attempt": 1, "version": {"version": "v2.2.0", "revision": "1c4457e00facac03ce1d75f7b6777a7a851e5c41"}}
+ANDROIDAGENT_ENGINE {"stage": "docker", "detail": "Uruchamianie Docker Engine z gotowym containerd", "elapsed_seconds": 2.28, "runtime_revision": 2}
+
+==> /var/log/docker.log <==
+time="2026-10-12T01:14:55.616189376Z" level=info msg="Starting up"
+time="2026-10-12T01:14:55.663715840Z" level=warning msg="could not change group /var/run/docker.sock to docker: group docker not found"
+time="2026-10-12T01:14:55.674495744Z" level=info msg="OTEL tracing is not configured, using no-op tracer provider"
+time="2026-10-12T01:14:55.679951760Z" level=info msg="CDI directory does not exist, skipping" dir=/var/run/cdi
+time="2026-10-12T01:14:55.680624768Z" level=info msg="CDI directory does not exist, skipping" dir=/etc/cdi
+time="2026-10-12T01:14:56.023669728Z" level=info msg="Creating a containerd client" address=/var/run/docker/containerd/containerd.sock timeout=1m0s
+time="2026-10-12T01:14:56.237885008Z" level=info msg="Loading containers: start."
+time="2026-10-12T01:14:56.246729088Z" level=info msg="NRI is disabled"
+time="2026-10-12T01:14:56.251578928Z" level=info msg="[graphdriver] trying configured driver: overlay2"
+time="2026-10-12T01:14:56.432361264Z" level=info msg="Restoring containers: start."
+time="2026-10-12T01:14:56.574034528Z" level=info msg="Deleting nftables IPv4 rules" error="exit status 1" output="Error: Could not process rule: No such file or directory\ndelete table ip docker-bridges"
+time="2026-10-12T01:14:56.621158352Z" level=info msg="Deleting nftables IPv6 rules" error="exit status 1" output="Error: Could not process rule: No such file or directory\ndelete table ip6 docker-bridges"
+[   18.640786] Initializing XFRM netlink socket
+time="2026-10-12T01:15:00.010872352Z" level=info msg="Loading containers: done."
+time="2026-10-12T01:15:00.189044320Z" level=warning msg="WARNING: No swap limit support"
+time="2026-10-12T01:15:00.190038144Z" level=info msg="Docker daemon" commit=568f755ebeb1ac9c6a8febbda6cd371ea0a9630b containerd-snapshotter=false storage-driver=overlay2 version=29.5.2
+time="2026-10-12T01:15:00.203432416Z" level=info msg="Initializing buildkit"
+
+==> /var/log/engine.log <==
+ANDROIDAGENT_ENGINE {"stage": "images", "detail": "Sprawdzanie i import do\u0142\u0105czonego obrazu Alpine", "elapsed_seconds": 8.917, "runtime_revision": 2, "engine_version": "29.5.2"}
+
+==> /var/log/docker.log <==
+time="2026-10-12T01:15:00.456259888Z" level=info msg="Completed buildkit initialization"
+time="2026-10-12T01:15:00.541382304Z" level=info msg="Daemon has completed initialization"
+time="2026-10-12T01:15:00.542181568Z" level=info msg="API listen on /var/run/docker.sock"
+
+==> /var/log/agent.log <==
+"POST /request HTTP/1.1" 200 -
+"POST /request HTTP/1.1" 200 -
+
+==> /var/log/engine.log <==
+ANDROIDAGENT_ENGINE {"stage": "ready", "detail": "Docker i obraz Alpine s\u0105 gotowe", "elapsed_seconds": 12.124, "runtime_revision": 2, "engine_version": "29.5.2", "containerd_version": {"version": "v2.2.0", "revision": "1c4457e00facac03ce1d75f7b6777a7a851e5c41"}, "test_delay_seconds": 0}
+
+==> /var/log/agent.log <==
+"POST /request HTTP/1.1" 200 -
+
+==> /var/log/base-images.log <==
+Loaded image ID: sha256:189367d8c0703b7e99946d63d14f1ea3b62c9b8f31a686b1a22733a2436157a6
+
+==> /var/log/agent.log <==
+"POST /request HTTP/1.1" 200 -
+"POST /request HTTP/1.1" 200 -
+"POST /request HTTP/1.1" 200 -
+"POST /request HTTP/1.1" 200 -
+"POST /request HTTP/1.1" 200 -
+"POST /request HTTP/1.1" 200 -
+"POST /request HTTP/1.1" 200 -
+
+==> /var/log/docker.log <==
+2026/10/12 01:15:08 http2: server: error reading preface from client @: read unix /var/run/docker.sock->@: read: connection reset by peer
+
+==> /var/log/agent.log <==
+"POST /request HTTP/1.1" 200 -
+"POST /request HTTP/1.1" 200 -
+"POST /request HTTP/1.1" 200 -
+"POST /request HTTP/1.1" 200 -
+"POST /request HTTP/1.1" 200 -
+"POST /request HTTP/1.1" 200 -
+"POST /request HTTP/1.1" 200 -
+
+==> /var/log/containerd.log <==
+time="2026-10-12T01:15:12.899975888Z" level=info msg="connecting to shim 4175293dbfbff951b8e44a4cdab6488aff6645851e52ad7b00325da5ed0c13fd" address="unix:///run/containerd/s/d15cc3361d82b04070a54c53e3fbd88f813903cdf977e1ad49326435ee26893a" namespace=moby protocol=ttrpc version=3
+
+==> /var/log/docker.log <==
+time="2026-10-12T01:15:13.738032048Z" level=warning msg="healthcheck failed" actualDuration=36.1612ms error="Unavailable: connection error: desc = \"transport: Error while dialing: only one connection allowed\"" timeout=15s
+
+==> /var/log/agent.log <==
+"POST /request HTTP/1.1" 200 -
+[   34.890830] docker0: port 1(veth89f780b) entered blocking state
+[   34.890986] docker0: port 1(veth89f780b) entered disabled state
+[   34.891713] veth89f780b: entered allmulticast mode
+[   34.895609] veth89f780b: entered promiscuous mode
+
+==> /var/log/docker.log <==
+time="2026-10-12T01:15:14.417097024Z" level=warning msg="healthcheck failed" actualDuration=117.147568ms error="Unavailable: connection error: desc = \"transport: Error while dialing: only one connection allowed\"" timeout=15s
+
+==> /var/log/agent.log <==
+"POST /request HTTP/1.1" 200 -
+[   35.008190] eth0: renamed from vethdd94a93
+[   35.030391] docker0: port 1(veth89f780b) entered blocking state
+[   35.030559] docker0: port 1(veth89f780b) entered forwarding state
+
+==> /var/log/docker.log <==
+time="2026-10-12T01:15:15.558430352Z" level=info msg="sbJoin: gwep4 ''->'d28d236c512b', gwep6 ''->''" eid=d28d236c512b ep=aa-8a6ba9f70000431fbd1c7eda5a065a0a net=bridge nid=31a21558fb18
+
+==> /var/log/agent.log <==
+"POST /request HTTP/1.1" 200 -
+"POST /request HTTP/1.1" 200 -
+
+==> /var/log/docker.log <==
+time="2026-10-12T01:15:18.703971008Z" level=error msg="healthcheck failed fatally" error="session healthcheck failed fatally: Unavailable: connection error: desc = \"transport: Error while dialing: only one connection allowed\""
+time="2026-10-12T01:15:19.275710384Z" level=error msg="healthcheck failed fatally" error="session healthcheck failed fatally: Unavailable: connection error: desc = \"transport: Error while dialing: only one connection allowed\""
+
+==> /var/log/containerd.log <==
+time="2026-10-12T01:15:20.067882816Z" level=info msg="shim disconnected" id=4175293dbfbff951b8e44a4cdab6488aff6645851e52ad7b00325da5ed0c13fd namespace=moby
+time="2026-10-12T01:15:20.071223136Z" level=info msg="cleaning up after shim disconnected" id=4175293dbfbff951b8e44a4cdab6488aff6645851e52ad7b00325da5ed0c13fd namespace=moby
+time="2026-10-12T01:15:20.073506880Z" level=info msg="cleaning up dead shim" id=4175293dbfbff951b8e44a4cdab6488aff6645851e52ad7b00325da5ed0c13fd namespace=moby
+
+==> /var/log/docker.log <==
+time="2026-10-12T01:15:19.551568880Z" level=info msg="Container failed to exit within 2s of signal 15 - using the force" container=4175293dbfbff951b8e44a4cdab6488aff6645851e52ad7b00325da5ed0c13fd
+time="2026-10-12T01:15:20.059681360Z" level=info msg="received task-delete event from containerd" container=4175293dbfbff951b8e44a4cdab6488aff6645851e52ad7b00325da5ed0c13fd module=libcontainerd namespace=moby topic=/tasks/delete type="*events.TaskDelete"
+[   40.057498] docker0: port 1(veth89f780b) entered disabled state
+[   40.063055] vethdd94a93: renamed from eth0
+[   40.174291] docker0: port 1(veth89f780b) entered disabled state
+[   40.188853] veth89f780b (unregistering): left allmulticast mode
+[   40.188978] veth89f780b (unregistering): left promiscuous mode
+[   40.189061] docker0: port 1(veth89f780b) entered disabled state
+
+==> /var/log/agent.log <==
+"POST /request HTTP/1.1" 200 -
+[   41.412261] reboot: Power down

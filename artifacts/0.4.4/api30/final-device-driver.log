@@ -1,0 +1,209 @@
+START emulator-5556 app 704158f7-9c71-43a8-b2e4-6b2174d1f171 2026-10-12T02:08:29.321920+00:00
+
+PASS permissions: real state and native consent routes
+PASS permissions: FlowMesh is never mistaken for our service
+PASS permissions: screen refresh preserves existing consent
+PASS commands: native approval works without Accessibility
+PASS commands: native denial never executes the command
+PASS commands: stale consent cannot approve a replacement
+PASS commands: a revoked run cannot inherit consent
+PASS commands: cancellation stops the approved shell
+PASS commands: a cancelled shell cannot spawn
+PASS home: conversation-first UI
+PASS appearance: native light dialog and custom text stay readable
+PASS defaults: Codex, no fabricated ready state
+PASS device: live battery, RAM, storage
+PASS terminal: real Android application UID
+PASS terminal: persistent working files and Unicode
+PASS terminal: nonzero exit reported
+PASS terminal: invalid command
+PASS terminal: output truncation
+PASS terminal: timeout and process cleanup
+PASS terminal: explicit cancellation
+PASS device UI: metrics and command controls
+PASS device UI: execute button returns real output
+PASS chat: local /status through composer
+PASS chat: session persists to disk
+PASS chat: draft survives activity recreation
+PASS chat: real model picker opens
+PASS chat: attachments sheet opens
+PASS chat renderer: copy preserves code indentation
+PASS appearance: dark theme
+PASS setup: accessible onboarding
+PASS MCP: Stop closes active and queued client sockets
+PASS MCP: complete chunk framing and bounded headers
+PASS MCP: a new run cannot revive an old credential or queued request
+PASS attachments: bounded panorama decode and file provider projection
+PASS voice: previous speech callbacks and delayed TTS cannot revive after Stop
+PASS Stop: main thread stays responsive while USB cleanup is blocked
+PASS terminal: background children obey timeout and cleanup
+PASS accessibility: service starts with explicit test grant
+PASS MCP: unauthenticated requests rejected
+PASS MCP: authenticated initialize
+PASS MCP: tool discovery includes phone, shell and Docker
+PASS MCP: device status matches Android
+PASS MCP: read actual screen
+PASS MCP: actual tap focuses command field
+PASS MCP: writes Unicode to real native field
+PASS MCP: scroll moves native content
+PASS MCP: installed apps
+PASS MCP: open Settings and read its screen
+PASS MCP: screenshot returns real JPEG
+PASS MCP: system navigation
+PASS MCP: unknown tool errors
+PASS MCP: shell blocked when developer mode off
+PASS MCP: shell approval denied means no execution
+PASS MCP: approved command executes in app sandbox
+PASS MCP: stop revokes further phone actions
+PASS attachments: provider rejects traversal
+PASS sessions: delete removes persisted conversation
+PASS Claude UI: choose backend on home
+PASS Claude UI: home creates a Claude conversation
+PASS Claude UI: real model picker selects Sonnet alias
+PASS Claude UI: local status and unsigned model gate
+PASS Claude UI: backend switch keeps histories separate
+PASS Claude protocol fixture: live Unicode text before final message
+PASS chat UI: live response survives leaving and resuming the screen
+PASS Claude protocol fixture: final text is persisted once
+PASS Claude protocol fixture: subagent deltas stay separate
+PASS Claude protocol fixture: error arrays and auth errors are visible
+PASS Claude protocol fixture: stop preserves partial text and ends run
+PASS agents: callbacks cannot stop or resurrect another run
+PASS agents: history retention preserves active chats and releases evictions
+PASS agents: history migration preserves data and updates only changed conversations
+PASS agents: initial streaming blocks are bounded and subagent replies separated
+PASS agents: failed Stop ends local state and reports undelivered termination
+PASS agents: surviving helper after app restart receives an exact Stop
+PASS agents: rejected dispatch preserves draft and revokes run access
+PASS UI: long model name keeps selector chevron within its bounds
+PASS chat UI: long tool histories retain bounded rows and recent messages
+PASS chat UI: attachment import survives recreation and gates Send
+PASS chat UI: keyboard input sends local status without fullscreen extraction
+PASS UI: tall bottom sheet reaches its final option
+PASS UI: switch exposes checked state to accessibility
+PASS UI: large font landscape keeps composer and useful home content visible
+PASS final: clean home
+
+androidagent: 83 checks, 0 failures
+
+
+
+package:/data/app/~~TPDIaq1KA93l3v6JDC3nRw==/dev.mateuszsury.androidagent-zPMcFM5xJxa2ye-TqNpV0w==/base.apk
+
+c939d53f01be01eb32be96b306c7cdf4bc97854b69de7c994d13af689bd37e8a  /data/app/~~TPDIaq1KA93l3v6JDC3nRw==/dev.mateuszsury.androidagent-zPMcFM5xJxa2ye-TqNpV0w==/base.apk
+
+PASS emulator-5556 app 83 host_ms 600116
+START emulator-5556 docker-migration 6b6a3dc8-f007-4c45-8f72-9fa2b012b734 2026-10-12T02:19:10.598333+00:00
+
+Docker migration: 4 checks, 0 failures
+
+
+
+package:/data/app/~~TPDIaq1KA93l3v6JDC3nRw==/dev.mateuszsury.androidagent-zPMcFM5xJxa2ye-TqNpV0w==/base.apk
+
+c939d53f01be01eb32be96b306c7cdf4bc97854b69de7c994d13af689bd37e8a  /data/app/~~TPDIaq1KA93l3v6JDC3nRw==/dev.mateuszsury.androidagent-zPMcFM5xJxa2ye-TqNpV0w==/base.apk
+
+PASS emulator-5556 docker-migration 4 host_ms 11423
+15555
+
+START emulator-5556 usb 6fd6a41a-27a7-4fa9-b16b-750d5ba05997 2026-10-12T02:20:05.951603+00:00
+
+PASS UI: USB panel without Accessibility or Docker 
+PASS UI: dark theme and rotation 
+PASS MCP: standalone foreground service, one listener and both agent tools 
+PASS USB: empty bus, agent cannot mint leases or request permission 
+PASS USB broadcasts: blocked hardware cleanup does not block the main thread 
+PASS USB service: destruction preserves a newer session whose start is still queued 
+PASS JNI: real x86 library loads, invalid physical descriptor fails cleanly 
+PASS UART bridge: occupied port fails cleanly and listener can reopen 
+PASS UART: binary loopback, shared cursors and exclusive protocol 
+PASS UART: bounded log overflow and malformed inputs 
+PASS UART: full 64 KiB hex decoding and bounded encoded inputs 
+PASS UART: failed initialization closes the port and preserves cause 
+PASS UART: bridge and flash reservations exclude direct writes 
+PASS UI: light UART terminal has code contrast and preserves unchanged text 
+PASS ESP: cancelled operation restores the complete UART configuration 
+PASS ESP: segment validation before any target write 
+PASS SAF: selected tree, binary read/write and opaque handles 
+PASS SAF: ownership, read-only grant, restore write and import SHA256 
+PASS SAF: revoked streams cannot revive when the same owner is reassigned 
+PASS SAF: stalled provider does not block revocation or publish stale handles 
+PASS UI: SAF browser reaches files after 200 and navigates back 
+PASS SAF: one-shot run grant expires, open streams and owned jobs revoked 
+PASS SAF: provider read-only capability and unavailable-media status 
+PASS SAF: unknown length import and partial provider write never succeeds 
+PASS SAF: explicit document deletion and revoked tree 
+PASS ADB AUTH: signature and Android RSA public-key encoding 
+PASS ADB: corrupted legacy CNXN checksum is rejected 
+PASS ADB legacy: transport disconnect cannot masquerade as command completion 
+PASS ADB legacy: explicit CLSE completes normally even if transport then closes 
+PASS ADB: buffered data and ready writes still honor deadlines and cancellation 
+PASS ADB: real emulator adbd shell_v2, stderr and nonzero exit 
+PASS ADB: multiple logcat tag filters are separate arguments 
+PASS ADB: real sync push/pull binary SHA256 and shell isolation 
+PASS ADB: actual APK install and target package verification 
+PASS ADB: cancelled APK staging removes the partial target file 
+PASS Jobs: other owner refused, cancellation is final 
+PASS MCP: distinct run credentials and revoked authentication 
+PASS Leases: one-shot next-run grant activates and expires (session fixture) 
+PASS Docker MCP: another run cannot operate a task with assigned USB 
+PASS Stop: blocks USB and Docker without Accessibility 
+USB: 40 tests, 0 failures
+
+
+
+package:/data/app/~~TPDIaq1KA93l3v6JDC3nRw==/dev.mateuszsury.androidagent-zPMcFM5xJxa2ye-TqNpV0w==/base.apk
+
+c939d53f01be01eb32be96b306c7cdf4bc97854b69de7c994d13af689bd37e8a  /data/app/~~TPDIaq1KA93l3v6JDC3nRw==/dev.mateuszsury.androidagent-zPMcFM5xJxa2ye-TqNpV0w==/base.apk
+
+PASS emulator-5556 usb 40 host_ms 177463
+
+START emulator-5556 docker-ui a1c96ab5-6c51-41c3-9a14-f3cee692682a 2026-10-12T02:23:48.369033+00:00
+
+PASS Docker cancel: malformed task cannot close unrelated USB leases
+PASS UART Docker: cannot attach a second caller to an owned task
+PASS UART Docker: failed attachment closes its generation before retry (HTTP fixture)
+PASS UART Docker: Stop stays responsive and late attachment is rolled back (HTTP fixture)
+PASS UI: readable memory selector in light theme
+PASS UI: memory selection survives rotation
+PASS UI: two CPU selection remains readable after rotation
+PASS UI: readable memory selector in dark theme
+PASS QEMU: final APK clock arguments and stop during boot
+STOP_RACE_EVENT {"name":"before_duplicate_starts","guest_wall_ms":1791771816620,"guest_elapsed_ms":825941,"guest_nano_time":825941429057}
+STOP_RACE_EVENT {"name":"duplicate_starts_delivered_before_preparing","guest_wall_ms":1791771816685,"guest_elapsed_ms":826005,"guest_nano_time":826005497551}
+STOP_RACE_EVENT {"name":"lifecycle_barrier_released","guest_wall_ms":1791771816685,"guest_elapsed_ms":826006,"guest_nano_time":826006228619}
+STOP_RACE_EVENT {"name":"qemu_alive_before_stop","guest_wall_ms":1791771816909,"guest_elapsed_ms":826229,"guest_nano_time":826229674668}
+STOP_RACE_EVENT {"name":"stop_intent_delivered","guest_wall_ms":1791771816909,"guest_elapsed_ms":826230,"guest_nano_time":826230191516}
+STOP_RACE_EVENT {"name":"original_three_condition_loop_ended","guest_wall_ms":1791771834138,"guest_elapsed_ms":843459,"guest_nano_time":843459259838}
+STOP_RACE_EVENT {"name":"all_condition_wait_ended","guest_wall_ms":1791771834163,"guest_elapsed_ms":843483,"guest_nano_time":843483609497}
+STOP_RACE_EVENT {"name":"cleanup_requested","guest_wall_ms":1791771834164,"guest_elapsed_ms":843484,"guest_nano_time":843484950542}
+STOP_RACE_EVENT {"name":"cleanup_returned","guest_wall_ms":1791771834165,"guest_elapsed_ms":843485,"guest_nano_time":843485620378}
+PASS QEMU service: duplicate starts claim one owner and Stop ends the latest foreground service
+Docker: 10 tests, 0 failures
+
+
+
+package:/data/app/~~TPDIaq1KA93l3v6JDC3nRw==/dev.mateuszsury.androidagent-zPMcFM5xJxa2ye-TqNpV0w==/base.apk
+
+c939d53f01be01eb32be96b306c7cdf4bc97854b69de7c994d13af689bd37e8a  /data/app/~~TPDIaq1KA93l3v6JDC3nRw==/dev.mateuszsury.androidagent-zPMcFM5xJxa2ye-TqNpV0w==/base.apk
+
+PASS emulator-5556 docker-ui 10 host_ms 207133
+START emulator-5556 webview 0323e72b-428b-4b40-92ef-fb74edc31c0f 2026-10-12T02:27:59.680872+00:00
+
+PASS WebView: production preview loads a local page
+PASS WebView: JavaScript handles a DOM button
+PASS WebView: PNG decoding and canvas pixels
+PASS WebView: refresh retains origin storage
+PASS WebView: activity recreation preserves a working preview
+PASS WebView: unavailable server shows the error page
+PASS WebView: refresh recovers after the server returns
+PASS WebView: close and reopen preserve usable state
+WebView: 8 checks, 0 failures
+
+
+
+package:/data/app/~~TPDIaq1KA93l3v6JDC3nRw==/dev.mateuszsury.androidagent-zPMcFM5xJxa2ye-TqNpV0w==/base.apk
+
+c939d53f01be01eb32be96b306c7cdf4bc97854b69de7c994d13af689bd37e8a  /data/app/~~TPDIaq1KA93l3v6JDC3nRw==/dev.mateuszsury.androidagent-zPMcFM5xJxa2ye-TqNpV0w==/base.apk
+
+PASS emulator-5556 webview 8 host_ms 53863

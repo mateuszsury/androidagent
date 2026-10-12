@@ -1,0 +1,20 @@
+{
+  "suite": "full host Python regressions",
+  "source_commit": "bc73465374bf6b5df91ec00726d1ff58d38b9567",
+  "tests": 117,
+  "failures": 0,
+  "skipped": 0,
+  "unittest_elapsed_seconds": 10.621,
+  "completed_utc": "2026-10-12T01:12:04.723882+00:00",
+  "python": "3.12.14",
+  "python_executable": "/workspace/tools/usb-runtime/qa-043-venv/bin/python",
+  "pyserial": "3.5",
+  "machine": "x86_64",
+  "platform": "Linux-6.18.44-x86_64-with-glibc2.41",
+  "scope": "Linux host unit/protocol tests; not Android, physical Lenovo, or an authenticated model conversation",
+  "log": {
+    "path": "artifacts/0.4.4/host-tests.log",
+    "bytes": 18053,
+    "sha256": "74ba804922ac67564b3b9505b6fa7922c7bb54508d07c6bba10688527b21ee5c"
+  }
+}

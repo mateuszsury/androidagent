@@ -1,0 +1,37 @@
+{
+  "large_gh_post": {
+    "part_bytes": 16777216,
+    "http_status": 401,
+    "accepted_parts": 0,
+    "pending_git_sha": "e0547bd355a1f8475f9470686754e9a205b8c8d3",
+    "subsequent_get": "404, object not accepted; journal retained"
+  },
+  "limited_access_checks": {
+    "private_repo_GET": "PASS",
+    "small_real_host_report_POST": "PASS",
+    "host_report_blob": "c14bd87cd8ee7ebf2bee7c31bc91572d25ea0a2d",
+    "git_read": "PASS",
+    "authorized_source_push": "PASS bc73465",
+    "configured_account": "mateuszsury",
+    "authentication_changed": false,
+    "proxy_ca_changed": false
+  },
+  "connector_limit": {
+    "http_status": 400,
+    "message": "MCP request body is invalid or exceeds the 16 MiB limit",
+    "raw_part_bytes": 16777216,
+    "encoded_chars": 22369624
+  },
+  "selected_transfer": {
+    "method": "Existing configured GitHub connector create_blob for parts0-51; existing gh API for parts52-77; gh API GET verifies exact bytes for every accepted part",
+    "raw_chunk_bytes": 8388608,
+    "encoded_max_chars": 11184812,
+    "expected_parts": 78,
+    "schema": "Same version1 manifest; chunk_bytes and per-part bytes are explicit",
+    "scope": "Unreferenced blobs in private mateuszsury/androidagent; no APK committed to main, no release published here",
+    "completed_parts": 78,
+    "all_parts_remote_get_verified": true,
+    "raw_8MiB_gh_POST": "PASS first part52, then53-77 sequentially"
+  },
+  "diagnosis_limit": "Small authenticated writes and Git push work. The cause of the large gh HTTP401 has not been proven; the connector separately reports its explicit request-size cap."
+}

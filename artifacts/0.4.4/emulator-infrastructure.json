@@ -1,0 +1,10 @@
+{
+  "observed_at_utc": "2026-10-12T01:06:57.849629+00:00",
+  "api30_previous_emulator_exit": 137,
+  "observed_cgroup_memory_max_bytes": 17179869184,
+  "observed_cgroup_oom_kill_counter": 1,
+  "scope": "Host infrastructure. Previous completed 0.4.3 API30 results remain unchanged; no 0.4.4 test had started. Counter does not identify a specific process.",
+  "next_api30_ram_mb": 3072,
+  "other_api36_ram_mb": 4096,
+  "data_policy": "Restart same AVD userdata without wipe/uninstall; verify exact installed 0.4.3 before update."
+}

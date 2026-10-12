@@ -1,0 +1,379 @@
+{
+  "version": "0.4.4",
+  "run_id": "8c412d5c-2780-4d53-8f10-d8252cc7e6e9",
+  "tests": [
+    {
+      "name": "Docker cancel: malformed task cannot close unrelated USB leases",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "UART Docker: cannot attach a second caller to an owned task",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "UART Docker: failed attachment closes its generation before retry (HTTP fixture)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "UART Docker: Stop stays responsive and late attachment is rolled back (HTTP fixture)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "UI: readable memory selector in light theme",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "UI: memory selection survives rotation",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "UI: two CPU selection remains readable after rotation",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "UI: readable memory selector in dark theme",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "QEMU: final APK clock arguments and stop during boot",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "QEMU service: duplicate starts claim one owner and Stop ends the latest foreground service",
+      "pass": true,
+      "detail": ""
+    }
+  ],
+  "failures": 0,
+  "api": 36,
+  "abi": "x86_64",
+  "cache_reused": false,
+  "stop_race_only": false,
+  "observations": {
+    "stop_race_events": [
+      {
+        "name": "before_duplicate_starts",
+        "guest_wall_ms": 1791758148090,
+        "guest_elapsed_ms": 2570812,
+        "guest_nano_time": 2570812149685
+      },
+      {
+        "name": "duplicate_starts_delivered_before_preparing",
+        "guest_wall_ms": 1791758148157,
+        "guest_elapsed_ms": 2570879,
+        "guest_nano_time": 2570879034448
+      },
+      {
+        "name": "lifecycle_barrier_released",
+        "guest_wall_ms": 1791758148157,
+        "guest_elapsed_ms": 2570879,
+        "guest_nano_time": 2570879437527
+      },
+      {
+        "name": "qemu_alive_before_stop",
+        "guest_wall_ms": 1791758148380,
+        "guest_elapsed_ms": 2571102,
+        "guest_nano_time": 2571102396315
+      },
+      {
+        "name": "stop_intent_delivered",
+        "guest_wall_ms": 1791758148381,
+        "guest_elapsed_ms": 2571103,
+        "guest_nano_time": 2571103195114
+      },
+      {
+        "name": "original_three_condition_loop_ended",
+        "guest_wall_ms": 1791758153504,
+        "guest_elapsed_ms": 2576226,
+        "guest_nano_time": 2576226318011
+      },
+      {
+        "name": "all_condition_wait_ended",
+        "guest_wall_ms": 1791758153538,
+        "guest_elapsed_ms": 2576260,
+        "guest_nano_time": 2576260078922
+      },
+      {
+        "name": "cleanup_requested",
+        "guest_wall_ms": 1791758153539,
+        "guest_elapsed_ms": 2576261,
+        "guest_nano_time": 2576261555182
+      },
+      {
+        "name": "cleanup_returned",
+        "guest_wall_ms": 1791758153540,
+        "guest_elapsed_ms": 2576262,
+        "guest_nano_time": 2576262708383
+      }
+    ],
+    "duplicate_start_barrier": {
+      "guest_wall_ms": 1791758148128,
+      "guest_elapsed_ms": 2570849,
+      "vm_alive": false,
+      "retained_process_alive": false,
+      "service_exists": true,
+      "docker_worker_count": 1,
+      "vm_state": "stopped",
+      "vm_detail": "Usuni\u0119to zadania i cache Dockera",
+      "vm_status": {
+        "state": "stopped",
+        "detail": "Usuni\u0119to zadania i cache Dockera",
+        "abi": "x86_64",
+        "ready": false,
+        "root_required": false,
+        "clock_mode": "instruction_count",
+        "preview_url": "http://127.0.0.1:18781",
+        "guest": {},
+        "host_free_bytes": 2670100480,
+        "ram_mb": 1024,
+        "vcpus": 2,
+        "startup_budget_seconds": 900,
+        "last_guest_response_host_ms": 0,
+        "last_probe_error": "ConnectException: Failed to connect to /127.0.0.1:18780",
+        "diagnostics": {
+          "run_id": "08cd8ade-8b64-4690-b183-47733eb6b958",
+          "boot_id": "08cd8ade-8b64-4690-b183-47733eb6b958",
+          "phase": "exited",
+          "finished": true,
+          "reason": "user_stop",
+          "termination_reason": "user_stop",
+          "exit_code": 137,
+          "app_pid": 7796,
+          "started_at_epoch_ms": 1791758128856,
+          "exit_recorded_at_epoch_ms": 1791758147668,
+          "process_started": true,
+          "previous_app_session_interrupted": null,
+          "abi": "x86_64",
+          "emulator": true,
+          "ram_mb": 1024,
+          "cores": 2,
+          "console_bytes": 168,
+          "total_output_bytes": 168,
+          "console_truncated": false,
+          "truncated": false,
+          "guest_bytes": 0,
+          "diagnostic_error": "",
+          "available": true
+        }
+      },
+      "service": {
+        "pid": 7796,
+        "foreground": true,
+        "started": true,
+        "active_since_guest_ms": 2570812,
+        "last_activity_guest_ms": 2570813
+      },
+      "service_dump": "ACTIVITY MANAGER SERVICES (dumpsys activity services)\n  User 0 active services:\n  * ServiceRecord{f80309f u0 dev.mateuszsury.androidagent/.DockerService c:dev.mateuszsury.androidagent}\n    intent={cmp=dev.mateuszsury.androidagent/.DockerService}\n    packageName=dev.mateuszsury.androidagent\n    processName=dev.mateuszsury.androidagent\n    targetSdkVersion=36\n    baseDir=/data/app/~~7y7c6WV8vd7viyviNACGdQ==/dev.mateuszsury.androidagent-cozDE7taECdnRqmyLHAfPw==/base.apk\n    dataDir=/data/user/0/dev.mateuszsury.androidagent\n    app=ProcessRecord{a21c6ab 7796:dev.mateuszsury.androidagent/u0a156}\n    useNewWiuLogic_forCapabilities()=true\n    useNewWiuLogic_forStart()=true\n    useNewBfslLogic()=true\n    mAllowWiu_noBinding=PROC_STATE_TOP\n    mAllowWiu_inBindService=DENIED\n    mAllowWiu_byBindings=DENIED\n    getFgsAllowWiu_legacy=PROC_STATE_TOP\n    getFgsAllowWiu_new=PROC_STATE_TOP\n    getFgsAllowWiu_forStart=PROC_STATE_TOP\n    getFgsAllowWiu_forCapabilities=PROC_STATE_TOP\n    allowUiJobScheduling=true\n    recentCallingPackage=dev.mateuszsury.androidagent\n    recentCallingUid=10156\n    mAllowStart_noBinding=PROC_STATE_TOP\n    mAllowStart_inBindService=DENIED\n    mAllowStart_byBindings=DENIED\n    getFgsAllowStart_legacy=PROC_STATE_TOP\n    getFgsAllowStart_new=PROC_STATE_TOP\n    getFgsAllowStart=PROC_STATE_TOP\n    startForegroundCount=1\n    infoAllowStartForeground=[callingPackage: dev.mateuszsury.androidagent; callingUid: 10156; uidState: TOP ; uidBFSL: [BFSL]; intent: Intent { xflg=0x4 cmp=dev.mateuszsury.androidagent/.DockerService (has extras) }; code:PROC_STATE_TOP; tempAllowListReason:<null>; allowWiu:12; targetSdkVersion:36; callerTargetSdkVersion:36; startForegroundCount:0; bindFromPackage:null: isBindService:false]\n    isForeground=true foregroundId=730 types=0x40000000 foregroundNoti=Notification(channel=docker shortcut=null contentView=null vibrate=null sound=null defaults=0 flags=ONGOING_EVENT|FOREGROUND_SERVICE color=0x00000000 actions=1 vis=PRIVATE)\n    createTime=-63ms startingBgTimeout=--\n    lastActivity=-62ms restartTime=-63ms createdFromFg=true\n    startRequested=true delayedStop=false stopIfKilled=true callStart=true lastStartId=2\n startCommandResult=2\n",
+      "latest_start_id": 2,
+      "threads": [
+        {
+          "name": "main",
+          "id": 2,
+          "state": "RUNNABLE",
+          "alive": true,
+          "stack": [
+            "android.os.MessageQueue.nativePollOnce(Native Method)",
+            "android.os.MessageQueue.nextLegacy(MessageQueue.java:913)",
+            "android.os.MessageQueue.next(MessageQueue.java:1025)",
+            "android.os.Looper.loopOnce(Looper.java:196)",
+            "android.os.Looper.loop(Looper.java:338)",
+            "android.app.ActivityThread.main(ActivityThread.java:9067)",
+            "java.lang.reflect.Method.invoke(Native Method)",
+            "com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:593)",
+            "com.android.internal.os.ZygoteInit.main(ZygoteInit.java:932)"
+          ]
+        },
+        {
+          "name": "docker-vm",
+          "id": 98,
+          "state": "BLOCKED",
+          "alive": true,
+          "stack": [
+            "dev.mateuszsury.androidagent.DockerVm.boot(DockerVm.java:73)",
+            "dev.mateuszsury.androidagent.DockerService.lambda$onStartCommand$3$dev-mateuszsury-androidagent-DockerService(DockerService.java:58)",
+            "dev.mateuszsury.androidagent.DockerService$$ExternalSyntheticLambda2.run(D8$$SyntheticClass:0)",
+            "java.lang.Thread.run(Thread.java:1119)"
+          ]
+        }
+      ]
+    },
+    "original_three_condition_loop": {
+      "guest_wall_ms": 1791758153476,
+      "guest_elapsed_ms": 2576198,
+      "vm_alive": false,
+      "retained_process_alive": false,
+      "service_exists": false,
+      "docker_worker_count": 0,
+      "vm_state": "stopped",
+      "vm_detail": "\u015arodowisko zatrzymane",
+      "vm_status": {
+        "state": "stopped",
+        "detail": "\u015arodowisko zatrzymane",
+        "abi": "x86_64",
+        "ready": false,
+        "root_required": false,
+        "clock_mode": "instruction_count",
+        "preview_url": "http://127.0.0.1:18781",
+        "guest": {},
+        "host_free_bytes": 2669965312,
+        "ram_mb": 512,
+        "vcpus": 1,
+        "startup_budget_seconds": 900,
+        "last_guest_response_host_ms": 0,
+        "last_probe_error": "ConnectException: Failed to connect to /127.0.0.1:18780",
+        "diagnostics": {
+          "run_id": "146abb28-7797-4589-9dcf-175acecd628d",
+          "boot_id": "146abb28-7797-4589-9dcf-175acecd628d",
+          "phase": "exited",
+          "finished": true,
+          "reason": "user_stop",
+          "termination_reason": "user_stop",
+          "exit_code": 137,
+          "app_pid": 7796,
+          "started_at_epoch_ms": 1791758148159,
+          "exit_recorded_at_epoch_ms": 1791758153469,
+          "process_started": true,
+          "previous_app_session_interrupted": null,
+          "abi": "x86_64",
+          "emulator": true,
+          "ram_mb": 512,
+          "cores": 1,
+          "console_bytes": 167,
+          "total_output_bytes": 167,
+          "console_truncated": false,
+          "truncated": false,
+          "guest_bytes": 0,
+          "diagnostic_error": "",
+          "available": true
+        }
+      },
+      "actual_exit_code": 137,
+      "service_dump": "ACTIVITY MANAGER SERVICES (dumpsys activity services)\n  (nothing)\n",
+      "threads": [
+        {
+          "name": "main",
+          "id": 2,
+          "state": "RUNNABLE",
+          "alive": true,
+          "stack": [
+            "android.os.MessageQueue.nativePollOnce(Native Method)",
+            "android.os.MessageQueue.nextLegacy(MessageQueue.java:913)",
+            "android.os.MessageQueue.next(MessageQueue.java:1025)",
+            "android.os.Looper.loopOnce(Looper.java:196)",
+            "android.os.Looper.loop(Looper.java:338)",
+            "android.app.ActivityThread.main(ActivityThread.java:9067)",
+            "java.lang.reflect.Method.invoke(Native Method)",
+            "com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:593)",
+            "com.android.internal.os.ZygoteInit.main(ZygoteInit.java:932)"
+          ]
+        }
+      ]
+    },
+    "original_stop_deadline_guest_ms": 2601103,
+    "stop_before_cleanup": {
+      "guest_wall_ms": 1791758153505,
+      "guest_elapsed_ms": 2576227,
+      "vm_alive": false,
+      "retained_process_alive": false,
+      "service_exists": false,
+      "docker_worker_count": 0,
+      "vm_state": "stopped",
+      "vm_detail": "\u015arodowisko zatrzymane",
+      "vm_status": {
+        "state": "stopped",
+        "detail": "\u015arodowisko zatrzymane",
+        "abi": "x86_64",
+        "ready": false,
+        "root_required": false,
+        "clock_mode": "instruction_count",
+        "preview_url": "http://127.0.0.1:18781",
+        "guest": {},
+        "host_free_bytes": 2669965312,
+        "ram_mb": 512,
+        "vcpus": 1,
+        "startup_budget_seconds": 900,
+        "last_guest_response_host_ms": 0,
+        "last_probe_error": "ConnectException: Failed to connect to /127.0.0.1:18780",
+        "diagnostics": {
+          "run_id": "146abb28-7797-4589-9dcf-175acecd628d",
+          "boot_id": "146abb28-7797-4589-9dcf-175acecd628d",
+          "phase": "exited",
+          "finished": true,
+          "reason": "user_stop",
+          "termination_reason": "user_stop",
+          "exit_code": 137,
+          "app_pid": 7796,
+          "started_at_epoch_ms": 1791758148159,
+          "exit_recorded_at_epoch_ms": 1791758153469,
+          "process_started": true,
+          "previous_app_session_interrupted": null,
+          "abi": "x86_64",
+          "emulator": true,
+          "ram_mb": 512,
+          "cores": 1,
+          "console_bytes": 167,
+          "total_output_bytes": 167,
+          "console_truncated": false,
+          "truncated": false,
+          "guest_bytes": 0,
+          "diagnostic_error": "",
+          "available": true
+        }
+      },
+      "actual_exit_code": 137,
+      "service_dump": "ACTIVITY MANAGER SERVICES (dumpsys activity services)\n  (nothing)\n",
+      "threads": [
+        {
+          "name": "main",
+          "id": 2,
+          "state": "RUNNABLE",
+          "alive": true,
+          "stack": [
+            "android.os.MessageQueue.nativePollOnce(Native Method)",
+            "android.os.MessageQueue.nextLegacy(MessageQueue.java:913)",
+            "android.os.MessageQueue.next(MessageQueue.java:1025)",
+            "android.os.Looper.loopOnce(Looper.java:196)",
+            "android.os.Looper.loop(Looper.java:338)",
+            "android.app.ActivityThread.main(ActivityThread.java:9067)",
+            "java.lang.reflect.Method.invoke(Native Method)",
+            "com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:593)",
+            "com.android.internal.os.ZygoteInit.main(ZygoteInit.java:932)"
+          ]
+        }
+      ]
+    }
+  },
+  "host_observation": {
+    "started_utc": "2026-10-12T01:54:00.085032+00:00",
+    "completed_utc": "2026-10-12T01:55:56.340646+00:00",
+    "elapsed_ms": 116256,
+    "scope": "Software x86_64 Android emulator with TCG guest clock drift; not physical ARM Android performance"
+  },
+  "tested_apk": {
+    "name": "androidagent-0.4.4.apk",
+    "version": "0.4.4",
+    "version_code": 404,
+    "bytes": 653558148,
+    "sha256": "c939d53f01be01eb32be96b306c7cdf4bc97854b69de7c994d13af689bd37e8a",
+    "source_commit": "bc73465374bf6b5df91ec00726d1ff58d38b9567",
+    "certificate_sha256": "b0fe60ab6fb41c33051f1fe9c16b2d24e476fdf66be225870db831cd7e2fb66b",
+    "protected_0.4.3_bytes_unchanged": true
+  },
+  "tested_instrumentation": {
+    "name": "androidagent-0.4.4-tests-v2.apk",
+    "bytes": 176667,
+    "sha256": "817a88ede5890440ed370613bf40015d7da42ae807fec32e93aed3959c828442",
+    "source_commit": "d514f3883f76b976fff1f0a542428eafbf195bc2",
+    "test_only": true,
+    "bundled_in_product": false
+  }
+}

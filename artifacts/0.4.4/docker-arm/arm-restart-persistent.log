@@ -1,0 +1,403 @@
+  * 
+  * If you want to run VM as unprivileged user and let Qemu create tunX devices,
+  * then you must add that user to the group "qemu".
+  * If you use KVM for hardware-assisted virtualization, then you may also need
+  * to add that user to the group "kvm".
+  * 
+QEMU emulator version 10.1.5
+Copyright (c) 2003-2025 Fabrice Bellard and the QEMU Project developers
+[    0.000000] Booting Linux on physical CPU 0x0000000000 [0x410fd083]
+[    0.000000] Linux version 6.18.55-0-virt (buildozer@build-3-23-aarch64) (cc (Alpine 15.2.0) 15.2.0, GNU ld (GNU Binutils) 2.45.1) #1-Alpine SMP PREEMPT_DYNAMIC 2026-10-05 08:01:55
+[    0.000000] random: crng init done
+[    0.000000] Machine model: linux,dummy-virt
+[    0.000000] efi: UEFI not found.
+[    0.000000] OF: reserved mem: Reserved memory: No reserved-memory node in the DT
+[    0.000000] NUMA: Faking a node at [mem 0x0000000040000000-0x000000007fffffff]
+[    0.000000] NODE_DATA(0) allocated [mem 0x7fbfab00-0x7fbfcfbf]
+[    0.000000] Zone ranges:
+[    0.000000]   DMA      [mem 0x0000000040000000-0x000000007fffffff]
+[    0.000000]   DMA32    empty
+[    0.000000]   Normal   empty
+[    0.000000] Movable zone start for each node
+[    0.000000] Early memory node ranges
+[    0.000000]   node   0: [mem 0x0000000040000000-0x000000007fffffff]
+[    0.000000] Initmem setup node 0 [mem 0x0000000040000000-0x000000007fffffff]
+[    0.000000] psci: probing for conduit method from DT.
+[    0.000000] psci: PSCIv1.1 detected in firmware.
+[    0.000000] psci: Using standard PSCI v0.2 function IDs
+[    0.000000] psci: Trusted OS migration not required
+[    0.000000] psci: SMC Calling Convention v1.0
+[    0.000000] percpu: Embedded 34 pages/cpu s99608 r8192 d31464 u139264
+[    0.000000] Detected PIPT I-cache on CPU0
+[    0.000000] CPU features: detected: Spectre-v2
+[    0.000000] CPU features: detected: Spectre-v4
+[    0.000000] CPU features: detected: Spectre-BHB
+[    0.000000] CPU features: detected: ARM erratum 1742098
+[    0.000000] CPU features: detected: ARM errata 1165522, 1319367, or 1530923
+[    0.000000] alternatives: applying boot alternatives
+[    0.000000] Kernel command line: console=ttyAMA0 root=LABEL=androidagent rootfstype=ext4 rootflags=rw rw init=/opt/androidagent/init.sh modules=virtio_pci,virtio_blk,virtio_net,ext4 aa_containerd_test_delay=0 aa_dockerd_test_delay=0
+[    0.000000] Unknown kernel command line parameters "modules=virtio_pci,virtio_blk,virtio_net,ext4 aa_containerd_test_delay=0 aa_dockerd_test_delay=0", will be passed to user space.
+[    0.000000] printk: log buffer data + meta data: 131072 + 458752 = 589824 bytes
+[    0.000000] Dentry cache hash table entries: 131072 (order: 8, 1048576 bytes, linear)
+[    0.000000] Inode-cache hash table entries: 65536 (order: 7, 524288 bytes, linear)
+[    0.000000] software IO TLB: SWIOTLB bounce buffer size adjusted to 1MB
+[    0.000000] software IO TLB: area num 1.
+[    0.000000] software IO TLB: mapped [mem 0x000000007e900000-0x000000007ea00000] (1MB)
+[    0.000000] Fallback order for Node 0: 0 
+[    0.000000] Built 1 zonelists, mobility grouping on.  Total pages: 262144
+[    0.000000] Policy zone: DMA
+[    0.000000] mem auto-init: stack:all(zero), heap alloc:on, heap free:off
+[    0.000000] SLUB: HWalign=64, Order=0-3, MinObjects=0, CPUs=1, Nodes=1
+[    0.000000] Dynamic Preempt: none
+[    0.000000] rcu: Preemptible hierarchical RCU implementation.
+[    0.000000] rcu: 	RCU restricting CPUs from NR_CPUS=4096 to nr_cpu_ids=1.
+[    0.000000] 	Trampoline variant of Tasks RCU enabled.
+[    0.000000] 	Tracing variant of Tasks RCU enabled.
+[    0.000000] rcu: RCU calculated value of scheduler-enlistment delay is 100 jiffies.
+[    0.000000] rcu: Adjusting geometry for rcu_fanout_leaf=16, nr_cpu_ids=1
+[    0.000000] RCU Tasks: Setting shift to 0 and lim to 1 rcu_task_cb_adjust=1 rcu_task_cpu_ids=1.
+[    0.000000] RCU Tasks Trace: Setting shift to 0 and lim to 1 rcu_task_cb_adjust=1 rcu_task_cpu_ids=1.
+[    0.000000] NR_IRQS: 64, nr_irqs: 64, preallocated irqs: 0
+[    0.000000] Root IRQ handler: gic_handle_irq
+[    0.000000] GICv2m: range[mem 0x08020000-0x08020fff], SPI[80:143]
+[    0.000000] rcu: srcu_init: Setting srcu_struct sizes based on contention.
+[    0.000000] clocksource: jiffies: mask: 0xffffffff max_cycles: 0xffffffff, max_idle_ns: 1911260446275000 ns
+[    0.000000] arch_timer: cp15 timer running at 62.50MHz (virt).
+[    0.000000] clocksource: arch_sys_counter: mask: 0x1ffffffffffffff max_cycles: 0x1cd42e208c, max_idle_ns: 881590405314 ns
+[    0.000102] sched_clock: 57 bits at 63MHz, resolution 16ns, wraps every 4398046511096ns
+[    0.005282] kfence: initialized - using 2097152 bytes for 255 objects at 0x(____ptrval____)-0x(____ptrval____)
+[    0.015944] Console: colour dummy device 80x25
+[    0.020464] Calibrating delay loop (skipped), value calculated using timer frequency.. 125.00 BogoMIPS (lpj=62500)
+[    0.020656] pid_max: default: 32768 minimum: 301
+[    0.073678] LSM: initializing lsm=lockdown,capability,landlock,yama
+[    0.075303] landlock: Up and running.
+[    0.075438] Yama: becoming mindful.
+[    0.077890] Mount-cache hash table entries: 2048 (order: 2, 16384 bytes, linear)
+[    0.077954] Mountpoint-cache hash table entries: 2048 (order: 2, 16384 bytes, linear)
+[    0.194267] rcu: Hierarchical SRCU implementation.
+[    0.194470] rcu: 	Max phase no-delay instances is 400.
+[    0.203657] EFI services will not be available.
+[    0.206487] smp: Bringing up secondary CPUs ...
+[    0.207558] smp: Brought up 1 node, 1 CPU
+[    0.207601] SMP: Total of 1 processors activated.
+[    0.207656] CPU: All CPU(s) started at EL1
+[    0.207951] CPU features: detected: 32-bit EL0 Support
+[    0.207973] CPU features: detected: 32-bit EL1 Support
+[    0.208051] CPU features: detected: CRC32 instructions
+[    0.277526] alternatives: applying system-wide alternatives
+[    0.305533] Memory: 978032K/1048576K available (13312K kernel code, 1994K rwdata, 8460K rodata, 2048K init, 9282K bss, 66500K reserved, 0K cma-reserved)
+[    0.405637] devtmpfs: initialized
+[    0.480650] posixtimers hash table entries: 512 (order: 1, 8192 bytes, linear)
+[    0.481056] futex hash table entries: 256 (16384 bytes on 1 NUMA nodes, total 16 KiB, linear).
+[    0.481948] 23904 pages in range for non-PLT usage
+[    0.481997] 515424 pages in range for PLT usage
+[    0.485828] pinctrl core: initialized pinctrl subsystem
+[    0.488526] DMI not present or invalid.
+[    0.507781] NET: Registered PF_NETLINK/PF_ROUTE protocol family
+[    0.513013] DMA: preallocated 128 KiB GFP_KERNEL pool for atomic allocations
+[    0.513359] DMA: preallocated 128 KiB GFP_KERNEL|GFP_DMA pool for atomic allocations
+[    0.513679] DMA: preallocated 128 KiB GFP_KERNEL|GFP_DMA32 pool for atomic allocations
+[    0.513976] audit: initializing netlink subsys (disabled)
+[    0.574384] thermal_sys: Registered thermal governor 'step_wise'
+[    0.575999] audit: type=2000 audit(0.205:1): state=initialized audit_enabled=0 res=1
+[    0.577918] cpuidle: using governor ladder
+[    0.578189] cpuidle: using governor menu
+[    0.580048] hw-breakpoint: found 6 breakpoint and 4 watchpoint registers.
+[    0.580680] ASID allocator initialised with 65536 entries
+[    0.582727] Serial: AMBA PL011 UART driver
+[    0.690322] 9000000.pl011: ttyAMA0 at MMIO 0x9000000 (irq = 13, base_baud = 0) is a PL011 rev1
+[    0.694253] printk: console [ttyAMA0] enabled
+[    0.795588] HugeTLB: registered 1.00 GiB page size, pre-allocated 0 pages
+[    0.796018] HugeTLB: 0 KiB vmemmap can be freed for a 1.00 GiB page
+[    0.796096] HugeTLB: registered 32.0 MiB page size, pre-allocated 0 pages
+[    0.796105] HugeTLB: 0 KiB vmemmap can be freed for a 32.0 MiB page
+[    0.796116] HugeTLB: registered 2.00 MiB page size, pre-allocated 0 pages
+[    0.796123] HugeTLB: 0 KiB vmemmap can be freed for a 2.00 MiB page
+[    0.796132] HugeTLB: registered 64.0 KiB page size, pre-allocated 0 pages
+[    0.796140] HugeTLB: 0 KiB vmemmap can be freed for a 64.0 KiB page
+[    0.874462] ACPI: Interpreter disabled.
+[    0.875266] iommu: Default domain type: Translated
+[    0.875325] iommu: DMA domain TLB invalidation policy: lazy mode
+[    0.971994] clocksource: Switched to clocksource arch_sys_counter
+[    1.084760] VFS: Disk quotas dquot_6.6.0
+[    1.084904] VFS: Dquot-cache hash table entries: 512 (order 0, 4096 bytes)
+[    1.098255] pnp: PnP ACPI: disabled
+[    1.181288] NET: Registered PF_INET protocol family
+[    1.182660] IP idents hash table entries: 16384 (order: 5, 131072 bytes, linear)
+[    1.285365] tcp_listen_portaddr_hash hash table entries: 512 (order: 1, 8192 bytes, linear)
+[    1.285602] Table-perturb hash table entries: 65536 (order: 6, 262144 bytes, linear)
+[    1.285783] TCP established hash table entries: 8192 (order: 4, 65536 bytes, linear)
+[    1.286135] TCP bind hash table entries: 8192 (order: 6, 262144 bytes, linear)
+[    1.286335] TCP: Hash tables configured (established 8192 bind 8192)
+[    1.288814] MPTCP token hash table entries: 1024 (order: 3, 24576 bytes, linear)
+[    1.289536] UDP hash table entries: 512 (order: 3, 32768 bytes, linear)
+[    1.289862] UDP-Lite hash table entries: 512 (order: 3, 32768 bytes, linear)
+[    1.292003] NET: Registered PF_UNIX/PF_LOCAL protocol family
+[    1.292634] NET: Registered PF_XDP protocol family
+[    1.293012] PCI: CLS 0 bytes, default 64
+[    1.302538] Unpacking initramfs...
+[    1.312306] kvm [1]: HYP mode not available
+[    1.320962] Initialise system trusted keyrings
+[    1.471249] workingset: timestamp_bits=44 max_order=18 bucket_order=0
+[    1.584138] Key type asymmetric registered
+[    1.584297] Asymmetric key parser 'x509' registered
+[    1.584944] Block layer SCSI generic (bsg) driver version 0.4 loaded (major 248)
+[    1.672141] io scheduler mq-deadline registered
+[    1.672261] io scheduler kyber registered
+[    1.673257] io scheduler bfq registered
+[    1.680609] pci-host-generic 4010000000.pcie: host bridge /pcie@10000000 ranges:
+[    1.681863] pci-host-generic 4010000000.pcie:       IO 0x003eff0000..0x003effffff -> 0x0000000000
+[    1.682484] pci-host-generic 4010000000.pcie:      MEM 0x0010000000..0x003efeffff -> 0x0010000000
+[    1.682552] pci-host-generic 4010000000.pcie:      MEM 0x8000000000..0xffffffffff -> 0x8000000000
+[    1.683324] pci-host-generic 4010000000.pcie: Memory resource size exceeds max for 32 bits
+[    1.696117] pci-host-generic 4010000000.pcie: ECAM at [mem 0x4010000000-0x401fffffff] for [bus 00-ff]
+[    1.698361] pci-host-generic 4010000000.pcie: PCI host bridge to bus 0000:00
+[    1.698700] pci_bus 0000:00: root bus resource [bus 00-ff]
+[    1.698874] pci_bus 0000:00: root bus resource [io  0x0000-0xffff]
+[    1.698920] pci_bus 0000:00: root bus resource [mem 0x10000000-0x3efeffff]
+[    1.698930] pci_bus 0000:00: root bus resource [mem 0x8000000000-0xffffffffff]
+[    1.700628] pci 0000:00:00.0: [1b36:0008] type 00 class 0x060000 conventional PCI endpoint
+[    1.706312] pci 0000:00:01.0: [1b36:000d] type 00 class 0x0c0330 PCIe Root Complex Integrated Endpoint
+[    1.706575] pci 0000:00:01.0: BAR 0 [mem 0x00000000-0x00003fff 64bit]
+[    1.706986] pci 0000:00:01.0: enabling Extended Tags
+[    1.710179] pci 0000:00:01.0: BAR 0 [mem 0x8000000000-0x8000003fff 64bit]: assigned
+[    1.710939] pci_bus 0000:00: resource 4 [io  0x0000-0xffff]
+[    1.710973] pci_bus 0000:00: resource 5 [mem 0x10000000-0x3efeffff]
+[    1.710983] pci_bus 0000:00: resource 6 [mem 0x8000000000-0xffffffffff]
+[    1.712191] pci 0000:00:01.0: enabling device (0000 -> 0002)
+[    1.770858] pci 0000:00:01.0: quirk_usb_early_handoff+0x0/0xa40 took 57606 usecs
+[    1.778412] Serial: 8250/16550 driver, 4 ports, IRQ sharing enabled
+[    1.794455] hv_vmbus: registering driver hyperv_keyboard
+[    1.807519] rtc-pl031 9010000.pl031: registered as rtc0
+[    1.808999] rtc-pl031 9010000.pl031: setting system clock to 2026-10-12T01:23:13 UTC (1791768193)
+[    1.814629] NET: Registered PF_INET6 protocol family
+[    1.974777] Segment Routing with IPv6
+[    1.975098] In-situ OAM (IOAM) with IPv6
+[    2.101291] registered taskstats version 1
+[    2.104631] Loading compiled-in X.509 certificates
+[    2.290862] Freeing initrd memory: 6432K
+[    2.674487] Loaded X.509 cert 'alpinelinux.org: Alpine Linux kernel key: 87fa969a47f3e2a6aa35859eb932a17c95abcd82'
+[    2.702602] Demotion targets for Node 0: null
+[    2.704528] Key type .fscrypt registered
+[    2.704557] Key type fscrypt-provisioning registered
+[    2.789058] clk: Disabling unused clocks
+[    2.789688] PM: genpd: Disabling unused power domains
+[    2.903537] Freeing unused kernel memory: 2048K
+[    2.906144] Run /init as init process
+[    3.374096] Alpine Init 3.13.0-r0
+Alpine Init 3.13.0-r0
+[    3.385471] Loading boot drivers...
+ * Loading boot drivers: [    4.099227] loop: module loaded
+ok.
+[    4.107547] Loading boot drivers: ok.
+[    4.181622] Mounting root...
+ * Mounting root: [    4.809439] virtio_blk virtio1: 1/0/0 default/read/poll queues
+[    4.814803] virtio_blk virtio1: [vda] 1 512-byte logical blocks (512 B/512 B)
+[    4.894368] virtio_blk virtio2: 1/0/0 default/read/poll queues
+[    4.897035] virtio_blk virtio2: [vdb] 16777216 512-byte logical blocks (8.59 GB/8.00 GiB)
+[   12.292948] EXT4-fs (vdb): recovery complete
+[   12.296442] EXT4-fs (vdb): mounted filesystem 3594430b-1902-4239-9cbb-d2ef045a776e r/w with ordered data mode. Quota mode: none.
+ok.
+[   12.302658] Mounting root: ok.
+ANDROIDAGENT_RUNTIME_REVISION_3_INSTALLED
+mount: mounting sys on /sys failed: Resource busy
+[   14.680668] bridge: filtering via arp/ip/ip6tables is no longer available by default. Update your scripts to load br_netfilter if you need this.
+[   14.778120] Bridge firewalling registered
+[   15.471571] tun: Universal TUN/TAP device driver, 1.6
+[   15.614675] usbcore: registered new interface driver usbfs
+[   15.615030] usbcore: registered new interface driver hub
+[   15.615310] usbcore: registered new device driver usb
+[   15.886636] xhci_hcd 0000:00:01.0: xHCI Host Controller
+[   15.887053] xhci_hcd 0000:00:01.0: new USB bus registered, assigned bus number 1
+[   15.892013] xhci_hcd 0000:00:01.0: hcc params 0x00087001 hci version 0x100 quirks 0x0000000000000010
+[   15.901814] xhci_hcd 0000:00:01.0: xHCI Host Controller
+[   15.901879] xhci_hcd 0000:00:01.0: new USB bus registered, assigned bus number 2
+[   15.901969] xhci_hcd 0000:00:01.0: Host supports USB 3.0 SuperSpeed
+[   15.910357] usb usb1: New USB device found, idVendor=1d6b, idProduct=0002, bcdDevice= 6.18
+[   15.910412] usb usb1: New USB device strings: Mfr=3, Product=2, SerialNumber=1
+[   15.910430] usb usb1: Product: xHCI Host Controller
+[   15.910446] usb usb1: Manufacturer: Linux 6.18.55-0-virt xhci-hcd
+[   15.910463] usb usb1: SerialNumber: 0000:00:01.0
+[   15.917224] hub 1-0:1.0: USB hub found
+[   15.919520] hub 1-0:1.0: 8 ports detected
+[   15.994539] usb usb2: We don't know the algorithms for LPM for this host, disabling LPM.
+[   15.997391] usb usb2: New USB device found, idVendor=1d6b, idProduct=0003, bcdDevice= 6.18
+[   15.997413] usb usb2: New USB device strings: Mfr=3, Product=2, SerialNumber=1
+[   15.997422] usb usb2: Product: xHCI Host Controller
+[   15.997429] usb usb2: Manufacturer: Linux 6.18.55-0-virt xhci-hcd
+[   15.997436] usb usb2: SerialNumber: 0000:00:01.0
+[   16.005852] hub 2-0:1.0: USB hub found
+[   16.082583] hub 2-0:1.0: 8 ports detected
+[   16.298012] SCSI subsystem initialized
+[   16.385445] usbcore: registered new interface driver usb-storage
+udhcpc: started, v1.37.0
+[   16.879062] NET: Registered PF_PACKET protocol family
+udhcpc: broadcasting discover
+udhcpc: broadcasting select for 10.0.2.15, server 10.0.2.2
+udhcpc: lease of 10.0.2.15 obtained from 10.0.2.2, lease time 86400
+ANDROIDAGENT_DOCKER_GUEST_STARTED boot=f16b0862-a369-4e4c-b929-7b903d491e00 runtime_revision=3
+ANDROIDAGENT_ENGINE {"stage": "starting", "phase": "starting", "detail": "Przygotowanie nadzoru silnika", "elapsed_seconds": 0.026, "startup_budget_seconds": 900, "startup_remaining_seconds": 899.974, "phase_elapsed_seconds": 0, "phase_budget_seconds": null, "phase_remaining_seconds": null, "progress": {"changed_since_previous": false, "no_change_seconds": 0.026, "processes": [], "snapshot": {"sampled_at_utc": "2026-10-12T01:23:37.805961+00:00", "monotonic_seconds": 25.641, "processes": [], "children": [], "guest_uptime_seconds": 25.64, "memory_kb": {"MemTotal": 990556, "MemAvailable": 871144, "SwapFree": 0, "Dirty": 64, "Writeback": 0}, "cpu_ticks": [467, 0, 738, 0, 41, 0, 5, 0, 0, 0], "clock_source": "arch_sys_counter", "pressure": {}}, "log_bytes_on_disk": {"init.log": 95, "engine.log": 0, "containerd.log": 0, "docker.log": 0, "base-images.log": 0, "agent.log": 0}, "log_bytes_seen": {}, "last_probe": {}}, "supervisor": {"pid": 921, "start_ticks": 1673}, "log_errors": {}, "boot_id": "f16b0862-a369-4e4c-b929-7b903d491e00", "runtime_revision": 3, "recorded_at_utc": "2026-10-12T01:23:38.683005+00:00"}
+ANDROIDAGENT_ENGINE {"stage": "containerd", "phase": "containerd", "detail": "Uruchamianie containerd; oczekiwanie na Version RPC (limit 180 s)", "elapsed_seconds": 0.925, "startup_budget_seconds": 900, "startup_remaining_seconds": 899.075, "phase_elapsed_seconds": 0.0, "phase_budget_seconds": 180, "phase_remaining_seconds": 179.706, "progress": {"changed_since_previous": false, "no_change_seconds": 0.0, "processes": [], "snapshot": {"sampled_at_utc": "2026-10-12T01:23:38.703824+00:00", "monotonic_seconds": 26.471, "processes": [], "children": [], "guest_uptime_seconds": 26.53, "memory_kb": {"MemTotal": 990556, "MemAvailable": 870960, "SwapFree": 0, "Dirty": 64, "Writeback": 0}, "cpu_ticks": [494, 0, 750, 0, 41, 0, 5, 0, 0, 0], "clock_source": "arch_sys_counter", "pressure": {}}, "log_bytes_on_disk": {"init.log": 95, "engine.log": 1118, "containerd.log": 0, "docker.log": 0, "base-images.log": 0, "agent.log": 0}, "log_bytes_seen": {}, "last_probe": {}}, "supervisor": {"pid": 921, "start_ticks": 1673}, "log_errors": {}, "boot_id": "f16b0862-a369-4e4c-b929-7b903d491e00", "runtime_revision": 3, "recorded_at_utc": "2026-10-12T01:23:39.214671+00:00"}
+ANDROIDAGENT_ENGINE {"stage": "containerd", "phase": "containerd", "detail": "Uruchamianie containerd; oczekiwanie na Version RPC (limit 180 s)", "elapsed_seconds": 1.49, "startup_budget_seconds": 900, "startup_remaining_seconds": 898.51, "phase_elapsed_seconds": 0.565, "phase_budget_seconds": 180, "phase_remaining_seconds": 179.237, "progress": {"changed_since_previous": false, "no_change_seconds": 0.565, "processes": [], "snapshot": {"sampled_at_utc": "2026-10-12T01:23:39.268679+00:00", "monotonic_seconds": 27.035, "processes": [], "children": [], "guest_uptime_seconds": 27.03, "memory_kb": {"MemTotal": 990556, "MemAvailable": 871632, "SwapFree": 0, "Dirty": 72, "Writeback": 0}, "cpu_ticks": [509, 0, 758, 0, 42, 0, 5, 0, 0, 0], "clock_source": "arch_sys_counter", "pressure": {}}, "log_bytes_on_disk": {"init.log": 95, "engine.log": 2281, "containerd.log": 0, "docker.log": 0, "base-images.log": 0, "agent.log": 0}, "log_bytes_seen": {}, "last_probe": {}}, "supervisor": {"pid": 921, "start_ticks": 1673}, "log_errors": {}, "containerd_attempt": 1, "boot_id": "f16b0862-a369-4e4c-b929-7b903d491e00", "runtime_revision": 3, "recorded_at_utc": "2026-10-12T01:23:39.502606+00:00"}
+"POST /request HTTP/1.1" 200 - op=status
+"POST /request HTTP/1.1" 200 - op=diagnostics
+ANDROIDAGENT_ENGINE {"stage": "containerd", "phase": "containerd", "detail": "Uruchamianie containerd; oczekiwanie na Version RPC (limit 180 s)", "elapsed_seconds": 1.905, "startup_budget_seconds": 900, "startup_remaining_seconds": 898.095, "phase_elapsed_seconds": 0.981, "phase_budget_seconds": 180, "phase_remaining_seconds": 178.001, "progress": {"changed_since_previous": true, "no_change_seconds": 0.0, "processes": [{"pid": 925, "name": "containerd", "state": "R", "ppid": 921, "cpu_ticks": 9, "start_ticks": 2727, "rss_pages": 132, "vsize_bytes": 45973504, "cpu_seconds": 0.09, "io": {"rchar": 1298, "wchar": 0, "read_bytes": 20951040, "write_bytes": 0}, "wchan": "0", "role": "containerd", "exit_code": null, "spawn_after_seconds": 1.728, "spawn_duration_seconds": 0.08}], "snapshot": {"sampled_at_utc": "2026-10-12T01:23:39.696435+00:00", "monotonic_seconds": 27.463, "processes": [{"pid": 925, "name": "containerd", "state": "R", "ppid": 921, "cpu_ticks": 9, "start_ticks": 2727, "rss_pages": 132, "vsize_bytes": 45973504, "cpu_seconds": 0.09, "io": {"rchar": 1298, "wchar": 0, "read_bytes": 40402944, "write_bytes": 0}, "wchan": "0", "role": "containerd", "exit_code": null, "spawn_after_seconds": 1.728, "spawn_duration_seconds": 0.08}], "children": [], "guest_uptime_seconds": 27.46, "memory_kb": {"MemTotal": 990556, "MemAvailable": 863712, "SwapFree": 0, "Dirty": 72, "Writeback": 0}, "cpu_ticks": [520, 0, 767, 0, 43, 0, 5, 0, 0, 0], "clock_source": "arch_sys_counter", "pressure": {}}, "log_bytes_on_disk": {"init.log": 95, "engine.log": 3471, "containerd.log": 0, "docker.log": 0, "base-images.log": 0, "agent.log": 41}, "log_bytes_seen": {}, "last_probe": {}}, "supervisor": {"pid": 921, "start_ticks": 1673}, "log_errors": {}, "containerd_attempt": 1, "boot_id": "f16b0862-a369-4e4c-b929-7b903d491e00", "runtime_revision": 3, "recorded_at_utc": "2026-10-12T01:23:41.574377+00:00"}
+time="2026-10-12T01:23:42.476084272Z" level=info msg="starting containerd" revision=1c4457e00facac03ce1d75f7b6777a7a851e5c41 version=v2.2.0
+time="2026-10-12T01:23:42.698986160Z" level=info msg="loading plugin" id=io.containerd.content.v1.content type=io.containerd.content.v1
+time="2026-10-12T01:23:42.707827408Z" level=info msg="loading plugin" id=io.containerd.image-verifier.v1.bindir type=io.containerd.image-verifier.v1
+time="2026-10-12T01:23:42.710201232Z" level=info msg="loading plugin" id=io.containerd.internal.v1.opt type=io.containerd.internal.v1
+time="2026-10-12T01:23:42.768017104Z" level=info msg="loading plugin" id=io.containerd.warning.v1.deprecations type=io.containerd.warning.v1
+time="2026-10-12T01:23:42.771949840Z" level=info msg="loading plugin" id=io.containerd.mount-handler.v1.erofs type=io.containerd.mount-handler.v1
+time="2026-10-12T01:23:42.773965040Z" level=info msg="loading plugin" id=io.containerd.snapshotter.v1.blockfile type=io.containerd.snapshotter.v1
+time="2026-10-12T01:23:42.778512784Z" level=info msg="skip loading plugin" error="no scratch file generator: skip plugin" id=io.containerd.snapshotter.v1.blockfile type=io.containerd.snapshotter.v1
+time="2026-10-12T01:23:42.785745376Z" level=info msg="loading plugin" id=io.containerd.snapshotter.v1.btrfs type=io.containerd.snapshotter.v1
+time="2026-10-12T01:23:42.798185968Z" level=info msg="skip loading plugin" error="path /var/lib/docker/containerd/daemon/io.containerd.snapshotter.v1.btrfs (ext4) must be a btrfs filesystem to be used with the btrfs snapshotter: skip plugin" id=io.containerd.snapshotter.v1.btrfs type=io.containerd.snapshotter.v1
+time="2026-10-12T01:23:42.800736240Z" level=info msg="loading plugin" id=io.containerd.snapshotter.v1.devmapper type=io.containerd.snapshotter.v1
+time="2026-10-12T01:23:42.804297200Z" level=info msg="skip loading plugin" error="devmapper not configured: skip plugin" id=io.containerd.snapshotter.v1.devmapper type=io.containerd.snapshotter.v1
+time="2026-10-12T01:23:42.806774624Z" level=info msg="loading plugin" id=io.containerd.snapshotter.v1.erofs type=io.containerd.snapshotter.v1
+time="2026-10-12T01:23:42.876793488Z" level=info msg="skip loading plugin" error="EROFS unsupported, please `modprobe erofs`: skip plugin" id=io.containerd.snapshotter.v1.erofs type=io.containerd.snapshotter.v1
+time="2026-10-12T01:23:42.881391952Z" level=info msg="loading plugin" id=io.containerd.snapshotter.v1.native type=io.containerd.snapshotter.v1
+time="2026-10-12T01:23:42.890735648Z" level=info msg="loading plugin" id=io.containerd.snapshotter.v1.overlayfs type=io.containerd.snapshotter.v1
+time="2026-10-12T01:23:42.903684544Z" level=info msg="loading plugin" id=io.containerd.snapshotter.v1.zfs type=io.containerd.snapshotter.v1
+time="2026-10-12T01:23:42.964130672Z" level=info msg="skip loading plugin" error="lstat /var/lib/docker/containerd/daemon/io.containerd.snapshotter.v1.zfs: no such file or directory: skip plugin" id=io.containerd.snapshotter.v1.zfs type=io.containerd.snapshotter.v1
+time="2026-10-12T01:23:42.964886672Z" level=info msg="loading plugin" id=io.containerd.event.v1.exchange type=io.containerd.event.v1
+time="2026-10-12T01:23:42.967128160Z" level=info msg="loading plugin" id=io.containerd.monitor.task.v1.cgroups type=io.containerd.monitor.task.v1
+time="2026-10-12T01:23:42.977185760Z" level=info msg="loading plugin" id=io.containerd.metadata.v1.bolt type=io.containerd.metadata.v1
+time="2026-10-12T01:23:42.978930240Z" level=info msg="metadata content store policy set" policy=shared
+time="2026-10-12T01:23:43.063414496Z" level=info msg="loading plugin" id=io.containerd.gc.v1.scheduler type=io.containerd.gc.v1
+time="2026-10-12T01:23:43.068411856Z" level=info msg="loading plugin" id=io.containerd.nri.v1.nri type=io.containerd.nri.v1
+time="2026-10-12T01:23:43.081115552Z" level=info msg="built-in NRI default validator is disabled"
+time="2026-10-12T01:23:43.082884016Z" level=info msg="runtime interface created"
+time="2026-10-12T01:23:43.083437520Z" level=info msg="created NRI interface"
+time="2026-10-12T01:23:43.085105392Z" level=info msg="loading plugin" id=io.containerd.differ.v1.erofs type=io.containerd.differ.v1
+time="2026-10-12T01:23:43.092208752Z" level=info msg="skip loading plugin" error="failed to check mkfs.erofs availability: failed to run mkfs.erofs --help: exec: \"mkfs.erofs\": executable file not found in $PATH: skip plugin" id=io.containerd.differ.v1.erofs type=io.containerd.differ.v1
+time="2026-10-12T01:23:43.092494288Z" level=info msg="loading plugin" id=io.containerd.differ.v1.walking type=io.containerd.differ.v1
+time="2026-10-12T01:23:43.093047024Z" level=info msg="loading plugin" id=io.containerd.lease.v1.manager type=io.containerd.lease.v1
+time="2026-10-12T01:23:43.093286496Z" level=info msg="loading plugin" id=io.containerd.mount-manager.v1.bolt type=io.containerd.mount-manager.v1
+time="2026-10-12T01:23:43.106110976Z" level=info msg="loading plugin" id=io.containerd.service.v1.containers-service type=io.containerd.service.v1
+time="2026-10-12T01:23:43.108156816Z" level=info msg="loading plugin" id=io.containerd.service.v1.content-service type=io.containerd.service.v1
+time="2026-10-12T01:23:43.108430608Z" level=info msg="loading plugin" id=io.containerd.service.v1.diff-service type=io.containerd.service.v1
+time="2026-10-12T01:23:43.108722768Z" level=info msg="loading plugin" id=io.containerd.service.v1.images-service type=io.containerd.service.v1
+time="2026-10-12T01:23:43.109033968Z" level=info msg="loading plugin" id=io.containerd.service.v1.introspection-service type=io.containerd.service.v1
+time="2026-10-12T01:23:43.109315152Z" level=info msg="loading plugin" id=io.containerd.service.v1.namespaces-service type=io.containerd.service.v1
+time="2026-10-12T01:23:43.109579392Z" level=info msg="loading plugin" id=io.containerd.service.v1.snapshots-service type=io.containerd.service.v1
+time="2026-10-12T01:23:43.109761712Z" level=info msg="loading plugin" id=io.containerd.shim.v1.manager type=io.containerd.shim.v1
+time="2026-10-12T01:23:43.110136224Z" level=info msg="loading plugin" id=io.containerd.runtime.v2.task type=io.containerd.runtime.v2
+time="2026-10-12T01:23:43.168067216Z" level=info msg="loading plugin" id=io.containerd.service.v1.tasks-service type=io.containerd.service.v1
+time="2026-10-12T01:23:43.172122400Z" level=info msg="loading plugin" id=io.containerd.grpc.v1.containers type=io.containerd.grpc.v1
+time="2026-10-12T01:23:43.174285184Z" level=info msg="loading plugin" id=io.containerd.grpc.v1.content type=io.containerd.grpc.v1
+time="2026-10-12T01:23:43.175755936Z" level=info msg="loading plugin" id=io.containerd.grpc.v1.diff type=io.containerd.grpc.v1
+time="2026-10-12T01:23:43.176146944Z" level=info msg="loading plugin" id=io.containerd.grpc.v1.events type=io.containerd.grpc.v1
+time="2026-10-12T01:23:43.176363072Z" level=info msg="loading plugin" id=io.containerd.grpc.v1.images type=io.containerd.grpc.v1
+time="2026-10-12T01:23:43.177729072Z" level=info msg="loading plugin" id=io.containerd.grpc.v1.introspection type=io.containerd.grpc.v1
+time="2026-10-12T01:23:43.190424064Z" level=info msg="loading plugin" id=io.containerd.grpc.v1.leases type=io.containerd.grpc.v1
+time="2026-10-12T01:23:43.191939136Z" level=info msg="loading plugin" id=io.containerd.grpc.v1.mounts type=io.containerd.grpc.v1
+time="2026-10-12T01:23:43.192212496Z" level=info msg="loading plugin" id=io.containerd.grpc.v1.namespaces type=io.containerd.grpc.v1
+time="2026-10-12T01:23:43.193896688Z" level=info msg="loading plugin" id=io.containerd.sandbox.store.v1.local type=io.containerd.sandbox.store.v1
+time="2026-10-12T01:23:43.194218352Z" level=info msg="loading plugin" id=io.containerd.transfer.v1.local type=io.containerd.transfer.v1
+time="2026-10-12T01:23:43.200202496Z" level=info msg="loading plugin" id=io.containerd.podsandbox.controller.v1.podsandbox type=io.containerd.podsandbox.controller.v1
+time="2026-10-12T01:23:43.281676416Z" level=warning msg="failed to load plugin" error="unable to load CRI runtime service plugin dependency: no plugins registered for io.containerd.cri.v1.runtime: plugin: not found" id=io.containerd.podsandbox.controller.v1.podsandbox type=io.containerd.podsandbox.controller.v1
+time="2026-10-12T01:23:43.282078432Z" level=info msg="loading plugin" id=io.containerd.sandbox.controller.v1.shim type=io.containerd.sandbox.controller.v1
+time="2026-10-12T01:23:43.287278784Z" level=info msg="loading plugin" id=io.containerd.grpc.v1.sandbox-controllers type=io.containerd.grpc.v1
+time="2026-10-12T01:23:43.289180992Z" level=info msg="loading plugin" id=io.containerd.grpc.v1.sandboxes type=io.containerd.grpc.v1
+time="2026-10-12T01:23:43.289507408Z" level=info msg="loading plugin" id=io.containerd.grpc.v1.snapshots type=io.containerd.grpc.v1
+time="2026-10-12T01:23:43.291015408Z" level=info msg="loading plugin" id=io.containerd.streaming.v1.manager type=io.containerd.streaming.v1
+time="2026-10-12T01:23:43.291453984Z" level=info msg="loading plugin" id=io.containerd.grpc.v1.streaming type=io.containerd.grpc.v1
+time="2026-10-12T01:23:43.292964304Z" level=info msg="loading plugin" id=io.containerd.grpc.v1.tasks type=io.containerd.grpc.v1
+time="2026-10-12T01:23:43.293242864Z" level=info msg="loading plugin" id=io.containerd.grpc.v1.transfer type=io.containerd.grpc.v1
+time="2026-10-12T01:23:43.293647904Z" level=info msg="loading plugin" id=io.containerd.grpc.v1.version type=io.containerd.grpc.v1
+time="2026-10-12T01:23:43.295676624Z" level=info msg="loading plugin" id=io.containerd.monitor.container.v1.restart type=io.containerd.monitor.container.v1
+time="2026-10-12T01:23:43.303164784Z" level=info msg="loading plugin" id=io.containerd.tracing.processor.v1.otlp type=io.containerd.tracing.processor.v1
+time="2026-10-12T01:23:43.303765568Z" level=info msg="skip loading plugin" error="skip plugin: tracing endpoint not configured" id=io.containerd.tracing.processor.v1.otlp type=io.containerd.tracing.processor.v1
+time="2026-10-12T01:23:43.303861472Z" level=info msg="loading plugin" id=io.containerd.internal.v1.tracing type=io.containerd.internal.v1
+time="2026-10-12T01:23:43.304118720Z" level=info msg="skip loading plugin" error="skip plugin: tracing endpoint not configured" id=io.containerd.internal.v1.tracing type=io.containerd.internal.v1
+time="2026-10-12T01:23:43.304210944Z" level=info msg="loading plugin" id=io.containerd.ttrpc.v1.otelttrpc type=io.containerd.ttrpc.v1
+time="2026-10-12T01:23:43.304309440Z" level=info msg="loading plugin" id=io.containerd.grpc.v1.healthcheck type=io.containerd.grpc.v1
+time="2026-10-12T01:23:43.371749360Z" level=info msg=serving... address=/var/run/docker/containerd/containerd.sock.ttrpc
+time="2026-10-12T01:23:43.386773264Z" level=info msg=serving... address=/var/run/docker/containerd/containerd.sock
+time="2026-10-12T01:23:43.389259472Z" level=info msg="containerd successfully booted in 0.995668s"
+"POST /request HTTP/1.1" 200 - op=status
+ANDROIDAGENT_ENGINE {"stage": "containerd_ready", "phase": "containerd", "detail": "Uruchamianie containerd; oczekiwanie na Version RPC (limit 180 s)", "elapsed_seconds": 5.993, "startup_budget_seconds": 900, "startup_remaining_seconds": 894.007, "phase_elapsed_seconds": 5.068, "phase_budget_seconds": 180, "phase_remaining_seconds": 174.799, "progress": {"changed_since_previous": true, "no_change_seconds": 0.0, "processes": [{"pid": 925, "name": "containerd", "state": "S", "ppid": 921, "cpu_ticks": 244, "start_ticks": 2727, "rss_pages": 12018, "vsize_bytes": 1303126016, "cpu_seconds": 2.44, "io": {"rchar": 9367, "wchar": 39779, "read_bytes": 44834816, "write_bytes": 4096}, "wchan": "futex_do_wait", "role": "containerd", "exit_code": null, "spawn_after_seconds": 1.728, "spawn_duration_seconds": 0.08}], "snapshot": {"sampled_at_utc": "2026-10-12T01:23:43.785876+00:00", "monotonic_seconds": 31.553, "processes": [{"pid": 925, "name": "containerd", "state": "S", "ppid": 921, "cpu_ticks": 245, "start_ticks": 2727, "rss_pages": 12018, "vsize_bytes": 1303126016, "cpu_seconds": 2.45, "io": {"rchar": 9367, "wchar": 39779, "read_bytes": 44834816, "write_bytes": 4096}, "wchan": "futex_do_wait", "role": "containerd", "exit_code": null, "spawn_after_seconds": 1.728, "spawn_duration_seconds": 0.08}], "children": [], "guest_uptime_seconds": 31.55, "memory_kb": {"MemTotal": 990556, "MemAvailable": 849696, "SwapFree": 0, "Dirty": 96, "Writeback": 0}, "cpu_ticks": [653, 0, 814, 1, 43, 0, 8, 0, 0, 0], "clock_source": "arch_sys_counter", "pressure": {}}, "log_bytes_on_disk": {"init.log": 95, "engine.log": 5373, "containerd.log": 10933, "docker.log": 0, "base-images.log": 0, "agent.log": 128}, "log_bytes_seen": {"containerd.log": 10933}, "last_probe": {"name": "containerd Version RPC", "success": true, "duration_seconds": 0.161, "at_phase_elapsed_seconds": 5.068}}, "supervisor": {"pid": 921, "start_ticks": 1673}, "log_errors": {}, "containerd_attempt": 1, "containerd_version": {"version": "v2.2.0", "revision": "1c4457e00facac03ce1d75f7b6777a7a851e5c41"}, "boot_id": "f16b0862-a369-4e4c-b929-7b903d491e00", "runtime_revision": 3, "recorded_at_utc": "2026-10-12T01:23:43.994461+00:00"}
+ANDROIDAGENT_ENGINE {"stage": "docker", "phase": "docker", "detail": "Uruchamianie Docker Engine i regu\u0142 sieci; ping/info (limit 360 s)", "elapsed_seconds": 6.219, "startup_budget_seconds": 900, "startup_remaining_seconds": 893.781, "phase_elapsed_seconds": 0.0, "phase_budget_seconds": 360, "phase_remaining_seconds": 359.89, "progress": {"changed_since_previous": false, "no_change_seconds": 0.0, "processes": [{"pid": 925, "name": "containerd", "state": "S", "ppid": 921, "cpu_ticks": 245, "start_ticks": 2727, "rss_pages": 12018, "vsize_bytes": 1303126016, "cpu_seconds": 2.45, "io": {"rchar": 9367, "wchar": 39779, "read_bytes": 44834816, "write_bytes": 4096}, "wchan": "futex_do_wait", "role": "containerd", "exit_code": null, "spawn_after_seconds": 1.728, "spawn_duration_seconds": 0.08}], "snapshot": {"sampled_at_utc": "2026-10-12T01:23:44.004019+00:00", "monotonic_seconds": 31.771, "processes": [{"pid": 925, "name": "containerd", "state": "S", "ppid": 921, "cpu_ticks": 245, "start_ticks": 2727, "rss_pages": 12018, "vsize_bytes": 1303126016, "cpu_seconds": 2.45, "io": {"rchar": 9367, "wchar": 39779, "read_bytes": 44834816, "write_bytes": 4096}, "wchan": "futex_do_wait", "role": "containerd", "exit_code": null, "spawn_after_seconds": 1.728, "spawn_duration_seconds": 0.08}], "children": [], "guest_uptime_seconds": 31.77, "memory_kb": {"MemTotal": 990556, "MemAvailable": 849704, "SwapFree": 0, "Dirty": 96, "Writeback": 0}, "cpu_ticks": [659, 0, 816, 1, 44, 0, 8, 0, 0, 0], "clock_source": "arch_sys_counter", "pressure": {}}, "log_bytes_on_disk": {"init.log": 95, "engine.log": 7571, "containerd.log": 10933, "docker.log": 0, "base-images.log": 0, "agent.log": 128}, "log_bytes_seen": {"containerd.log": 10933}, "last_probe": {}}, "supervisor": {"pid": 921, "start_ticks": 1673}, "log_errors": {}, "containerd_attempt": 1, "containerd_version": {"version": "v2.2.0", "revision": "1c4457e00facac03ce1d75f7b6777a7a851e5c41"}, "boot_id": "f16b0862-a369-4e4c-b929-7b903d491e00", "runtime_revision": 3, "recorded_at_utc": "2026-10-12T01:23:44.193825+00:00"}
+ANDROIDAGENT_ENGINE {"stage": "docker", "phase": "docker", "detail": "Uruchamianie Docker Engine i regu\u0142 sieci; ping/info (limit 360 s)", "elapsed_seconds": 6.491, "startup_budget_seconds": 900, "startup_remaining_seconds": 893.509, "phase_elapsed_seconds": 0.272, "phase_budget_seconds": 360, "phase_remaining_seconds": 359.397, "progress": {"changed_since_previous": true, "no_change_seconds": 0.0, "processes": [{"pid": 925, "name": "containerd", "state": "S", "ppid": 921, "cpu_ticks": 245, "start_ticks": 2727, "rss_pages": 12018, "vsize_bytes": 1303126016, "cpu_seconds": 2.45, "io": {"rchar": 9367, "wchar": 39779, "read_bytes": 44834816, "write_bytes": 4096}, "wchan": "futex_do_wait", "role": "containerd", "exit_code": null, "spawn_after_seconds": 1.728, "spawn_duration_seconds": 0.08}, {"pid": 935, "name": "dockerd", "state": "R", "ppid": 921, "cpu_ticks": 6, "start_ticks": 3196, "rss_pages": 0, "vsize_bytes": 85151744, "cpu_seconds": 0.06, "io": {"rchar": 1298, "wchar": 0, "read_bytes": 4214784, "write_bytes": 0}, "wchan": "0", "role": "dockerd", "exit_code": null, "spawn_after_seconds": 6.418, "spawn_duration_seconds": 0.071}], "snapshot": {"sampled_at_utc": "2026-10-12T01:23:44.274787+00:00", "monotonic_seconds": 32.041, "processes": [{"pid": 925, "name": "containerd", "state": "S", "ppid": 921, "cpu_ticks": 245, "start_ticks": 2727, "rss_pages": 12018, "vsize_bytes": 1303126016, "cpu_seconds": 2.45, "io": {"rchar": 9367, "wchar": 39779, "read_bytes": 44834816, "write_bytes": 4096}, "wchan": "futex_do_wait", "role": "containerd", "exit_code": null, "spawn_after_seconds": 1.728, "spawn_duration_seconds": 0.08}, {"pid": 935, "name": "dockerd", "state": "R", "ppid": 921, "cpu_ticks": 6, "start_ticks": 3196, "rss_pages": 0, "vsize_bytes": 85151744, "cpu_seconds": 0.06, "io": {"rchar": 1298, "wchar": 0, "read_bytes": 4214784, "write_bytes": 0}, "wchan": "0", "role": "dockerd", "exit_code": null, "spawn_after_seconds": 6.418, "spawn_duration_seconds": 0.071}], "children": [], "guest_uptime_seconds": 32.04, "memory_kb": {"MemTotal": 990556, "MemAvailable": 850064, "SwapFree": 0, "Dirty": 80, "Writeback": 0}, "cpu_ticks": [666, 0, 821, 1, 45, 0, 8, 0, 0, 0], "clock_source": "arch_sys_counter", "pressure": {}}, "log_bytes_on_disk": {"init.log": 95, "engine.log": 9647, "containerd.log": 10933, "docker.log": 0, "base-images.log": 0, "agent.log": 128}, "log_bytes_seen": {"containerd.log": 10933}, "last_probe": {}}, "supervisor": {"pid": 921, "start_ticks": 1673}, "log_errors": {}, "containerd_attempt": 1, "containerd_version": {"version": "v2.2.0", "revision": "1c4457e00facac03ce1d75f7b6777a7a851e5c41"}, "boot_id": "f16b0862-a369-4e4c-b929-7b903d491e00", "runtime_revision": 3, "recorded_at_utc": "2026-10-12T01:23:44.771020+00:00"}
+"POST /request HTTP/1.1" 200 - op=status
+time="2026-10-12T01:23:47.377147280Z" level=info msg="Starting up"
+time="2026-10-12T01:23:47.495462928Z" level=warning msg="could not change group /var/run/docker.sock to docker: group docker not found"
+time="2026-10-12T01:23:47.569031184Z" level=info msg="OTEL tracing is not configured, using no-op tracer provider"
+time="2026-10-12T01:23:47.582051712Z" level=info msg="CDI directory does not exist, skipping" dir=/etc/cdi
+time="2026-10-12T01:23:47.593869008Z" level=info msg="CDI directory does not exist, skipping" dir=/var/run/cdi
+"POST /request HTTP/1.1" 200 - op=status
+time="2026-10-12T01:23:48.496744000Z" level=info msg="Creating a containerd client" address=/var/run/docker/containerd/containerd.sock timeout=1m0s
+time="2026-10-12T01:23:49.177683920Z" level=info msg="Loading containers: start."
+time="2026-10-12T01:23:49.267673520Z" level=info msg="NRI is disabled"
+time="2026-10-12T01:23:49.269346224Z" level=info msg="[graphdriver] trying configured driver: overlay2"
+time="2026-10-12T01:23:49.764487888Z" level=info msg="Restoring containers: start."
+"POST /request HTTP/1.1" 200 - op=status
+time="2026-10-12T01:23:50.798251856Z" level=info msg="Deleting nftables IPv4 rules" error="exit status 1" output="Error: Could not process rule: No such file or directory\ndelete table ip docker-bridges"
+time="2026-10-12T01:23:50.892486336Z" level=info msg="Deleting nftables IPv6 rules" error="exit status 1" output="Error: Could not process rule: No such file or directory\ndelete table ip6 docker-bridges"
+"POST /request HTTP/1.1" 200 - op=status
+"POST /request HTTP/1.1" 200 - op=status
+[   44.883790] Initializing XFRM netlink socket
+"POST /request HTTP/1.1" 200 - op=status
+time="2026-10-12T01:23:58.270125888Z" level=info msg="Removing stale sandbox" cid=e19743e91e94 isRestore=false sid=bbffd94be1b6
+time="2026-10-12T01:23:58.373231104Z" level=warning msg="Failed deleting service host entries to the running container: open : no such file or directory"
+"POST /request HTTP/1.1" 200 - op=status
+"POST /request HTTP/1.1" 200 - op=status
+ANDROIDAGENT_ENGINE {"stage": "docker", "phase": "docker", "detail": "Uruchamianie Docker Engine i regu\u0142 sieci; ping/info (limit 360 s)", "elapsed_seconds": 23.129, "startup_budget_seconds": 900, "startup_remaining_seconds": 876.871, "phase_elapsed_seconds": 16.91, "phase_budget_seconds": 360, "phase_remaining_seconds": 341.89, "progress": {"changed_since_previous": true, "no_change_seconds": 0.0, "processes": [{"pid": 925, "name": "containerd", "state": "S", "ppid": 921, "cpu_ticks": 295, "start_ticks": 2727, "rss_pages": 12018, "vsize_bytes": 1303126016, "cpu_seconds": 2.95, "io": {"rchar": 10623, "wchar": 90176, "read_bytes": 44834816, "write_bytes": 24576}, "wchan": "futex_do_wait", "role": "containerd", "exit_code": null, "spawn_after_seconds": 1.728, "spawn_duration_seconds": 0.08}, {"pid": 935, "name": "dockerd", "state": "S", "ppid": 921, "cpu_ticks": 826, "start_ticks": 3196, "rss_pages": 20457, "vsize_bytes": 1346174976, "cpu_seconds": 8.26, "io": {"rchar": 813311, "wchar": 225008, "read_bytes": 99348480, "write_bytes": 212992}, "wchan": "0", "role": "dockerd", "exit_code": null, "spawn_after_seconds": 6.418, "spawn_duration_seconds": 0.071}], "snapshot": {"sampled_at_utc": "2026-10-12T01:24:01.085827+00:00", "monotonic_seconds": 48.853, "processes": [{"pid": 925, "name": "containerd", "state": "S", "ppid": 921, "cpu_ticks": 295, "start_ticks": 2727, "rss_pages": 12018, "vsize_bytes": 1303126016, "cpu_seconds": 2.95, "io": {"rchar": 10623, "wchar": 90176, "read_bytes": 44834816, "write_bytes": 24576}, "wchan": "futex_do_wait", "role": "containerd", "exit_code": null, "spawn_after_seconds": 1.728, "spawn_duration_seconds": 0.08}, {"pid": 935, "name": "dockerd", "state": "S", "ppid": 921, "cpu_ticks": 829, "start_ticks": 3196, "rss_pages": 20457, "vsize_bytes": 1346174976, "cpu_seconds": 8.29, "io": {"rchar": 818457, "wchar": 225072, "read_bytes": 99348480, "write_bytes": 212992}, "wchan": "0", "role": "dockerd", "exit_code": null, "spawn_after_seconds": 6.418, "spawn_duration_seconds": 0.071}], "children": [], "guest_uptime_seconds": 48.86, "memory_kb": {"MemTotal": 990556, "MemAvailable": 815544, "SwapFree": 0, "Dirty": 8, "Writeback": 0}, "cpu_ticks": [1003, 0, 1223, 2, 76, 0, 15, 0, 0, 0], "clock_source": "arch_sys_counter", "pressure": {}}, "log_bytes_on_disk": {"init.log": 95, "engine.log": 12425, "containerd.log": 10933, "docker.log": 1716, "base-images.log": 0, "agent.log": 456}, "log_bytes_seen": {"containerd.log": 10933, "docker.log": 1716}, "last_probe": {"name": "Docker ping/info", "success": false, "duration_seconds": 5.028, "at_phase_elapsed_seconds": 16.907, "error_type": "TimeoutError", "error": "timed out"}}, "supervisor": {"pid": 921, "start_ticks": 1673}, "log_errors": {}, "containerd_attempt": 1, "containerd_version": {"version": "v2.2.0", "revision": "1c4457e00facac03ce1d75f7b6777a7a851e5c41"}, "boot_id": "f16b0862-a369-4e4c-b929-7b903d491e00", "runtime_revision": 3, "recorded_at_utc": "2026-10-12T01:24:02.306522+00:00"}
+time="2026-10-12T01:24:02.594244016Z" level=warning msg="error locating sandbox id bbffd94be1b6b5fc991843eccd98a54e6836fbc6f216905150d0c18abb55cade: sandbox bbffd94be1b6b5fc991843eccd98a54e6836fbc6f216905150d0c18abb55cade not found"
+time="2026-10-12T01:24:02.605810400Z" level=info msg="Loading containers: done."
+time="2026-10-12T01:24:03.099667616Z" level=warning msg="WARNING: No swap limit support"
+time="2026-10-12T01:24:03.107582048Z" level=info msg="Docker daemon" commit=568f755ebeb1ac9c6a8febbda6cd371ea0a9630b containerd-snapshotter=false storage-driver=overlay2 version=29.5.2
+time="2026-10-12T01:24:03.177167200Z" level=info msg="Initializing buildkit"
+"POST /request HTTP/1.1" 200 - op=status
+time="2026-10-12T01:24:04.075183808Z" level=info msg="Completed buildkit initialization"
+time="2026-10-12T01:24:04.690345056Z" level=info msg="Daemon has completed initialization"
+time="2026-10-12T01:24:04.693804048Z" level=info msg="API listen on /var/run/docker.sock"
+"POST /request HTTP/1.1" 200 - op=status
+ANDROIDAGENT_ENGINE {"stage": "docker", "phase": "docker", "detail": "Uruchamianie Docker Engine i regu\u0142 sieci; ping/info (limit 360 s)", "elapsed_seconds": 27.794, "startup_budget_seconds": 900, "startup_remaining_seconds": 872.206, "phase_elapsed_seconds": 21.575, "phase_budget_seconds": 360, "phase_remaining_seconds": 338.024, "progress": {"changed_since_previous": true, "no_change_seconds": 0.0, "processes": [{"pid": 925, "name": "containerd", "state": "S", "ppid": 921, "cpu_ticks": 304, "start_ticks": 2727, "rss_pages": 12050, "vsize_bytes": 1303126016, "cpu_seconds": 3.04, "io": {"rchar": 10831, "wchar": 90442, "read_bytes": 44834816, "write_bytes": 24576}, "wchan": "futex_do_wait", "role": "containerd", "exit_code": null, "spawn_after_seconds": 1.728, "spawn_duration_seconds": 0.08}, {"pid": 935, "name": "dockerd", "state": "S", "ppid": 921, "cpu_ticks": 1017, "start_ticks": 3196, "rss_pages": 21665, "vsize_bytes": 1346928640, "cpu_seconds": 10.17, "io": {"rchar": 907978, "wchar": 450862, "read_bytes": 99680256, "write_bytes": 462848}, "wchan": "futex_do_wait", "role": "dockerd", "exit_code": null, "spawn_after_seconds": 6.418, "spawn_duration_seconds": 0.071}], "snapshot": {"sampled_at_utc": "2026-10-12T01:24:05.582700+00:00", "monotonic_seconds": 53.349, "processes": [{"pid": 925, "name": "containerd", "state": "S", "ppid": 921, "cpu_ticks": 304, "start_ticks": 2727, "rss_pages": 12050, "vsize_bytes": 1303126016, "cpu_seconds": 3.04, "io": {"rchar": 10831, "wchar": 90442, "read_bytes": 44834816, "write_bytes": 24576}, "wchan": "futex_do_wait", "role": "containerd", "exit_code": null, "spawn_after_seconds": 1.728, "spawn_duration_seconds": 0.08}, {"pid": 935, "name": "dockerd", "state": "S", "ppid": 921, "cpu_ticks": 1017, "start_ticks": 3196, "rss_pages": 21665, "vsize_bytes": 1346928640, "cpu_seconds": 10.17, "io": {"rchar": 907978, "wchar": 450862, "read_bytes": 99680256, "write_bytes": 462848}, "wchan": "futex_do_wait", "role": "dockerd", "exit_code": null, "spawn_after_seconds": 6.418, "spawn_duration_seconds": 0.071}], "children": [], "guest_uptime_seconds": 53.35, "memory_kb": {"MemTotal": 990556, "MemAvailable": 815932, "SwapFree": 0, "Dirty": 76, "Writeback": 0}, "cpu_ticks": [1114, 0, 1304, 2, 90, 0, 16, 0, 0, 0], "clock_source": "arch_sys_counter", "pressure": {}}, "log_bytes_on_disk": {"init.log": 95, "engine.log": 15434, "containerd.log": 10933, "docker.log": 2651, "base-images.log": 0, "agent.log": 538}, "log_bytes_seen": {"containerd.log": 10933, "docker.log": 2651}, "last_probe": {"name": "Docker ping/info", "success": true, "duration_seconds": 1.104, "at_phase_elapsed_seconds": 21.574}}, "supervisor": {"pid": 921, "start_ticks": 1673}, "log_errors": {}, "containerd_attempt": 1, "containerd_version": {"version": "v2.2.0", "revision": "1c4457e00facac03ce1d75f7b6777a7a851e5c41"}, "engine_version": "29.5.2", "storage_driver": "overlay2", "boot_id": "f16b0862-a369-4e4c-b929-7b903d491e00", "runtime_revision": 3, "recorded_at_utc": "2026-10-12T01:24:06.094243+00:00"}
+ANDROIDAGENT_ENGINE {"stage": "image_probe", "phase": "image_probe", "detail": "Sprawdzanie rzeczywistego obrazu Alpine", "elapsed_seconds": 28.323, "startup_budget_seconds": 900, "startup_remaining_seconds": 871.677, "phase_elapsed_seconds": 0.0, "phase_budget_seconds": 15, "phase_remaining_seconds": 14.721, "progress": {"changed_since_previous": false, "no_change_seconds": 0.0, "processes": [{"pid": 925, "name": "containerd", "state": "S", "ppid": 921, "cpu_ticks": 304, "start_ticks": 2727, "rss_pages": 12050, "vsize_bytes": 1303126016, "cpu_seconds": 3.04, "io": {"rchar": 10831, "wchar": 90442, "read_bytes": 44834816, "write_bytes": 24576}, "wchan": "futex_do_wait", "role": "containerd", "exit_code": null, "spawn_after_seconds": 1.728, "spawn_duration_seconds": 0.08}, {"pid": 935, "name": "dockerd", "state": "S", "ppid": 921, "cpu_ticks": 1017, "start_ticks": 3196, "rss_pages": 21665, "vsize_bytes": 1346928640, "cpu_seconds": 10.17, "io": {"rchar": 907978, "wchar": 450862, "read_bytes": 99680256, "write_bytes": 462848}, "wchan": "futex_do_wait", "role": "dockerd", "exit_code": null, "spawn_after_seconds": 6.418, "spawn_duration_seconds": 0.071}], "snapshot": {"sampled_at_utc": "2026-10-12T01:24:06.110464+00:00", "monotonic_seconds": 53.877, "processes": [{"pid": 925, "name": "containerd", "state": "S", "ppid": 921, "cpu_ticks": 304, "start_ticks": 2727, "rss_pages": 12050, "vsize_bytes": 1303126016, "cpu_seconds": 3.04, "io": {"rchar": 10831, "wchar": 90442, "read_bytes": 44834816, "write_bytes": 24576}, "wchan": "futex_do_wait", "role": "containerd", "exit_code": null, "spawn_after_seconds": 1.728, "spawn_duration_seconds": 0.08}, {"pid": 935, "name": "dockerd", "state": "S", "ppid": 921, "cpu_ticks": 1017, "start_ticks": 3196, "rss_pages": 21665, "vsize_bytes": 1346928640, "cpu_seconds": 10.17, "io": {"rchar": 907978, "wchar": 450862, "read_bytes": 99680256, "write_bytes": 462848}, "wchan": "futex_do_wait", "role": "dockerd", "exit_code": null, "spawn_after_seconds": 6.418, "spawn_duration_seconds": 0.071}], "children": [], "guest_uptime_seconds": 53.87, "memory_kb": {"MemTotal": 990556, "MemAvailable": 815988, "SwapFree": 0, "Dirty": 104, "Writeback": 0}, "cpu_ticks": [1129, 0, 1309, 2, 98, 0, 16, 0, 0, 0], "clock_source": "arch_sys_counter", "pressure": {}}, "log_bytes_on_disk": {"init.log": 95, "engine.log": 18479, "containerd.log": 10933, "docker.log": 2651, "base-images.log": 0, "agent.log": 538}, "log_bytes_seen": {"containerd.log": 10933, "docker.log": 2651}, "last_probe": {}}, "supervisor": {"pid": 921, "start_ticks": 1673}, "log_errors": {}, "containerd_attempt": 1, "containerd_version": {"version": "v2.2.0", "revision": "1c4457e00facac03ce1d75f7b6777a7a851e5c41"}, "engine_version": "29.5.2", "storage_driver": "overlay2", "boot_id": "f16b0862-a369-4e4c-b929-7b903d491e00", "runtime_revision": 3, "recorded_at_utc": "2026-10-12T01:24:06.478147+00:00"}
+ANDROIDAGENT_ENGINE {"stage": "sync", "phase": "sync", "detail": "Utrwalanie obrazu i danych na dysku (limit 60 s)", "elapsed_seconds": 28.811, "startup_budget_seconds": 900, "startup_remaining_seconds": 871.189, "phase_elapsed_seconds": 0.0, "phase_budget_seconds": 60, "phase_remaining_seconds": 59.784, "progress": {"changed_since_previous": false, "no_change_seconds": 0.0, "processes": [{"pid": 925, "name": "containerd", "state": "S", "ppid": 921, "cpu_ticks": 304, "start_ticks": 2727, "rss_pages": 12050, "vsize_bytes": 1303126016, "cpu_seconds": 3.04, "io": {"rchar": 10831, "wchar": 90442, "read_bytes": 44834816, "write_bytes": 24576}, "wchan": "futex_do_wait", "role": "containerd", "exit_code": null, "spawn_after_seconds": 1.728, "spawn_duration_seconds": 0.08}, {"pid": 935, "name": "dockerd", "state": "S", "ppid": 921, "cpu_ticks": 1026, "start_ticks": 3196, "rss_pages": 21665, "vsize_bytes": 1346928640, "cpu_seconds": 10.26, "io": {"rchar": 909974, "wchar": 451996, "read_bytes": 99684352, "write_bytes": 462848}, "wchan": "futex_do_wait", "role": "dockerd", "exit_code": null, "spawn_after_seconds": 6.418, "spawn_duration_seconds": 0.071}], "snapshot": {"sampled_at_utc": "2026-10-12T01:24:06.598677+00:00", "monotonic_seconds": 54.365, "processes": [{"pid": 925, "name": "containerd", "state": "S", "ppid": 921, "cpu_ticks": 304, "start_ticks": 2727, "rss_pages": 12050, "vsize_bytes": 1303126016, "cpu_seconds": 3.04, "io": {"rchar": 10831, "wchar": 90442, "read_bytes": 44834816, "write_bytes": 24576}, "wchan": "futex_do_wait", "role": "containerd", "exit_code": null, "spawn_after_seconds": 1.728, "spawn_duration_seconds": 0.08}, {"pid": 935, "name": "dockerd", "state": "S", "ppid": 921, "cpu_ticks": 1026, "start_ticks": 3196, "rss_pages": 21665, "vsize_bytes": 1346928640, "cpu_seconds": 10.26, "io": {"rchar": 909974, "wchar": 451996, "read_bytes": 99684352, "write_bytes": 462848}, "wchan": "futex_do_wait", "role": "dockerd", "exit_code": null, "spawn_after_seconds": 6.418, "spawn_duration_seconds": 0.071}], "children": [], "guest_uptime_seconds": 54.36, "memory_kb": {"MemTotal": 990556, "MemAvailable": 816020, "SwapFree": 0, "Dirty": 104, "Writeback": 0}, "cpu_ticks": [1144, 0, 1316, 2, 99, 0, 16, 0, 0, 0], "clock_source": "arch_sys_counter", "pressure": {}}, "log_bytes_on_disk": {"init.log": 95, "engine.log": 21394, "containerd.log": 10933, "docker.log": 2651, "base-images.log": 0, "agent.log": 538}, "log_bytes_seen": {"containerd.log": 10933, "docker.log": 2651}, "last_probe": {}}, "supervisor": {"pid": 921, "start_ticks": 1673}, "log_errors": {}, "containerd_attempt": 1, "containerd_version": {"version": "v2.2.0", "revision": "1c4457e00facac03ce1d75f7b6777a7a851e5c41"}, "engine_version": "29.5.2", "storage_driver": "overlay2", "boot_id": "f16b0862-a369-4e4c-b929-7b903d491e00", "runtime_revision": 3, "recorded_at_utc": "2026-10-12T01:24:06.902068+00:00"}
+ANDROIDAGENT_ENGINE {"stage": "sync", "phase": "sync", "detail": "Utrwalanie obrazu i danych na dysku (limit 60 s)", "elapsed_seconds": 29.202, "startup_budget_seconds": 900, "startup_remaining_seconds": 870.798, "phase_elapsed_seconds": 0.391, "phase_budget_seconds": 60, "phase_remaining_seconds": 59.411, "progress": {"changed_since_previous": true, "no_change_seconds": 0.0, "processes": [{"pid": 925, "name": "containerd", "state": "S", "ppid": 921, "cpu_ticks": 304, "start_ticks": 2727, "rss_pages": 12050, "vsize_bytes": 1303126016, "cpu_seconds": 3.04, "io": {"rchar": 10831, "wchar": 90442, "read_bytes": 44834816, "write_bytes": 24576}, "wchan": "futex_do_wait", "role": "containerd", "exit_code": null, "spawn_after_seconds": 1.728, "spawn_duration_seconds": 0.08}, {"pid": 935, "name": "dockerd", "state": "S", "ppid": 921, "cpu_ticks": 1026, "start_ticks": 3196, "rss_pages": 21665, "vsize_bytes": 1346928640, "cpu_seconds": 10.26, "io": {"rchar": 909974, "wchar": 451996, "read_bytes": 99684352, "write_bytes": 462848}, "wchan": "futex_do_wait", "role": "dockerd", "exit_code": null, "spawn_after_seconds": 6.418, "spawn_duration_seconds": 0.071}, {"pid": 1181, "name": "sync", "state": "Z", "ppid": 921, "cpu_ticks": 0, "start_ticks": 5467, "rss_pages": 0, "vsize_bytes": 0, "cpu_seconds": 0.0, "io": {"rchar": 1242, "wchar": 0, "read_bytes": 0, "write_bytes": 0}, "wchan": "0", "role": "sync", "exit_code": 0, "spawn_after_seconds": 29.128, "spawn_duration_seconds": 0.071}], "snapshot": {"sampled_at_utc": "2026-10-12T01:24:07.002855+00:00", "monotonic_seconds": 54.77, "processes": [{"pid": 925, "name": "containerd", "state": "S", "ppid": 921, "cpu_ticks": 304, "start_ticks": 2727, "rss_pages": 12050, "vsize_bytes": 1303126016, "cpu_seconds": 3.04, "io": {"rchar": 10831, "wchar": 90442, "read_bytes": 44834816, "write_bytes": 24576}, "wchan": "futex_do_wait", "role": "containerd", "exit_code": null, "spawn_after_seconds": 1.728, "spawn_duration_seconds": 0.08}, {"pid": 935, "name": "dockerd", "state": "S", "ppid": 921, "cpu_ticks": 1026, "start_ticks": 3196, "rss_pages": 21665, "vsize_bytes": 1346928640, "cpu_seconds": 10.26, "io": {"rchar": 909974, "wchar": 451996, "read_bytes": 99684352, "write_bytes": 462848}, "wchan": "futex_do_wait", "role": "dockerd", "exit_code": null, "spawn_after_seconds": 6.418, "spawn_duration_seconds": 0.071}, {"pid": 1181, "name": "sync", "state": "Z", "ppid": 921, "cpu_ticks": 0, "start_ticks": 5467, "rss_pages": 0, "vsize_bytes": 0, "cpu_seconds": 0.0, "io": {"rchar": 1242, "wchar": 0, "read_bytes": 0, "write_bytes": 0}, "wchan": "0", "role": "sync", "exit_code": 0, "spawn_after_seconds": 29.128, "spawn_duration_seconds": 0.071, "unavailable": true}], "children": [], "guest_uptime_seconds": 54.77, "memory_kb": {"MemTotal": 990556, "MemAvailable": 816064, "SwapFree": 0, "Dirty": 0, "Writeback": 0}, "cpu_ticks": [1157, 0, 1321, 2, 100, 0, 16, 0, 0, 0], "clock_source": "arch_sys_counter", "pressure": {}}, "log_bytes_on_disk": {"init.log": 95, "engine.log": 24304, "containerd.log": 10933, "docker.log": 2651, "base-images.log": 0, "agent.log": 538}, "log_bytes_seen": {"containerd.log": 10933, "docker.log": 2651}, "last_probe": {}}, "supervisor": {"pid": 921, "start_ticks": 1673}, "log_errors": {}, "containerd_attempt": 1, "containerd_version": {"version": "v2.2.0", "revision": "1c4457e00facac03ce1d75f7b6777a7a851e5c41"}, "engine_version": "29.5.2", "storage_driver": "overlay2", "boot_id": "f16b0862-a369-4e4c-b929-7b903d491e00", "runtime_revision": 3, "recorded_at_utc": "2026-10-12T01:24:07.264479+00:00"}
+ANDROIDAGENT_ENGINE {"stage": "sync", "phase": "sync", "detail": "Utrwalanie obrazu i danych na dysku (limit 60 s)", "elapsed_seconds": 29.497, "startup_budget_seconds": 900, "startup_remaining_seconds": 870.503, "phase_elapsed_seconds": 0.687, "phase_budget_seconds": 60, "phase_remaining_seconds": 59.109, "progress": {"changed_since_previous": true, "no_change_seconds": 0.0, "processes": [{"pid": 925, "name": "containerd", "state": "S", "ppid": 921, "cpu_ticks": 304, "start_ticks": 2727, "rss_pages": 12050, "vsize_bytes": 1303126016, "cpu_seconds": 3.04, "io": {"rchar": 10831, "wchar": 90442, "read_bytes": 44834816, "write_bytes": 24576}, "wchan": "futex_do_wait", "role": "containerd", "exit_code": null, "spawn_after_seconds": 1.728, "spawn_duration_seconds": 0.08}, {"pid": 935, "name": "dockerd", "state": "S", "ppid": 921, "cpu_ticks": 1026, "start_ticks": 3196, "rss_pages": 21665, "vsize_bytes": 1346928640, "cpu_seconds": 10.26, "io": {"rchar": 909974, "wchar": 451996, "read_bytes": 99684352, "write_bytes": 462848}, "wchan": "futex_do_wait", "role": "dockerd", "exit_code": null, "spawn_after_seconds": 6.418, "spawn_duration_seconds": 0.071}, {"pid": 1181, "unavailable": true, "role": "sync", "start_ticks": 5467, "exit_code": 0, "spawn_after_seconds": 29.128, "spawn_duration_seconds": 0.071}], "snapshot": {"sampled_at_utc": "2026-10-12T01:24:07.285844+00:00", "monotonic_seconds": 55.053, "processes": [{"pid": 925, "name": "containerd", "state": "S", "ppid": 921, "cpu_ticks": 304, "start_ticks": 2727, "rss_pages": 12050, "vsize_bytes": 1303126016, "cpu_seconds": 3.04, "io": {"rchar": 10831, "wchar": 90442, "read_bytes": 44834816, "write_bytes": 24576}, "wchan": "futex_do_wait", "role": "containerd", "exit_code": null, "spawn_after_seconds": 1.728, "spawn_duration_seconds": 0.08}, {"pid": 935, "name": "dockerd", "state": "S", "ppid": 921, "cpu_ticks": 1026, "start_ticks": 3196, "rss_pages": 21665, "vsize_bytes": 1346928640, "cpu_seconds": 10.26, "io": {"rchar": 909974, "wchar": 451996, "read_bytes": 99684352, "write_bytes": 462848}, "wchan": "futex_do_wait", "role": "dockerd", "exit_code": null, "spawn_after_seconds": 6.418, "spawn_duration_seconds": 0.071}, {"pid": 1181, "unavailable": true, "role": "sync", "start_ticks": 5467, "exit_code": 0, "spawn_after_seconds": 29.128, "spawn_duration_seconds": 0.071}], "children": [], "guest_uptime_seconds": 55.05, "memory_kb": {"MemTotal": 990556, "MemAvailable": 816096, "SwapFree": 0, "Dirty": 40, "Writeback": 0}, "cpu_ticks": [1164, 0, 1325, 2, 105, 0, 16, 0, 0, 0], "clock_source": "arch_sys_counter", "pressure": {}}, "log_bytes_on_disk": {"init.log": 95, "engine.log": 27892, "containerd.log": 10933, "docker.log": 2651, "base-images.log": 0, "agent.log": 538}, "log_bytes_seen": {"containerd.log": 10933, "docker.log": 2651}, "last_probe": {}}, "supervisor": {"pid": 921, "start_ticks": 1673}, "log_errors": {}, "containerd_attempt": 1, "containerd_version": {"version": "v2.2.0", "revision": "1c4457e00facac03ce1d75f7b6777a7a851e5c41"}, "engine_version": "29.5.2", "storage_driver": "overlay2", "boot_id": "f16b0862-a369-4e4c-b929-7b903d491e00", "runtime_revision": 3, "recorded_at_utc": "2026-10-12T01:24:07.593245+00:00"}
+ANDROIDAGENT_ENGINE {"stage": "ready", "phase": "running", "detail": "Docker i utrwalony obraz Alpine s\u0105 gotowe", "elapsed_seconds": 29.833, "startup_budget_seconds": 900, "startup_remaining_seconds": 870.167, "phase_elapsed_seconds": 0, "phase_budget_seconds": null, "phase_remaining_seconds": null, "progress": {"changed_since_previous": false, "no_change_seconds": 0.336, "processes": [{"pid": 925, "name": "containerd", "state": "S", "ppid": 921, "cpu_ticks": 304, "start_ticks": 2727, "rss_pages": 12050, "vsize_bytes": 1303126016, "cpu_seconds": 3.04, "io": {"rchar": 10831, "wchar": 90442, "read_bytes": 44834816, "write_bytes": 24576}, "wchan": "futex_do_wait", "role": "containerd", "exit_code": null, "spawn_after_seconds": 1.728, "spawn_duration_seconds": 0.08}, {"pid": 935, "name": "dockerd", "state": "S", "ppid": 921, "cpu_ticks": 1026, "start_ticks": 3196, "rss_pages": 21665, "vsize_bytes": 1346928640, "cpu_seconds": 10.26, "io": {"rchar": 909974, "wchar": 451996, "read_bytes": 99684352, "write_bytes": 462848}, "wchan": "futex_do_wait", "role": "dockerd", "exit_code": null, "spawn_after_seconds": 6.418, "spawn_duration_seconds": 0.071}, {"pid": 1181, "unavailable": true, "role": "sync", "start_ticks": 5467, "exit_code": 0, "spawn_after_seconds": 29.128, "spawn_duration_seconds": 0.071}], "snapshot": {"sampled_at_utc": "2026-10-12T01:24:07.621023+00:00", "monotonic_seconds": 55.388, "processes": [{"pid": 925, "name": "containerd", "state": "S", "ppid": 921, "cpu_ticks": 304, "start_ticks": 2727, "rss_pages": 12050, "vsize_bytes": 1303126016, "cpu_seconds": 3.04, "io": {"rchar": 10831, "wchar": 90442, "read_bytes": 44834816, "write_bytes": 24576}, "wchan": "futex_do_wait", "role": "containerd", "exit_code": null, "spawn_after_seconds": 1.728, "spawn_duration_seconds": 0.08}, {"pid": 935, "name": "dockerd", "state": "S", "ppid": 921, "cpu_ticks": 1026, "start_ticks": 3196, "rss_pages": 21665, "vsize_bytes": 1346928640, "cpu_seconds": 10.26, "io": {"rchar": 909974, "wchar": 451996, "read_bytes": 99684352, "write_bytes": 462848}, "wchan": "futex_do_wait", "role": "dockerd", "exit_code": null, "spawn_after_seconds": 6.418, "spawn_duration_seconds": 0.071}, {"pid": 1181, "unavailable": true, "role": "sync", "start_ticks": 5467, "exit_code": 0, "spawn_after_seconds": 29.128, "spawn_duration_seconds": 0.071}], "children": [], "guest_uptime_seconds": 55.38, "memory_kb": {"MemTotal": 990556, "MemAvailable": 816136, "SwapFree": 0, "Dirty": 48, "Writeback": 0}, "cpu_ticks": [1174, 0, 1330, 2, 107, 0, 16, 0, 0, 0], "clock_source": "arch_sys_counter", "pressure": {}}, "log_bytes_on_disk": {"init.log": 95, "engine.log": 31109, "containerd.log": 10933, "docker.log": 2651, "base-images.log": 0, "agent.log": 538}, "log_bytes_seen": {"containerd.log": 10933, "docker.log": 2651}, "last_probe": {}}, "supervisor": {"pid": 921, "start_ticks": 1673}, "log_errors": {}, "containerd_attempt": 1, "containerd_version": {"version": "v2.2.0", "revision": "1c4457e00facac03ce1d75f7b6777a7a851e5c41"}, "engine_version": "29.5.2", "storage_driver": "overlay2", "test_delay_seconds": 0, "test_dockerd_delay_seconds": 0, "boot_id": "f16b0862-a369-4e4c-b929-7b903d491e00", "runtime_revision": 3, "recorded_at_utc": "2026-10-12T01:24:08.271217+00:00"}
+"POST /request HTTP/1.1" 200 - op=status
+"POST /request HTTP/1.1" 200 - op=diagnostics
+"POST /request HTTP/1.1" 200 - op=read
+"POST /request HTTP/1.1" 200 - op=diagnostics
+"POST /request HTTP/1.1" 200 - op=diagnostics
+"POST /request HTTP/1.1" 200 - op=run
+"POST /request HTTP/1.1" 200 - op=logs
+"POST /request HTTP/1.1" 200 - op=logs
+"POST /request HTTP/1.1" 200 - op=logs
+"POST /request HTTP/1.1" 200 - op=logs
+"POST /request HTTP/1.1" 200 - op=logs
+"POST /request HTTP/1.1" 200 - op=logs
+time="2026-10-12T01:24:16.598195120Z" level=info msg="connecting to shim 529218c2116813eee0c498547d40fe97a9a65ca622618919aa97f546e0c7bd22" address="unix:///run/containerd/s/9dcf56614e838a22fef984a1cc8e1083227ed556fa40994519cc0b15acda1548" namespace=moby protocol=ttrpc version=3
+"POST /request HTTP/1.1" 200 - op=logs
+"POST /request HTTP/1.1" 200 - op=logs
+"POST /request HTTP/1.1" 200 - op=logs
+[   68.608693] docker0: port 1(veth74e088c) entered blocking state
+[   68.608827] docker0: port 1(veth74e088c) entered disabled state
+[   68.609438] veth74e088c: entered allmulticast mode
+[   68.613026] veth74e088c: entered promiscuous mode
+[   68.877951] eth0: renamed from veth7c443a9
+[   68.901418] docker0: port 1(veth74e088c) entered blocking state
+[   68.901567] docker0: port 1(veth74e088c) entered forwarding state
+"POST /request HTTP/1.1" 200 - op=logs
+time="2026-10-12T01:24:20.790674736Z" level=info msg="sbJoin: gwep4 ''->'54379da15433', gwep6 ''->''" eid=54379da15433 ep=aa-8a6ba9f70000431fbd1c7eda5a065a0a net=bridge nid=4b2830936a18
+"POST /request HTTP/1.1" 200 - op=logs
+"POST /request HTTP/1.1" 200 - op=logs
+time="2026-10-12T01:24:26.188991808Z" level=info msg="Container failed to exit within 2s of signal 15 - using the force" container=529218c2116813eee0c498547d40fe97a9a65ca622618919aa97f546e0c7bd22
+time="2026-10-12T01:24:27.303427408Z" level=info msg="received task-delete event from containerd" container=529218c2116813eee0c498547d40fe97a9a65ca622618919aa97f546e0c7bd22 module=libcontainerd namespace=moby topic=/tasks/delete type="*events.TaskDelete"
+time="2026-10-12T01:24:27.600354208Z" level=info msg="shim disconnected" id=529218c2116813eee0c498547d40fe97a9a65ca622618919aa97f546e0c7bd22 namespace=moby
+time="2026-10-12T01:24:27.605494512Z" level=info msg="cleaning up after shim disconnected" id=529218c2116813eee0c498547d40fe97a9a65ca622618919aa97f546e0c7bd22 namespace=moby
+time="2026-10-12T01:24:27.664660800Z" level=info msg="cleaning up dead shim" id=529218c2116813eee0c498547d40fe97a9a65ca622618919aa97f546e0c7bd22 namespace=moby
+[   76.711109] docker0: port 1(veth74e088c) entered disabled state
+[   76.771771] veth7c443a9: renamed from eth0
+[   76.908583] docker0: port 1(veth74e088c) entered disabled state
+[   76.912105] veth74e088c (unregistering): left allmulticast mode
+[   76.912226] veth74e088c (unregistering): left promiscuous mode
+[   76.912253] docker0: port 1(veth74e088c) entered disabled state
+"POST /request HTTP/1.1" 200 - op=cleanup
+"POST /request HTTP/1.1" 200 - op=shutdown
+[   80.255613] reboot: Power down

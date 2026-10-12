@@ -1,0 +1,367 @@
+{
+  "schema": 1,
+  "version": "0.4.4",
+  "runtime_revision": 3,
+  "started_at": "2026-10-12T01:10:56.572905+00:00",
+  "completed_at": "2026-10-12T01:10:59.986095+00:00",
+  "host_architecture": "x86_64",
+  "host_kernel": "6.18.44",
+  "python_version": "3.12.14",
+  "environment": "Linux host unit tests; no VM, Android emulator or physical Android used",
+  "tests_run": 51,
+  "failures": 0,
+  "duration_seconds": 3.413,
+  "tests": [
+    {
+      "name": "tests.test_docker_supervision.AbsoluteProbeTests.test_real_http2_frame_dribble_has_absolute_deadline",
+      "pass": true,
+      "duration_seconds": 0.204605
+    },
+    {
+      "name": "tests.test_docker_supervision.AbsoluteProbeTests.test_real_http_header_dribble_has_absolute_deadline",
+      "pass": true,
+      "duration_seconds": 0.204414
+    },
+    {
+      "name": "tests.test_docker_supervision.DiagnosticTests.test_bounded_compaction_preserves_inode_and_latest_bytes",
+      "pass": true,
+      "duration_seconds": 0.002547
+    },
+    {
+      "name": "tests.test_docker_supervision.DiagnosticTests.test_per_boot_retention_preserves_foreign_and_previous_logs",
+      "pass": true,
+      "duration_seconds": 0.002258
+    },
+    {
+      "name": "tests.test_docker_supervision.DiagnosticTests.test_traversal_symlink_and_unknown_files_cannot_be_exported",
+      "pass": true,
+      "duration_seconds": 0.024039
+    },
+    {
+      "name": "tests.test_docker_supervision.DiagnosticTests.test_unicode_exact_encoded_bound_and_token_redaction_at_error",
+      "pass": true,
+      "duration_seconds": 0.026513
+    },
+    {
+      "name": "tests.test_docker_supervision.SupervisorTests.test_cancel_stops_real_process_and_records_exit",
+      "pass": true,
+      "duration_seconds": 2.057915
+    },
+    {
+      "name": "tests.test_docker_supervision.SupervisorTests.test_child_pipe_drains_to_console_even_if_persistent_log_fails",
+      "pass": true,
+      "duration_seconds": 0.054197
+    },
+    {
+      "name": "tests.test_docker_supervision.SupervisorTests.test_console_receives_new_child_output_after_file_compaction",
+      "pass": true,
+      "duration_seconds": 0.051766
+    },
+    {
+      "name": "tests.test_docker_supervision.SupervisorTests.test_containerd_retry_uses_same_budget_and_only_exited_process",
+      "pass": true,
+      "duration_seconds": 0.043303
+    },
+    {
+      "name": "tests.test_docker_supervision.SupervisorTests.test_enospc_and_io_error_cannot_skip_real_child_cleanup",
+      "pass": true,
+      "duration_seconds": 0.073598
+    },
+    {
+      "name": "tests.test_docker_supervision.SupervisorTests.test_full_real_console_pipe_cannot_block_supervisor",
+      "pass": true,
+      "duration_seconds": 0.013559
+    },
+    {
+      "name": "tests.test_docker_supervision.SupervisorTests.test_managed_process_identity_is_not_overwritten_by_current_proc",
+      "pass": true,
+      "duration_seconds": 0.035048
+    },
+    {
+      "name": "tests.test_docker_supervision.SupervisorTests.test_observable_progress_and_stall_are_separate_from_readiness",
+      "pass": true,
+      "duration_seconds": 0.023555
+    },
+    {
+      "name": "tests.test_docker_supervision.SupervisorTests.test_phase_global_deadline_and_cancellation",
+      "pass": true,
+      "duration_seconds": 0.019745
+    },
+    {
+      "name": "tests.test_docker_supervision.SupervisorTests.test_ready_requires_load_tag_and_successful_real_sync",
+      "pass": true,
+      "duration_seconds": 0.095384
+    },
+    {
+      "name": "tests.test_docker_supervision.SupervisorTests.test_sync_failure_cannot_publish_ready",
+      "pass": true,
+      "duration_seconds": 0.052623
+    },
+    {
+      "name": "tests.test_docker_runtime_packaging.RuntimePackagingTests.test_cpio_preserves_symlink_permissions_and_file_bytes",
+      "pass": true,
+      "duration_seconds": 0.000201
+    },
+    {
+      "name": "tests.test_docker_runtime_packaging.RuntimePackagingTests.test_listening_rpc_socket_without_version_cannot_be_ready",
+      "pass": true,
+      "duration_seconds": 0.001674
+    },
+    {
+      "name": "tests.test_docker_runtime_packaging.RuntimePackagingTests.test_ready_marker_does_not_override_supervisor_error",
+      "pass": true,
+      "duration_seconds": 0.014993
+    },
+    {
+      "name": "tests.test_docker_runtime_packaging.RuntimePackagingTests.test_real_containerd_process_exit_is_a_startup_error",
+      "pass": true,
+      "duration_seconds": 0.002129
+    },
+    {
+      "name": "tests.test_docker_runtime_packaging.RuntimePackagingTests.test_runtime_payload_cannot_replace_persistent_data",
+      "pass": true,
+      "duration_seconds": 0.000917
+    },
+    {
+      "name": "tests.test_docker_runtime_packaging.RuntimePackagingTests.test_truncated_archive_is_rejected",
+      "pass": true,
+      "duration_seconds": 4.4e-05
+    },
+    {
+      "name": "tests.test_docker_runtime_packaging.RuntimePackagingTests.test_version_probe_parses_actual_unix_http2_rpc_bytes",
+      "pass": true,
+      "duration_seconds": 0.001289
+    },
+    {
+      "name": "tests.test_build_assets.BuildAssetsTests.test_complete_runtimes_pass",
+      "pass": true,
+      "duration_seconds": 0.003069
+    },
+    {
+      "name": "tests.test_build_assets.BuildAssetsTests.test_corrupt_guest_is_rejected",
+      "pass": true,
+      "duration_seconds": 0.002931
+    },
+    {
+      "name": "tests.test_build_assets.BuildAssetsTests.test_corrupt_usb_source_is_rejected",
+      "pass": true,
+      "duration_seconds": 0.002001
+    },
+    {
+      "name": "tests.test_build_assets.BuildAssetsTests.test_guest_supervisor_source_change_requires_repack",
+      "pass": true,
+      "duration_seconds": 0.002138
+    },
+    {
+      "name": "tests.test_build_assets.BuildAssetsTests.test_manifest_cannot_omit_guest_files",
+      "pass": true,
+      "duration_seconds": 0.002412
+    },
+    {
+      "name": "tests.test_build_assets.BuildAssetsTests.test_missing_boot_firmware_is_rejected",
+      "pass": true,
+      "duration_seconds": 0.002181
+    },
+    {
+      "name": "tests.test_build_assets.BuildAssetsTests.test_missing_jni_is_rejected",
+      "pass": true,
+      "duration_seconds": 0.002013
+    },
+    {
+      "name": "tests.test_build_assets.BuildAssetsTests.test_native_manifest_cannot_omit_supported_abi",
+      "pass": true,
+      "duration_seconds": 0.001799
+    },
+    {
+      "name": "tests.test_build_assets.BuildAssetsTests.test_optimized_python_does_not_disable_integrity_checks",
+      "pass": true,
+      "duration_seconds": 0.293978
+    },
+    {
+      "name": "tests.test_build_assets.BuildAssetsTests.test_runtime_must_be_pinned",
+      "pass": true,
+      "duration_seconds": 0.003244
+    },
+    {
+      "name": "tests.test_docker_guest.GuestBoundaryTests.test_fifo_and_directory_are_not_artifacts",
+      "pass": true,
+      "duration_seconds": 0.000795
+    },
+    {
+      "name": "tests.test_docker_guest.GuestBoundaryTests.test_job_output_is_bounded_with_real_process",
+      "pass": true,
+      "duration_seconds": 0.021042
+    },
+    {
+      "name": "tests.test_docker_guest.GuestBoundaryTests.test_live_matching_supervisor_allows_actual_engine_ready_check",
+      "pass": true,
+      "duration_seconds": 0.001998
+    },
+    {
+      "name": "tests.test_docker_guest.GuestBoundaryTests.test_parent_symlink_cannot_escape",
+      "pass": true,
+      "duration_seconds": 0.000436
+    },
+    {
+      "name": "tests.test_docker_guest.GuestBoundaryTests.test_readonly_diagnostics_is_available_without_task_lock_or_ready",
+      "pass": true,
+      "duration_seconds": 0.000568
+    },
+    {
+      "name": "tests.test_docker_guest.GuestBoundaryTests.test_real_build_archive_keeps_sources_and_rejects_external_links",
+      "pass": true,
+      "duration_seconds": 0.001799
+    },
+    {
+      "name": "tests.test_docker_guest.GuestBoundaryTests.test_real_unicode_file_round_trip",
+      "pass": true,
+      "duration_seconds": 0.000664
+    },
+    {
+      "name": "tests.test_docker_guest.GuestBoundaryTests.test_serial_grant_is_private_and_generation_scoped",
+      "pass": true,
+      "duration_seconds": 0.000727
+    },
+    {
+      "name": "tests.test_docker_guest.GuestBoundaryTests.test_serial_url_cannot_point_to_another_host_or_credential",
+      "pass": true,
+      "duration_seconds": 0.000284
+    },
+    {
+      "name": "tests.test_docker_guest.GuestBoundaryTests.test_stale_ready_rejected_after_real_supervisor_process_exit",
+      "pass": true,
+      "duration_seconds": 0.002568
+    },
+    {
+      "name": "tests.test_docker_guest.GuestBoundaryTests.test_stale_ready_rejected_for_pid_identity_reuse_and_missing_identity",
+      "pass": true,
+      "duration_seconds": 0.001424
+    },
+    {
+      "name": "tests.test_docker_guest.GuestBoundaryTests.test_startup_status_does_not_start_go_info_probes",
+      "pass": true,
+      "duration_seconds": 0.002678
+    },
+    {
+      "name": "tests.test_docker_guest.GuestBoundaryTests.test_symlink_cannot_read_or_replace_other_files",
+      "pass": true,
+      "duration_seconds": 0.00063
+    },
+    {
+      "name": "tests.test_docker_guest.GuestBoundaryTests.test_text_upload_limit_is_enforced",
+      "pass": true,
+      "duration_seconds": 0.000302
+    },
+    {
+      "name": "tests.test_docker_guest.GuestBoundaryTests.test_traversal_cannot_overwrite_neighbor",
+      "pass": true,
+      "duration_seconds": 0.000463
+    },
+    {
+      "name": "tests.test_docker_guest.GuestBoundaryTests.test_unknown_task_and_job_are_rejected",
+      "pass": true,
+      "duration_seconds": 0.000261
+    },
+    {
+      "name": "tests.test_docker_guest.GuestBoundaryTests.test_usb_grant_only_maps_selected_char_device",
+      "pass": true,
+      "duration_seconds": 0.001467
+    }
+  ],
+  "source_sha256": {
+    "docker/guest/engine.py": "f9557c59224b57b2c40cd1c84edd8177bc059a550727452592b5743c208a7834",
+    "docker/guest/agent.py": "f2c853323ea0b360d5ce2b99a5ba01359f0e0201782e3433e8b0eb6f310bafda",
+    "docker/guest/init.sh": "a11e7d4e8c63b9943ff1cb51be073838b02baf5db286e1338a55fb5b01b523f3",
+    "docker/guest/diagnostics.py": "5f027cd4f49397cded32bcc6fd46613f8ae8b01bef46081e2d72254fa1c3777c",
+    "tools/prepare-docker-runtime.py": "675430da96ed54d7786bcfd9aa972a6e260fdc147302523e2e8d89ab4af141a1",
+    "tools/check-docker-assets.py": "a2b822b274c85aa24cd1535b5a187deb81fe3a7d3ef31d3308fd6b9b2185ab05",
+    "tools/start-arm-guest-test.sh": "6c6edcfd50cadff3ffab0759325791ff57afda0d3b3b51eecb4bf723a6150abe",
+    "tools/test-docker-startup.py": "fe023b6df23a1f4dc26951145843c8883e12c4848e7e06db7151d03f5bd9d040",
+    "tools/test-arm-guest.py": "28b871b9a26b13cb6d64124b5c9029dd7008118e1c60f11a9f2cfb55172ed1bf",
+    "tests/test_docker_supervision.py": "12015401bcf0c9c237f9120790bd56a2daee4e09d87e1a311271aa96d1c55b21"
+  },
+  "guest_manifests": {
+    "arm64-v8a": {
+      "version": 3,
+      "disk_gb": 8,
+      "files": {
+        "base.qcow2.gz": "7399ae1c32e046f67bc5bc1de6ff2b71af4ed1329eefe3600396ab6bc67821d4",
+        "vmlinuz-virt": "0431ad6e5e0296080add279573c773287b55427bf3ec94fbc2c9f985d0b79966",
+        "initramfs-virt": "a90aadf9d2bbdb6d913271de3a8f1d9df97fe9aa20d9b83a603e88cc332f56ba"
+      },
+      "runtime_revision": 3,
+      "migration": "same-base-and-kernel-owned-runtime-in-initramfs",
+      "runtime": {
+        "revision": 3,
+        "files": {
+          "init.sh": "a11e7d4e8c63b9943ff1cb51be073838b02baf5db286e1338a55fb5b01b523f3",
+          "agent.py": "f2c853323ea0b360d5ce2b99a5ba01359f0e0201782e3433e8b0eb6f310bafda",
+          "engine.py": "f9557c59224b57b2c40cd1c84edd8177bc059a550727452592b5743c208a7834",
+          "diagnostics.py": "5f027cd4f49397cded32bcc6fd46613f8ae8b01bef46081e2d72254fa1c3777c",
+          "python/androidagent_serial/__init__.py": "cb9242d4e3621486d3113e13355112cfaca78762d39bf1ad22f0555442185ab8",
+          "python/androidagent_serial/protocol_androidagent.py": "cbe09281482aa483ff82559c6af58cd84721b1417d0fa5893a3236996ef7c011",
+          "python/sitecustomize.py": "7c02f4375a14b0e90f7facb9bca29e8d3248ce79e5736c5c1252a4cd19ab9d46"
+        }
+      }
+    },
+    "x86_64": {
+      "version": 3,
+      "disk_gb": 8,
+      "files": {
+        "base.qcow2.gz": "81d9210c3418b6e6113f030b928a39ad2af6674ebc741acdfb4c17491a168906",
+        "vmlinuz-virt": "2d76a33ca6a22b3f1620d09b1462f13a528e44eb37ef35643aabe0dffcb24049",
+        "initramfs-virt": "964df6c8205ebc5790088f92ada760f1f8e46d00c37b421448699d4b2e71abd0"
+      },
+      "runtime_revision": 3,
+      "migration": "same-base-and-kernel-owned-runtime-in-initramfs",
+      "runtime": {
+        "revision": 3,
+        "files": {
+          "init.sh": "a11e7d4e8c63b9943ff1cb51be073838b02baf5db286e1338a55fb5b01b523f3",
+          "agent.py": "f2c853323ea0b360d5ce2b99a5ba01359f0e0201782e3433e8b0eb6f310bafda",
+          "engine.py": "f9557c59224b57b2c40cd1c84edd8177bc059a550727452592b5743c208a7834",
+          "diagnostics.py": "5f027cd4f49397cded32bcc6fd46613f8ae8b01bef46081e2d72254fa1c3777c",
+          "python/androidagent_serial/__init__.py": "cb9242d4e3621486d3113e13355112cfaca78762d39bf1ad22f0555442185ab8",
+          "python/androidagent_serial/protocol_androidagent.py": "cbe09281482aa483ff82559c6af58cd84721b1417d0fa5893a3236996ef7c011",
+          "python/sitecustomize.py": "7c02f4375a14b0e90f7facb9bca29e8d3248ce79e5736c5c1252a4cd19ab9d46"
+        }
+      }
+    }
+  },
+  "physical_evidence": {
+    "version": "0.4.3",
+    "name": "lenovo-docker-0.4.3-startup.log",
+    "bytes": 32044,
+    "sha256": "4920d8d3acbb43990be42d13ac41ff0d162fd9ff3811fead4d25245bd4d7d9c6",
+    "containerd_version_rpc_ready_elapsed_seconds": 71.756,
+    "docker_stage_elapsed_seconds": 72.209,
+    "startup_error_elapsed_seconds": 194.623,
+    "established_failure": "Supervisor Docker ping/info phase exceeded prior120s cap; TERM/EOF followed supervisor cleanup",
+    "not_established": "The xtables warning does not establish a lock deadlock; Moby emits it for each successful iptables operation lasting >2s"
+  },
+  "budgets_seconds": {
+    "containerd_shared_attempts": 180,
+    "docker_ping_info": 360,
+    "image_probe": 15,
+    "image_load": 180,
+    "image_tag": 60,
+    "image_sync": 60,
+    "guest_startup": 900,
+    "physical_android_outer": 1200
+  },
+  "limits": [
+    "Unix socket servers are protocol fixtures, not Docker/containerd processes",
+    "Readiness load/tag units use fixtures; real subprocess sync/cancel/exit paths are exercised",
+    "CPU/progress classification is deterministic unit coverage, not a calibrated TCG performance measurement",
+    "Full ARM QEMU guest and Android/tablet validation are separate runs"
+  ],
+  "iteration": 2,
+  "fault_injection": {
+    "errors": [
+      "ENOSPC",
+      "EIO"
+    ],
+    "proof": "Real running child groups end even when error and cleanup publications both raise; stale ready is rejected using actual /proc PID/start_ticks liveness",
+    "console": "Real child output beyond512KiB reaches direct console sink; compaction bounds files; persistent-log ENOSPC continues pipe drain; full nonblocking console pipe cannot delay supervision"
+  }
+}

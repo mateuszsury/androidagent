@@ -1,0 +1,88 @@
+{
+  "version": "0.4.3",
+  "device": "Lenovo TB336FU",
+  "checks": [
+    {
+      "name": "app_uid_no_root",
+      "passed": true,
+      "evidence": {
+        "uid": 10220,
+        "machine": "aarch64"
+      }
+    },
+    {
+      "name": "embedded_bash",
+      "passed": true,
+      "evidence": "GNU bash, version 5.3.20(1)-release (aarch64-unknown-linux-android)\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\n\nThis is free software; you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n"
+    },
+    {
+      "name": "embedded_node",
+      "passed": true,
+      "evidence": "v24.18.0\n"
+    },
+    {
+      "name": "embedded_python",
+      "passed": true,
+      "evidence": "Python 3.14.6\n"
+    },
+    {
+      "name": "embedded_curl",
+      "passed": true,
+      "evidence": "curl 8.22.0 (aarch64-unknown-linux-android) libcurl/8.22.0 OpenSSL/3.6.5 zlib/1.3.2 libssh2/1.11.1 nghttp2/1.70.0 ngtcp2/1.25.0 nghttp3/1.18.0\nRelease-Date: 2026-09-02\nProtocols: dict file ftp ftps gopher gophers http https imap imaps ipfs ipns mqtt mqtts pop3 pop3s rtsp scp sftp smtp smtps telnet tftp ws wss\nFeatures: alt-svc AsynchDNS HSTS HTTP2 HTTP3 HTTPS-proxy IPv6 Largefile libz SSL threadsafe UnixSockets\n"
+    },
+    {
+      "name": "embedded_git",
+      "passed": true,
+      "evidence": "git version 2.56.0\n"
+    },
+    {
+      "name": "embedded_jq",
+      "passed": true,
+      "evidence": "jq-1.8.2\n"
+    },
+    {
+      "name": "embedded_codex",
+      "passed": true,
+      "evidence": "codex-cli 0.162.1\n"
+    },
+    {
+      "name": "embedded_claude",
+      "passed": true,
+      "evidence": "2.1.296 (Claude Code)\n"
+    },
+    {
+      "name": "docker_boot",
+      "passed": false,
+      "evidence": {
+        "state": "error",
+        "detail": "Docker ping/info did not become ready within 120 seconds. Szczegóły są w dzienniku containerd i Dockera.",
+        "abi": "arm64-v8a",
+        "ready": false,
+        "root_required": false,
+        "clock_mode": "host",
+        "preview_url": "http://127.0.0.1:18781",
+        "guest": {
+          "ready": false,
+          "engine_version": null,
+          "architecture": "aarch64",
+          "storage_driver": null,
+          "disk_free_bytes": 7418089472,
+          "startup": {
+            "stage": "error",
+            "detail": "Docker ping/info did not become ready within 120 seconds",
+            "elapsed_seconds": 194.623,
+            "runtime_revision": 2,
+            "error_type": "TimeoutError"
+          },
+          "tasks": []
+        },
+        "host_free_bytes": 80003043328
+      }
+    }
+  ],
+  "phases": [],
+  "failure": {
+    "phase": "exercise",
+    "error": "docker_boot"
+  }
+}

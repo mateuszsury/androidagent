@@ -1,0 +1,13 @@
+PASS navigation probe 1: global Back then immediate DeviceActivity
+PASS navigation probe 2: global Back then immediate DeviceActivity
+PASS navigation probe 3: global Back then immediate DeviceActivity
+PASS navigation probe 4: global Back then immediate DeviceActivity
+PASS navigation probe 5: global Back then immediate DeviceActivity
+PASS navigation probe 6: global Back then immediate DeviceActivity
+PASS navigation probe 7: global Back then immediate DeviceActivity
+PASS navigation probe 8: global Back then immediate DeviceActivity
+PASS navigation probe 9: global Back then immediate DeviceActivity
+PASS navigation probe 10: global Back then immediate DeviceActivity
+
+androidagent: 10 checks, 0 failures
+
