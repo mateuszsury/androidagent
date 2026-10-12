@@ -16,13 +16,15 @@ public class DockerRuntimeTests extends Instrumentation {
     private Context app; private Activity screen; private UiAutomation ui;
     private File evidence; private int failures; private final JSONArray tests=new JSONArray();
     private String runId, task, other, job, artifactId;
-    private boolean uiOnly, reuseCache;
+    private boolean uiOnly, reuseCache, stopRaceOnly;
+    private final JSONObject observations=new JSONObject();
+    private final JSONArray stopEvents=new JSONArray();
     interface Check {void run()throws Exception;}
-    @Override public void onCreate(Bundle args){super.onCreate(args);runId=args.getString("run_id",java.util.UUID.randomUUID().toString());uiOnly="true".equals(args.getString("ui_only"));reuseCache="true".equals(args.getString("reuse_cache"));start();}
+    @Override public void onCreate(Bundle args){super.onCreate(args);runId=args.getString("run_id",java.util.UUID.randomUUID().toString());uiOnly="true".equals(args.getString("ui_only"));reuseCache="true".equals(args.getString("reuse_cache"));stopRaceOnly="true".equals(args.getString("stop_race_only"));start();}
     @Override public void onStart(){
-        app=getTargetContext();evidence=new File(app.getExternalFilesDir(null),uiOnly?"docker-ui-evidence":"docker-evidence");evidence.mkdirs();
+        app=getTargetContext();evidence=new File(app.getExternalFilesDir(null),stopRaceOnly?"docker-stop-race-evidence":uiOnly?"docker-ui-evidence":"docker-evidence");evidence.mkdirs();
         ui=getUiAutomation(UiAutomation.FLAG_DONT_SUPPRESS_ACCESSIBILITY_SERVICES);
-        try{if(uiOnly)uiSuite();else suite();}catch(Throwable e){record("suite",false,e.toString());failures++;}
+        try{if(stopRaceOnly)stopRaceRegression();else if(uiOnly)uiSuite();else suite();}catch(Throwable e){record("suite",false,e.toString());failures++;}
         try{save();export();}catch(Exception e){failures++;record("evidence",false,e.toString());}
         Bundle out=new Bundle();out.putString("stream","Docker: "+tests.length()+" tests, "+failures+" failures\n");
         finish(failures==0?Activity.RESULT_OK:Activity.RESULT_CANCELED,out);
@@ -499,6 +501,38 @@ public class DockerRuntimeTests extends Instrumentation {
             while(vm.alive()&&SystemClock.elapsedRealtime()<until)SystemClock.sleep(250);
             check(!vm.alive(),"Stop did not terminate booting QEMU");runOnMainSync(()->((Spinner)find(screen.getWindow().getDecorView(),"Procesory środowiska Docker")).setSelection(0));vm.reset();
         });
+        stopRaceRegression();
+    }
+    void stopRaceEvent(String name)throws Exception{
+        JSONObject event=new JSONObject().put("name",name).put("guest_wall_ms",System.currentTimeMillis())
+            .put("guest_elapsed_ms",SystemClock.elapsedRealtime()).put("guest_nano_time",System.nanoTime());
+        stopEvents.put(event);observations.put("stop_race_events",stopEvents);
+        Bundle status=new Bundle();status.putString("stream","STOP_RACE_EVENT "+event.toString()+"\n");sendStatus(0,status);
+    }
+    JSONObject stopRaceState(DockerVm vm,java.lang.Process running,boolean includeStacks)throws Exception{
+        ActivityManager.RunningServiceInfo service=dockerService();
+        JSONObject state=new JSONObject().put("guest_wall_ms",System.currentTimeMillis()).put("guest_elapsed_ms",SystemClock.elapsedRealtime())
+            .put("vm_alive",vm.alive()).put("retained_process_alive",running!=null&&running.isAlive()).put("service_exists",service!=null)
+            .put("docker_worker_count",dockerWorkers()).put("vm_state",vm.state).put("vm_detail",vm.detail).put("vm_status",vm.status());
+        if(running!=null&&!running.isAlive())try{state.put("actual_exit_code",running.exitValue());}catch(IllegalThreadStateException ignored){}
+        if(service!=null)state.put("service",new JSONObject().put("pid",service.pid).put("foreground",service.foreground)
+            .put("started",service.started).put("active_since_guest_ms",service.activeSince).put("last_activity_guest_ms",service.lastActivityTime));
+        String dump=shellOutput("dumpsys -t 2 activity services "+app.getPackageName()+"/"+DockerService.class.getName());
+        state.put("service_dump",dump);java.util.regex.Matcher ids=java.util.regex.Pattern.compile("lastStartId=([0-9]+)").matcher(dump);
+        if(ids.find())state.put("latest_start_id",Integer.parseInt(ids.group(1)));
+        if(includeStacks){
+            JSONArray threads=new JSONArray();
+            for(java.util.Map.Entry<Thread,StackTraceElement[]> entry:Thread.getAllStackTraces().entrySet()){
+                Thread thread=entry.getKey();String name=thread.getName();
+                if(!"main".equals(name)&&!name.startsWith("docker-"))continue;
+                JSONArray frames=new JSONArray();for(StackTraceElement frame:entry.getValue())frames.put(frame.toString());
+                threads.put(new JSONObject().put("name",name).put("id",thread.getId()).put("state",thread.getState().toString()).put("alive",thread.isAlive()).put("stack",frames));
+            }
+            state.put("threads",threads);
+        }
+        return state;
+    }
+    void stopRaceRegression(){
         test("QEMU service: duplicate starts claim one owner and Stop ends the latest foreground service",()->{
             DockerVm vm=DockerVm.get(app);launch(DockerActivity.class);McpHost.get(app).requireReady();
             long until=SystemClock.elapsedRealtime()+30000;
@@ -506,11 +540,13 @@ public class DockerRuntimeTests extends Instrumentation {
             check(!vm.alive()&&"stopped".equals(vm.state)&&dockerService()==null&&dockerWorkers()==0,"Previous VM/service owner has not stopped");
             java.lang.reflect.Field lifecycle=DockerVm.class.getDeclaredField("lifecycle");lifecycle.setAccessible(true);
             Intent boot=new Intent(app,DockerService.class).putExtra("ram",512).putExtra("cores",1);
+            java.lang.Process running=null;
             try {
                 // Both onStartCommand calls run while the worker cannot enter
                 // boot's lifecycle lock or publish preparing. This exposes the
                 // old check-state-then-spawn race without timing assumptions.
                 synchronized(lifecycle.get(vm)) {
+                    stopRaceEvent("before_duplicate_starts");
                     runOnMainSync(()->{app.startForegroundService(new Intent(boot));app.startForegroundService(new Intent(boot));});
                     until=SystemClock.elapsedRealtime()+10000;boolean bothDelivered=false;
                     while(SystemClock.elapsedRealtime()<until){
@@ -525,33 +561,49 @@ public class DockerRuntimeTests extends Instrumentation {
                     check(dockerWorkers()==1,"Duplicate start created "+dockerWorkers()+" VM worker threads before preparing");
                     ActivityManager.RunningServiceInfo owner=dockerService();
                     check(owner!=null&&owner.foreground&&owner.started,"Single owner is not an actual foreground service");
+                    observations.put("duplicate_start_barrier",stopRaceState(vm,null,true));
+                    stopRaceEvent("duplicate_starts_delivered_before_preparing");
                 }
+                stopRaceEvent("lifecycle_barrier_released");
                 until=SystemClock.elapsedRealtime()+30000;
                 while(!vm.alive()&&SystemClock.elapsedRealtime()<until)SystemClock.sleep(100);
                 check(vm.alive(),"Duplicate start stopped the actual VM owner: "+vm.detail);
                 ActivityManager.RunningServiceInfo owner=dockerService();
                 check(owner!=null&&owner.foreground&&dockerWorkers()==1,"Live QEMU lost its sole foreground/worker owner");
                 java.lang.reflect.Field process=DockerVm.class.getDeclaredField("process");process.setAccessible(true);
-                java.lang.Process running=(java.lang.Process)process.get(vm);check(running!=null&&running.isAlive(),"No actual QEMU process");
+                running=(java.lang.Process)process.get(vm);check(running!=null&&running.isAlive(),"No actual QEMU process");
+                stopRaceEvent("qemu_alive_before_stop");
                 runOnMainSync(()->app.startService(new Intent(app,DockerService.class).setAction("stop")));
+                stopRaceEvent("stop_intent_delivered");
                 until=SystemClock.elapsedRealtime()+30000;
                 while((vm.alive()||dockerService()!=null||dockerWorkers()!=0)&&SystemClock.elapsedRealtime()<until)SystemClock.sleep(100);
-                check(!vm.alive()&&!running.isAlive()&&dockerService()==null&&dockerWorkers()==0,"Stop did not terminate QEMU and foreground service after the duplicate advanced startId");
+                observations.put("original_three_condition_loop",stopRaceState(vm,running,true));
+                observations.put("original_stop_deadline_guest_ms",until);stopRaceEvent("original_three_condition_loop_ended");
+                // The retained Process was part of the assertion but missing
+                // from the original wait. Observe all four conditions within
+                // the same original budget, without granting additional time.
+                while((vm.alive()||running.isAlive()||dockerService()!=null||dockerWorkers()!=0)&&SystemClock.elapsedRealtime()<until)SystemClock.sleep(100);
+                JSONObject stopped=stopRaceState(vm,running,true);observations.put("stop_before_cleanup",stopped);stopRaceEvent("all_condition_wait_ended");
+                check(!vm.alive()&&!running.isAlive()&&dockerService()==null&&dockerWorkers()==0,"Stop incomplete before cleanup: "+stopped.toString());
+            } catch(Throwable failure) {
+                observations.put("failure_before_cleanup",stopRaceState(vm,running,true));stopRaceEvent("failure_before_cleanup");throw failure;
             } finally {
+                stopRaceEvent("cleanup_requested");
                 runOnMainSync(()->app.stopService(new Intent(app,DockerService.class)));
                 if(vm.alive()||"preparing".equals(vm.state)||"booting".equals(vm.state))vm.emergencyStop();
+                stopRaceEvent("cleanup_returned");
             }
         });
     }
     void save()throws Exception{
-        JSONObject report=new JSONObject().put("version",BuildInfo.VERSION).put("run_id",runId).put("tests",tests).put("failures",failures).put("api",Build.VERSION.SDK_INT).put("abi",Build.SUPPORTED_ABIS[0]).put("cache_reused",reuseCache);
+        JSONObject report=new JSONObject().put("version",BuildInfo.VERSION).put("run_id",runId).put("tests",tests).put("failures",failures).put("api",Build.VERSION.SDK_INT).put("abi",Build.SUPPORTED_ABIS[0]).put("cache_reused",reuseCache).put("stop_race_only",stopRaceOnly).put("observations",observations);
         try(OutputStream out=new FileOutputStream(new File(evidence,"results.json"))){out.write(report.toString(2).getBytes(StandardCharsets.UTF_8));}
     }
     void export()throws Exception{
         android.net.Uri downloads=android.provider.MediaStore.Downloads.getContentUri(android.provider.MediaStore.VOLUME_EXTERNAL_PRIMARY);ContentResolver r=app.getContentResolver();
         for(File file:evidence.listFiles()){
             if(!file.getName().matches("results\\.json|[0-9]{2}-[a-z0-9-]+\\.png"))continue;
-            String relative=uiOnly?"Download/androidagent-docker-ui-tests/":"Download/androidagent-docker-tests/";r.delete(downloads,"_display_name = ? AND relative_path = ?",new String[]{file.getName(),relative});
+            String relative=stopRaceOnly?"Download/androidagent-docker-stop-race-tests/":uiOnly?"Download/androidagent-docker-ui-tests/":"Download/androidagent-docker-tests/";r.delete(downloads,"_display_name = ? AND relative_path = ?",new String[]{file.getName(),relative});
             ContentValues v=new ContentValues();v.put("_display_name",file.getName());v.put("mime_type",file.getName().endsWith(".png")?"image/png":"application/json");v.put("relative_path",relative);v.put("is_pending",1);
             android.net.Uri uri=r.insert(downloads,v);try(InputStream in=new FileInputStream(file);OutputStream out=r.openOutputStream(uri)){byte[] b=new byte[8192];int n;while((n=in.read(b))!=-1)out.write(b,0,n);}v.clear();v.put("is_pending",0);r.update(uri,v,null,null);
         }

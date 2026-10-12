@@ -28,6 +28,12 @@ public class AndroidAgentTests extends Instrumentation {
   private boolean termuxOnly;
   private boolean notificationFixture;
   private boolean notificationFixtureApplied;
+  private boolean navigationOnly, navigationHideIme;
+  private int navigationIterations = 5;
+  private volatile String navigationPhase = "not-started";
+  private volatile int navigationIteration;
+  private volatile boolean navigationWatch;
+  private Thread navigationWatchdog;
   private String runId;
 
   @Override
@@ -36,6 +42,10 @@ public class AndroidAgentTests extends Instrumentation {
     exportOnly = arguments != null && "true".equals(arguments.getString("export_only"));
     termuxOnly = arguments != null && "true".equals(arguments.getString("termux_only"));
     notificationFixture = arguments != null && "true".equals(arguments.getString("notification_fixture"));
+    navigationOnly = arguments != null && "true".equals(arguments.getString("navigation_only"));
+    navigationHideIme = arguments != null && "ime_insets".equals(arguments.getString("navigation_cleanup"));
+    if (navigationOnly && arguments != null)
+      navigationIterations = "10".equals(arguments.getString("navigation_iterations")) ? 10 : 5;
     runId = arguments == null ? null : arguments.getString("run_id");
     if (runId == null) runId = java.util.UUID.randomUUID().toString();
     start();
@@ -45,7 +55,7 @@ public class AndroidAgentTests extends Instrumentation {
   public void onStart() {
     app = getTargetContext();
     evidence =
-        new File(app.getExternalFilesDir(null), termuxOnly ? "runtime-evidence" : "evidence");
+        new File(app.getExternalFilesDir(null), navigationOnly ? "navigation-evidence" : termuxOnly ? "runtime-evidence" : "evidence");
     evidence.mkdirs();
     if (exportOnly) {
       Bundle result = new Bundle();
@@ -61,7 +71,7 @@ public class AndroidAgentTests extends Instrumentation {
     }
     ui = getUiAutomation(UiAutomation.FLAG_DONT_SUPPRESS_ACCESSIBILITY_SERVICES);
     try {
-      if (notificationFixture && !termuxOnly && Build.VERSION.SDK_INT >= 33) {
+      if (notificationFixture && !termuxOnly && !navigationOnly && Build.VERSION.SDK_INT >= 33) {
         // Explicit instrumentation-only consent fixture for a post-runtime-install
         // run. The host driver must revoke POST_NOTIFICATIONS and clear Android's
         // user-set/user-fixed flags before starting this UID; revoking here can kill it.
@@ -72,11 +82,14 @@ public class AndroidAgentTests extends Instrumentation {
             "Could not reset the explicitly requested test-only notification consent fixture");
         notificationFixtureApplied = true;
       }
-      if (termuxOnly) termuxSuite();
+      if (navigationOnly) navigationSuite();
+      else if (termuxOnly) termuxSuite();
       else suite();
     } catch (Throwable e) {
       failures++;
       record("suite", false, e.toString(), 0);
+    } finally {
+      if (navigationOnly) stopNavigationWatchdog();
     }
     try (FileOutputStream out = new FileOutputStream(new File(evidence, "results.json"))) {
       out.write(
@@ -87,6 +100,9 @@ public class AndroidAgentTests extends Instrumentation {
               .put("api", Build.VERSION.SDK_INT)
               .put("model", Build.MODEL)
               .put("run_id", runId)
+              .put("navigation_only", navigationOnly)
+              .put("navigation_cleanup", navigationHideIme ? "ime_insets" : "global_back")
+              .put("navigation_iterations", navigationOnly ? navigationIterations : 0)
               .put("notification_fixture_requested", notificationFixture)
               .put("notification_fixture_applied", notificationFixtureApplied)
               .put("notification_fixture_scope", notificationFixtureApplied
@@ -121,7 +137,7 @@ public class AndroidAgentTests extends Instrumentation {
       String name = file.getName();
       if (!name.matches("results\\.json|[0-9]{2}-[a-z0-9-]+\\.png")) continue;
       String relative =
-          "Download/" + (termuxOnly ? "androidagent-runtime-tests/" : "androidagent-tests/");
+          "Download/" + (navigationOnly ? "androidagent-navigation-probe/" : termuxOnly ? "androidagent-runtime-tests/" : "androidagent-tests/");
       resolver.delete(
           downloads, "_display_name = ? AND relative_path = ?", new String[] {name, relative});
       ContentValues values = new ContentValues();
@@ -152,6 +168,185 @@ public class AndroidAgentTests extends Instrumentation {
       EmbeddedRuntime.get(app).initializeBlocking();
       check(EmbeddedRuntime.get(app).ready(), "Embedded runtime failed initialization");
     });
+  }
+
+  /** Opt-in ANR probe. The ordinary suite and its navigation remain unchanged. */
+  private void navigationSuite() throws Exception {
+    startNavigationWatchdog();
+    navigationPhase = "accessibility-binding";
+    String own = new ComponentName(app, BuddyService.class).flattenToString();
+    ui.adoptShellPermissionIdentity(android.Manifest.permission.WRITE_SECURE_SETTINGS);
+    try {
+      String saved = android.provider.Settings.Secure.getString(app.getContentResolver(),
+          android.provider.Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES);
+      java.util.ArrayList<String> services = new java.util.ArrayList<>();
+      if (saved != null) for (String value : saved.split(":")) {
+        ComponentName component = ComponentName.unflattenFromString(value);
+        if (!value.isEmpty() && !new ComponentName(app, BuddyService.class).equals(component))
+          services.add(value);
+      }
+      // Rebind only this test target; retain every unrelated accessibility grant.
+      if (BuddyService.get() == null) {
+        android.provider.Settings.Secure.putString(app.getContentResolver(),
+            android.provider.Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES,
+            android.text.TextUtils.join(":", services));
+        services.add(own);
+        android.provider.Settings.Secure.putString(app.getContentResolver(),
+            android.provider.Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES,
+            android.text.TextUtils.join(":", services));
+        android.provider.Settings.Secure.putInt(app.getContentResolver(),
+            android.provider.Settings.Secure.ACCESSIBILITY_ENABLED, 1);
+      }
+    } finally { ui.dropShellPermissionIdentity(); }
+    long until = SystemClock.elapsedRealtime() + 30000;
+    while ((BuddyService.get() == null || !McpHost.get(app).running())
+        && SystemClock.elapsedRealtime() < until) SystemClock.sleep(100);
+    check(BuddyService.get() != null && McpHost.get(app).running(), "Probe accessibility/MCP did not connect");
+    navigationPhase = "mcp-initialize";
+    check(request("initialize", new JSONObject().put("protocolVersion", "2025-06-18"), true)
+        .getInt("http_status") == 200, "Probe MCP initialize failed");
+    navigationPhase = "initial-home";
+    launch(MainActivity.class);
+    main(() -> app.getSystemService(android.view.inputmethod.InputMethodManager.class)
+        .hideSoftInputFromWindow(current.getWindow().getDecorView().getWindowToken(), 0));
+    for (int index = 1; index <= navigationIterations; index++) {
+      navigationIteration = index;
+      test("navigation probe " + index + ": " + (navigationHideIme ? "IMM hide + IME insets" : "global Back")
+          + " then immediate DeviceActivity", () -> {
+        navigationPhase = "launch-terminal";
+        launch(new Intent(app, DeviceActivity.class).putExtra("terminal", true));
+        SystemClock.sleep(700);
+        final int[] point = new int[2];
+        navigationPhase = "locate-field";
+        main(() -> {
+          EditText field = edit(current.getWindow().getDecorView());
+          check(field != null, "Missing command field");
+          field.clearFocus();field.getLocationOnScreen(point);
+          point[0] += field.getWidth() / 2;point[1] += field.getHeight() / 2;
+        });
+        navigationPhase = "mcp-tap";
+        check(toolText(tool("tap", new JSONObject().put("x", point[0]).put("y", point[1])))
+            .contains("Tapped"), "Probe tap cancelled");
+        SystemClock.sleep(400);
+        main(() -> check(edit(current.getWindow().getDecorView()).hasFocus(), "Probe field not focused"));
+        navigationPhase = "mcp-unicode";
+        String value = "printf 'Zażółć z Codexem'";
+        check(toolText(tool("type_text", new JSONObject().put("text", value))).contains("Typed"),
+            "Probe Unicode typing failed");
+        main(() -> check(value.contentEquals(edit(current.getWindow().getDecorView()).getText()),
+            "Probe Unicode content differs"));
+        if (navigationHideIme) {
+          navigationPhase = "probe-only-hide-ime";
+          main(() -> app.getSystemService(android.view.inputmethod.InputMethodManager.class)
+              .hideSoftInputFromWindow(current.getWindow().getDecorView().getWindowToken(), 0));
+          long deadline = SystemClock.elapsedRealtime() + 4000;
+          boolean[] hidden = {false};
+          do {
+            main(() -> {
+              WindowInsets insets = current.getWindow().getDecorView().getRootWindowInsets();
+              hidden[0] = insets != null && !insets.isVisible(WindowInsets.Type.ime());
+            });
+            if (!hidden[0]) SystemClock.sleep(25);
+          } while (!hidden[0] && SystemClock.elapsedRealtime() < deadline);
+          check(hidden[0], "Probe IME did not become hidden");
+        } else {
+          navigationPhase = "global-back";
+          ui.performGlobalAction(android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_BACK);
+        }
+        // Intentionally no idle/IME wait between the original Back and launch.
+        navigationPhase = "immediate-device-launch";
+        launch(DeviceActivity.class);
+        navigationPhase = "device-scroll-main";
+        main(() -> scroll(current.getWindow().getDecorView()).scrollTo(0, 0));
+        navigationPhase = "device-mcp-scroll";
+        tool("scroll", new JSONObject().put("direction", "down"));
+        main(() -> check(scroll(current.getWindow().getDecorView()).getScrollY() > 0,
+            "Probe gesture did not scroll"));
+        navigationPhase = "iteration-complete";
+      });
+    }
+    navigationPhase = "probe-complete";
+  }
+
+  private void startNavigationWatchdog() {
+    final Thread instrumentation = Thread.currentThread();
+    final Thread mainThread = Looper.getMainLooper().getThread();
+    final Handler handler = new Handler(Looper.getMainLooper());
+    final java.util.concurrent.atomic.AtomicLong lastMain = new java.util.concurrent.atomic.AtomicLong(SystemClock.elapsedRealtime());
+    final java.util.concurrent.atomic.AtomicBoolean heartbeatPending = new java.util.concurrent.atomic.AtomicBoolean();
+    navigationWatch = true;
+    navigationWatchdog = new Thread(() -> {
+      StringBuilder recent = new StringBuilder();
+      android.net.Uri[] snapshots = new android.net.Uri[2];
+      int sequence = 0;
+      do {
+        if (heartbeatPending.compareAndSet(false, true)) handler.post(() -> {
+          lastMain.set(SystemClock.elapsedRealtime());heartbeatPending.set(false);
+        });
+        long now = SystemClock.elapsedRealtime();
+        String sample = "sample=" + sequence + " epoch_ms=" + System.currentTimeMillis()
+            + " elapsed_ms=" + now + " main_heartbeat_age_ms=" + (now - lastMain.get())
+            + " iteration=" + navigationIteration + " phase=" + navigationPhase
+            + " mode=" + (navigationHideIme ? "ime_insets" : "global_back") + "\n"
+            + navigationStack("main", mainThread) + navigationStack("instrumentation", instrumentation);
+        // Only clocks, fixed phase labels and stack frames; no user data or credentials.
+        for (int offset = 0; offset < sample.length(); offset += 3000)
+          android.util.Log.i("AA.NavigationProbe", sample.substring(offset, Math.min(sample.length(), offset + 3000)));
+        recent.append(sample).append('\n');
+        if (recent.length() > 65536) recent.delete(0, recent.indexOf("\n", recent.length() - 65536) + 1);
+        byte[] bytes = recent.toString().getBytes(StandardCharsets.UTF_8);
+        android.util.AtomicFile local = new android.util.AtomicFile(new File(evidence, "navigation-snapshot.txt"));
+        FileOutputStream pending = null;
+        try { pending = local.startWrite();pending.write(bytes);local.finishWrite(pending); }
+        catch (Exception failure) {
+          if (pending != null) local.failWrite(pending);
+          android.util.Log.i("AA.NavigationProbe", "Local snapshot failure: " + failure.getClass().getSimpleName());
+        }
+        int slot = sequence++ % 2;
+        try {
+          ContentResolver resolver = app.getContentResolver();
+          ContentValues values = new ContentValues();
+          values.put(android.provider.MediaStore.MediaColumns.IS_PENDING, 1);
+          if (snapshots[slot] == null) {
+            String safeId = runId.replaceAll("[^A-Za-z0-9_-]", "_");
+            if (safeId.length() > 64) safeId = safeId.substring(0, 64);
+            values.put(android.provider.MediaStore.MediaColumns.DISPLAY_NAME, "navigation-" + safeId + "-" + slot + ".txt");
+            values.put(android.provider.MediaStore.MediaColumns.MIME_TYPE, "text/plain");
+            values.put(android.provider.MediaStore.MediaColumns.RELATIVE_PATH, "Download/androidagent-navigation-probe/");
+            snapshots[slot] = resolver.insert(android.provider.MediaStore.Downloads.getContentUri(
+                android.provider.MediaStore.VOLUME_EXTERNAL_PRIMARY), values);
+          } else resolver.update(snapshots[slot], values, null, null);
+          if (snapshots[slot] == null) throw new IOException("Cannot create navigation snapshot");
+          try (ParcelFileDescriptor fd = resolver.openFileDescriptor(snapshots[slot], "rwt")) {
+            if (fd == null) throw new IOException("Cannot open navigation snapshot");
+            try (FileOutputStream out = new FileOutputStream(fd.getFileDescriptor())) {
+              out.write(bytes);out.flush();out.getFD().sync();
+            }
+          }
+          values.clear();values.put(android.provider.MediaStore.MediaColumns.IS_PENDING, 0);
+          resolver.update(snapshots[slot], values, null, null);
+        } catch (Exception failure) {
+          android.util.Log.i("AA.NavigationProbe", "Download snapshot failure: " + failure.getClass().getSimpleName());
+        }
+        if (navigationWatch) try { Thread.sleep(1000); } catch (InterruptedException stopped) { /* Requested probe shutdown. */ }
+      } while (navigationWatch);
+    }, "androidagent-navigation-watchdog");
+    navigationWatchdog.setDaemon(true);navigationWatchdog.start();
+  }
+
+  private static String navigationStack(String label, Thread thread) {
+    StringBuilder result = new StringBuilder(label).append(" state=").append(thread.getState()).append('\n');
+    StackTraceElement[] stack = thread.getStackTrace();
+    for (int index = 0; index < Math.min(20, stack.length); index++) result.append("  at ").append(stack[index]).append('\n');
+    return result.toString();
+  }
+
+  private void stopNavigationWatchdog() {
+    navigationWatch = false;
+    if (navigationWatchdog != null) {
+      navigationWatchdog.interrupt();
+      try { navigationWatchdog.join(1500); } catch (InterruptedException stopped) { Thread.currentThread().interrupt(); }
+    }
   }
 
   private void runUnsignedClaude(Sessions.Session session, boolean dev) throws Exception {
