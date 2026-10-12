@@ -1,8 +1,0 @@
-{
-  "stage": "candidate validated after source freeze; production app source frozen",
-  "name": "androidagent-0.4.3.apk",
-  "bytes": 653533571,
-  "sha256": "26d0f5d756815bac4ecbcf791b39e730b8d6e6180ee70d55793e8c253d07da92",
-  "recorded_utc": "2026-10-11T22:37:15.737140+00:00",
-  "device": "emulator-5554"
-}

@@ -1,30 +1,31 @@
-# Claude Code w androidagent 0.3.0
+# Claude Code
 
-Claude Code jest drugim pełnym backendem rozmów. Selektor na ekranie głównym wybiera agenta nowych rozmów. Istniejąca rozmowa zachowuje swój backend, model i historię; sesja Codexa nie jest przekazywana do Claude. Oba środowiska można zainstalować w tym samym Termux.
+Claude Code is a separate conversation backend alongside Codex. New conversations use the agent selected on the home screen. An existing conversation keeps its own backend, model and session ID; a Codex session is not transferred to Claude.
 
-## Instalacja i logowanie
+## Setup and login
 
-1. Zainstaluj APK 0.3.0 i Termux. W konfiguracji włącz Accessibility, RUN_COMMAND oraz pomocnika w wersji **12**.
-2. Wybierz Claude Code lub obu agentów w przewodniku. Skopiuj polecenie instalacji i wklej je do Termux.
-3. Instalator z zasobów APK instaluje pakiety Termux, oficjalny `@anthropic-ai/claude-code-linux-{arm64,x64}-musl@2.1.296` oraz musl `1.2.5-r12` z Alpine. Musl jest sprawdzany przez SHA256, npm sprawdza integralność pakietu klienta. Wrapper znajduje się w `~/bin/claude`. Root i patchowanie ELF nie są potrzebne.
-4. Zaloguj się przez oficjalne `~/bin/claude auth login`. W razie powrotu do przeglądarki postępuj zgodnie z instrukcją CLI. Nie wpisuj danych konta do rozmowy androidagent.
-5. Wróć do aplikacji. Pomocnik używa `claude auth status` do sprawdzenia logowania; do Androida przekazuje wyłącznie status, bez poświadczeń. Rozmowa nie rozpoczyna się, jeżeli wybrany backend nie jest skonfigurowany i zalogowany. `/status` działa niezależnie od modelu.
+1. Install androidagent 0.4.4. A separate Termux app, `RUN_COMMAND` permission and copied install commands are unnecessary.
+2. In **Environment and accounts** (`Środowisko i konta`), select Claude Code or both agents and choose **Prepare selected agents**. The app downloads the pinned official `@anthropic-ai/claude-code-linux-{arm64,x64}-musl` package, verifies SHA256, installs it inside app-private storage and checks the actual executable.
+3. Choose **Log in to Claude Code**. Complete the official `claude auth login` flow shown in the embedded terminal and browser. Never paste passwords or account tokens into a chat or issue.
+4. Return to chat. The integration reads `claude auth status` and passes status, not credentials, to the UI. `/status` works without account login.
 
-Przycisk **Napraw lub zaktualizuj instalację** ponownie uruchamia instalator, zachowując konfigurację konta. Aktualizator desktopowy Claude jest wyłączony w wrapperze, ponieważ jego binaria nie mają mapowań potrzebnych na Androidzie. Wersja jest przypięta; aktualizacje klienta wymagają zmiany przypiętej wersji w projekcie i ponownej instalacji runtime.
+The current client version is **2.1.296**. The embedded runtime supplies pinned musl libraries; source and package details are in [terminal provenance](TERMINAL-SOURCES.md). Client setup can be cancelled or retried without replacing conversation history. Desktop self-updating is disabled in the wrapper because Android requires the pinned runtime mappings.
 
-## Rozmowy i narzędzia
+## Conversations and tools
 
-- Wyjście `stream-json --include-partial-messages`: tekst na żywo w rozmowie i pływającym panelu. Zakończona odpowiedź jest renderowana i zapisywana raz. Zdarzenia subagentów nie mieszają się ze strumieniem głównej odpowiedzi.
-- Model Default, aliasy **Sonnet**, **Opus**, **Haiku** oraz własny identyfikator. Aliasy rozstrzyga oficjalny klient; interfejs nie obiecuje konkretnej wersji ani dostępu z danego konta.
-- Wznowienie przez prawdziwy identyfikator `session_id`, osobny dla każdej rozmowy; załączniki pobierane z uwierzytelnionego serwera telefonu do katalogu sesji.
-- Wszystkie 29 narzędzi MCP, w tym 12 narzędzi lokalnego Dockera, z tokenem instalacji i `--strict-mcp-config`. Potwierdzenia oraz Stop współdzielą ten sam interfejs, co Codex. [Docker: budowanie, eksport i sprzątanie](DOCKER.md).
-- Zwykły tryb udostępnia WebSearch/WebFetch/Read oraz narzędzia MCP; odczyt załączników jest zatwierdzony regułą ich katalogu. Powłoka i edycja plików są usunięte z zestawu narzędzi.
-- Tryb programisty dodaje Bash/Read/Write/Edit/Glob/Grep/Skill/Agent i narzędzia kodowania z uprawnieniami UID Termux. Mogą odczytywać i zmieniać całe środowisko Termux. Nie jest to sandbox projektu ani dostęp root. Preautoryzowane operacje kodowania wykonują się bez osobnych kart zgody; inne żądania uprawnień w trybie nieinteraktywnym są odrzucane. MCP `run_command` zawsze wymaga zatwierdzenia dokładnej komendy.
-- Stop zatrzymuje drzewo procesów pomocnika, również procesy ignorujące SIGTERM. Odbiera także sterowanie telefonem. Nie usuwa historii rozmowy.
-- Przycisk przekazania rozmowy otwiera widoczną sesję Termux z Remote Control. Przekazuje model, identyfikator rozmowy, uwierzytelniony MCP i ograniczenia wybranego trybu. Dostępność połączenia z oficjalną aplikacją Claude zależy od konta i usługi.
+- `stream-json --include-partial-messages` delivers live text and tool progress. The final response is stored once; subagent output is kept separate from the main response stream.
+- Models include Default, Sonnet, Opus, Haiku and a custom identifier. The official client resolves aliases; account access and exact model versions are not guaranteed by the UI.
+- Resume uses the real `session_id`. Attachments are fetched through the authenticated phone server into the conversation's work directory.
+- Both agents receive the same MCP phone, USB and [13 Docker tools](DOCKER.md#agent-tools). Per-run credentials and grants are revocable.
+- Normal mode supplies WebSearch/WebFetch/Read and MCP, with attachment-directory read permissions. Shell and file modification tools are removed from the tool set.
+- Developer mode enables Bash/Read/Write/Edit/Glob/Grep/Skill/Agent and related coding tools as **androidagent's UID**. Approved coding tools can access its whole private environment without separate MCP approval cards. Other noninteractive permission requests are denied. MCP `run_command` still requires its own exact-command approval.
+- Stop cancels the owned helper process tree and phone access without deleting the conversation.
+- The Remote Control handoff opens an embedded terminal session with the conversation ID, model, MCP configuration and current restrictions. Availability depends on the official client, account and service.
 
-## Weryfikacja
+Codex developer mode uses `--sandbox danger-full-access` because the desktop Linux sandbox is not supported by this Android integration. Android's UID boundary still applies. Neither client has a separate project security sandbox inside the app UID.
 
-[Raport testów](TESTING.md) rozdziela testy prawdziwego CLI/MCP i interfejsu od kontrolowanych zdarzeń protokołu. Zgodnie z decyzją użytkownika testy odbywają się bez konta modelu. Nie potwierdzają wykonania zadania przez zalogowanego Claude, działania Remote Control z kontem, telefonu ARM64 ani niezawodności długich zadań w tle.
+## Validation
 
-Referencje: [oficjalne CLI](https://code.claude.com/docs/en/cli-reference), [tryb headless i streaming](https://code.claude.com/docs/en/headless), [oficjalny pakiet npm](https://www.npmjs.com/package/@anthropic-ai/claude-code), [musl](https://musl.libc.org/).
+Official Claude binaries, version/auth-status queries, signed-out startup and protocol/UI behavior have been tested. A logged-in Claude response and account-backed Remote Control have **not** been verified. Physical owner-authenticated conversations in [Testing](TESTING.md) currently cover Codex only.
+
+References: [CLI](https://code.claude.com/docs/en/cli-reference), [headless streaming](https://code.claude.com/docs/en/headless), [official package](https://www.npmjs.com/package/@anthropic-ai/claude-code) and [licensing](https://code.claude.com/docs/en/legal-and-compliance).

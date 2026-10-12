@@ -1,50 +1,48 @@
-# USB w androidagent 0.4.2
+# USB devices
 
-USB jest modułem aplikacji: panel oraz narzędzia MCP dla Codexa i Claude Code działają bez Dockera, roota, Shizuku i Termux. Uruchomienie samych klientów Codex/Claude nadal wymaga skonfigurowanego Termux. Testy tej wersji nie używają zalogowanych modeli.
+The USB panel and MCP tools work directly without Docker, root, Shizuku or a separate Termux application. Codex/Claude use androidagent's embedded environment. Physical device, cable, power and firmware compatibility still require hardware testing.
 
-## Użycie
+## Connect and assign
 
-1. Otwórz **Urządzenia USB** na ekranie głównym. Podłącz urządzenie kablem OTG i przyznaj dostęp w systemowym dialogu Androida.
-2. Otwórz jeden profil: terminal UART/ESP, drugi Android przez ADB albo USB do Dockera. Adapter wieloportowy wymaga wybrania numeru portu od zera. Całe urządzenie ma jednego właściciela.
-3. Działaj z panelu albo włącz dostęp agentów, rozpocznij rozmowę i przydziel połączenie aktywnej odpowiedzi albo jednorazowo następnemu zadaniu tej rozmowy. Narzędzia `usb_status`/`usb_open` pokażą przydzieloną sesję. Przydział wygasa po zakończeniu odpowiedzi, zatrzymaniu rozmowy, odłączeniu lub globalnym Stop. Następna odpowiedź wymaga nowego przydziału.
-4. Dla plików wybierz katalog przez systemowy picker. Nadaj rozmowie odczyt albo odczyt i zapis. Systemowy dostęp USB i dostęp do katalogu są odrębnymi zgodami.
+1. Open **USB devices** (`Urządzenia USB`), connect an OTG accessory and grant access in Android's device dialog.
+2. Select UART/ESP, ADB to another Android, or Docker passthrough. Multiport adapters require a zero-based port selection. The whole device has one owner.
+3. Use the panel directly or enable agent access and assign a connection to an active conversation run, or once to that conversation's next run. `usb_status`/`usb_open` show its session. Grants expire when the response ends, the conversation stops, the device disconnects or global Stop is used. A later response needs a new assignment.
+4. Select storage through Android's SAF picker and grant read or read/write separately. USB device permission is not folder permission.
 
-Włączenie dostępu agentów uruchamia widoczną usługę pierwszoplanową. Accessibility jest potrzebne do gestów i sterowania ekranem gospodarza, lecz nie do USB i Dockera. Jeden `McpHost` obsługuje wszystkie usługi na porcie 8766; uruchomienia rozmów dostają osobne, odwoływalne poświadczenia. Wspólny token instalacji nie przydziela dostępu do urządzeń. Nie przekazujemy tego tokenu kontenerom. Przydziały kontrolują routing MCP. Klienty w Termux dzielą ten sam UID; tryb programisty nie izoluje wzajemnie ich procesów ani danych.
+One loopback MCP host serves agent, USB and Accessibility services. Each conversation run receives revocable credentials; the installation token alone cannot assign devices. Accessibility is only needed for host-screen gestures. Agents in developer mode share the app UID, so MCP ownership is not process isolation between those agents.
 
-## UART i ESP
+## UART and ESP
 
-Biblioteka `usb-serial-for-android` 3.11.0 dostarcza sterowniki FTDI, CP210x, CH34x, PL2303 i CDC ACM. Kompatybilność konkretnego modelu wymaga testu sprzętowego. Panel ma tekst/hex, LF/CRLF, parametry UART, DTR/RTS/break, licznik i zapis logu. Bufor ma 64 KiB i absolutne kursory; kolejni czytelnicy dostają kopie. Utracone starsze bajty są zgłaszane. Błąd zapisu raportuje timeout i znaną liczbę wysłanych bajtów. Otwarcie sterownika może zmienić linie kontrolne; podgląd logu nie wykonuje automatycznego resetu ESP.
+`usb-serial-for-android` 3.11.0 supplies FTDI, CP210x, CH34x, PL2303 and CDC ACM drivers. The panel supports text/hex, LF/CRLF, UART parameters, DTR/RTS/break, counters and log saving. A 64 KiB buffer uses absolute cursors and reports overwritten older bytes. Opening a driver can change control lines; reading the log does not automatically reset an ESP.
 
-JNI `EspFlasher` korzysta z przypiętej biblioteki Espressif. `esp_info` oraz `esp_flash` są zadaniami z postępem i anulowaniem. Wybierz ręczny BOOT/RESET albo jawnie włącz reset przez DTR/RTS. Flash wymaga numeru układu z identyfikacji, artefaktów z SHA256 i uporządkowanych segmentów z offsetami co 4 KiB. Limit: 16 segmentów, do 32 MiB oraz rzeczywistej pojemności flash. Biblioteka wykonuje weryfikację MD5. Nie udostępniamy operacji eFuse.
+The pinned Espressif JNI implements `esp_info` and cancellable `esp_flash`. Choose manual BOOT/RESET or explicitly enable DTR/RTS reset. Flash requires the detected chip identity, SHA256-identified artifacts and ordered4 KiB-aligned segments: at most 16 segments/32 MiB and no more than real chip capacity. The library verifies MD5. No eFuse operations are exposed.
 
-Zapis jest odmawiany przy niezgodnym układzie, secure boot, szyfrowaniu, secure-download lub braku dostępnej kontroli zabezpieczeń. Starsze warianty ROM bez tej kontroli mogą być identyfikowane, ale nie są dopuszczane do flashowania. Anulowanie/odłączenie może pozostawić częściowo zapisany firmware; nie oznacza rollbacku. Fizyczne programowanie ESP nie zostało jeszcze zweryfikowane w tym środowisku.
+Flash is refused for mismatched chips, secure boot, encryption, secure-download or unavailable security checks. Older ROMs lacking those checks can be identified but not flashed. Cancellation/disconnection may leave partial firmware and is not rollback. Physical ESP flashing is not yet validated.
 
-## Drugi Android
+## A second Android device
 
-Natywny klient obsługuje USB bulk ADB, ramki AOSP, lokalny klucz RSA, AUTH, `shell_v2`, sync push/pull i instalację APK. Włącz debugowanie USB na drugim telefonie i zaakceptuj na nim klucz RSA. `adb_exec` pozwala też użyć `am`, `input`, `uiautomator`, `getprop` i innych dostępnych poleceń Android shell. `adb_logcat` pobiera ograniczony snapshot. Operacje są związane ze wskazaną sesją; nie wykonują komend na gospodarzu przez pomylenie domyślnego targetu.
+The native ADB client implements USB bulk/AOSP frames, local RSA AUTH, `shell_v2`, sync push/pull, logcat snapshots and APK installation. Enable USB debugging on the target and accept its RSA prompt. `adb_exec` can run available shell commands such as `am`, `input`, `uiautomator` and `getprop`. Operations target the explicit session rather than the host phone.
 
-Maksymalny shell timeout wynosi 120 s, AUTH 90 s, transfer 10 minut/512 MiB. Wyniki shell przechowują ostatnie 64 KiB każdego strumienia. Nowoczesny target zwraca stdout, stderr i kod wyjścia; starszy shell ma jawnie niedostępny kod wyjścia. Prywatny klucz RSA nie opuszcza aplikacji; klucz publiczny jest przekazywany drugiemu telefonowi do autoryzacji. Fastboot, odblokowanie bootloadera oraz odrębne narzędzie ADB forward nie należą do tej wersji; surowy profil Docker pozwala korzystać z pełnego klienta `adb` zainstalowanego w kontenerze.
+Maximum shell timeout is 120 s, AUTH90 s and file transfer10 minutes/512 MiB. Shell retains the last 64 KiB of each stream; modern targets return stdout/stderr/exit status, while legacy shell marks exit status unavailable. The private key stays in app storage; only its public key is sent to the target. Fastboot, bootloader unlocking and a separate native ADB-forward interface are not implemented. Raw Docker passthrough permits a full container-installed `adb`.
 
-## Nośniki i artefakty
+## Storage and exports
 
-`UsbStorage` używa SAF, identyfikatorów katalogów/dokumentów i rzeczywistych flag providera. Obsługuje stronicowanie, tekst/hex/base64 do 64 KiB, tworzenie, kopiowanie, import, eksport i usunięcie wybranego dokumentu. Transfery mają limit 512 MiB, postęp i anulowanie. Import oblicza SHA256. Zapis, kopia i eksport zamykają strumień, ponownie odczytują cel i porównują SHA256 oraz rozmiar przed zgłoszeniem sukcesu. Provider, który nie udostępni spójnego odczytu po zapisie, zwraca błąd weryfikacji zamiast potwierdzenia. Artefakty USB i zachowane wyniki Docker mogą być eksportowane do wybranego dokumentu. Zgoda tylko na odczyt nie może zostać podniesiona do zapisu przez agenta.
+SAF supports paging, text/hex/base64 up to 64 KiB, create/copy/import/export/delete and 512 MiB cancellable transfers. Imports compute SHA256; writes/copies/exports reopen the target and verify SHA256 and length before reporting success. Providers without consistent read-after-write produce a verification error. An agent cannot promote a read-only grant to write.
 
-Po restarcie aplikacji przydziały katalogów wracają do panelu. Niedostępny nośnik pozostaje widoczny z `media_unavailable`. SAF nie gwarantuje atomowego zapisu: błąd, brak miejsca lub odłączenie może pozostawić częściowy plik. System plików i obsługa exFAT/FAT32 zależą od telefonu. Nie formatujemy dysków ani nie przejmujemy surowego interfejsu mass-storage zamontowanego przez Androida.
+After restart, selected directories return to the panel. Unavailable media remains visible as `media_unavailable`. SAF is not atomic: errors, full storage or removal can leave partial files. FAT32/exFAT support depends on Android/OEM. The app does not format disks or claim raw mass-storage interfaces mounted by Android.
 
-## USB do Dockera
+## Docker passthrough
 
-**Surowe USB**: otwórz profil Docker, uruchom VM i przydziel połączenie konkretnemu zadaniu. `libusb_wrap_sys_device` wykorzystuje descriptor uzyskany przez `UsbManager`. `usbredirhost` wysyła protokół prywatnym socketem Unix do QEMU. QMP dodaje `usb-redir` na kontrolerze xHCI. Kontroler gościa weryfikuje port oraz VID/PID i udostępnia kontenerowi wyłącznie wybrany `/dev/bus/usb/BBB/DDD` przez `--device`. Nie używa `--privileged` ani montowania całego `/dev`. Obsługujemy do ośmiu przydzielonych urządzeń. Po zmianie przydziału uruchom kontener ponownie.
+**Raw USB:** open the Docker profile, start the VM and assign the connection to a task. `libusb_wrap_sys_device` uses Android's granted descriptor; usbredirhost passes it through an app-private Unix socket to QEMU xHCI via QMP. The guest verifies port and VID/PID, then grants only `/dev/bus/usb/BBB/DDD` through `--device`. Up to 8 devices are supported, without privileged mode or a whole `/dev` mount. Restart the container after changing assignment.
 
-Ten profil udostępnia urządzenie narzędziom libusb, np. pełnemu `adb`. Obraz Linuxa nie ma sterowników tty dla każdego adaptera; `/dev/ttyUSB0` nie jest automatycznie dostępny. Native UART/ADB i profil raw Docker nie mogą jednocześnie używać tego samego urządzenia. Surowe mass-storage jest celowo odmawiane: użyj kopii plików SAF.
+This is useful for libusb tools such as full `adb`; it does not promise `/dev/ttyUSB0` for every adapter. Native UART/ADB and raw Docker cannot simultaneously own one device. Raw mass storage is refused; use SAF copies.
 
-Zadanie z aktywnym przydziałem USB/UART wymaga tego samego właściciela także dla operacji MCP Dockera, w tym exec, plików, logów, eksportu i cleanup. Inna rozmowa oraz token instalacji nie mogą wykonać tych operacji na tym zadaniu. Panel aplikacji pozostaje dostępny właścicielowi telefonu. Ograniczenie nie wprowadza izolacji procesów w UID Termux opisanej wyżej.
-
-**UART**: `usb_docker_serial` przydziela istniejącą sesję serial jednemu zadaniu. Kontener dostaje `ANDROIDAGENT_SERIAL_URL`, `PYTHONPATH` i moduł protokołu. Most HTTP obsługuje odczyt/zapis, baud, data/stop/parity oraz DTR/RTS/break, uwierzytelniony osobnym losowym tokenem zadania. Aplikacja nasłuchuje tylko na loopback 18782; gość korzysta z aliasu QEMU `10.0.2.2`. Token nie daje dostępu do MCP ani klucza ADB i nie jest ujawniany w zwykłym statusie zadania.
+**UART bridge:** `usb_docker_serial` assigns a serial session to one task. The container gets `ANDROIDAGENT_SERIAL_URL`, `PYTHONPATH` and the read-only URL handler; install pyserial in the image. The authenticated HTTP bridge supports read/write, baud/data/stop/parity and DTR/RTS/break on phone loopback 18782 through guest alias `10.0.2.2`. Its task token does not authorize MCP or ADB and is omitted from normal status.
 
 ```python
-# Zainstaluj pyserial w obrazie kontenera.
 import os
 import serial
+
 port = serial.serial_for_url(os.environ['ANDROIDAGENT_SERIAL_URL'],
                              baudrate=115200, timeout=1)
 port.write(b'version\n')
@@ -54,26 +52,12 @@ port.rts = False
 port.close()
 ```
 
-Połączenie API wykorzystujące handler pyserial obsługuje narzędzia Python importujące `serial.serial_for_url`; narzędzia zakładające wyłącznie systemowe `/dev/tty*` wymagają dostosowania. Moduł zamknięcia portu kończy lokalny uchwyt; przydział sprzętu odbiera panel, `usb_docker_detach`, Stop lub cleanup zadania. Revoke zatrzymuje korzystający z urządzenia kontener. Nie wznawiamy przydziałów po restarcie VM i nie przywracamy komend po ponownym podłączeniu sprzętu.
+Tools using `serial.serial_for_url` work through this handler; tools requiring only `/dev/tty*` need adaptation. Closing the Python handle does not revoke the hardware assignment. Panel revoke, `usb_docker_detach`, Stop and task cleanup do; revocation stops the using container. Grants/commands are not automatically restored after reconnect or VM restart.
 
-## Build i licencje
+Every MCP operation on a USB-assigned Docker task, including exec/files/logs/export/cleanup, requires the same owner. Other conversations and the installation token cannot operate that task. The native panel remains available to the phone owner.
 
-Źródła/commity: `usb/sources.json`; sprawdzone pliki: `usb/source-manifest.json`; oba JNI: `usb/native-manifest.json`. Licencje USB znajdują się w `usb/licenses`, a libusb/usbredir wraz z pozostałą zależnością QEMU w `docker/licenses`. Java ma dwie opisane adaptacje: usunięcie zależności od AndroidX IntDef i lokalny BuildConfig DEBUG=false. Kod Espressif jest vendored; operacje eFuse nie są linkowane do naszego JNI.
+## Build and evidence
 
-Po przygotowaniu QEMU (`python3 tools/prepare-qemu.py`) zbuduj JNI z Android NDK **29.0.14206865** na Linux x86_64:
+Pinned origin: [usb/sources.json](../usb/sources.json); adapted file hashes: [source manifest](../usb/source-manifest.json); JNI hashes: [native manifest](../usb/native-manifest.json). Java adaptations remove AndroidX IntDef and supply local DEBUG=false. Espressif sources are vendored; eFuse APIs are not linked. NDK29.0.14206865 builds API 30 JNI with 16 KiB alignment. Licensing and source details: [USB README](../usb/README.md) and [third-party notices](../THIRD_PARTY_NOTICES.md).
 
-```sh
-ANDROID_NDK_ROOT=/ścieżka/do/ndk/29.0.14206865 bash tools/build-usb-native.sh
-bash tools/build-docker-guest.sh x86_64
-bash tools/build-docker-guest.sh aarch64
-python3 tools/check-usb-assets.py
-bash tools/build-local.sh
-```
-
-Gradle i lokalny builder wymagają zgodnych sum źródeł/JNI. JNI wykorzystuje Android API 30 i alignment 16 KiB. Biblioteki QEMU pozostają objęte własnymi wymaganiami zgodności opisanymi w `docs/DOCKER.md`. Nowy obraz gościa wymaga resetu wcześniejszego dysku VM; aplikacja odmawia podmiany bazy istniejącego overlay. Najpierw zachowaj wyniki starych zadań.
-
-## Testy
-
-`tools/test-usb.sh` uruchamia testy urządzenia i rzeczywistego `adbd` emulatora przez testową trasę `adb reverse` do portu gospodarza. SAF korzysta z testowego DocumentsProvider chronionego wymaganym Androidowym `MANAGE_DOCUMENTS`; Activity testowego APK przekazuje aplikacji rzeczywiste zgody URI na drzewa. Aplikacja produkcyjna nie przyjmuje uprawnień systemowych. UART jest syntetycznym portem z prawdziwą warstwą SerialTransport. Testy Docker dodają przez QMP wirtualne urządzenie HID, sprawdzają jego prawdziwy węzeł w kontenerze oraz rzeczywistą trasę kontener–QEMU–aplikacja dla UART fixture. Testy hosta korzystają z pyserial 3.5.
-
-Emulator nie potwierdza zgodności fizycznego USB, kabla, zasilania ani transportu JNI usbredirhost z prawdziwym urządzeniem. Profile sprzętowe nie są jeszcze certyfikowane. Pozostają testy telefonu ARM64: CP210x/CH340 loopback, ESP (adapter i CDC), drugi Android z akceptacją/odmową RSA, FAT32/exFAT oraz fizyczne USB przekierowane do kontenera. Dostępność i zasilanie OTG zależą od gospodarza. Wyniki emulatora i ograniczenia wydania zapisujemy w `artifacts/usb` i raporcie testów 0.4.2.
+`tools/test-usb.sh` exercises real JNI, emulator adbd through test-only `adb reverse`, shell/sync/APK operations, Android SAF URI grants and synthetic UART. Docker tests use a virtual HID device and real container→QEMU→app UART routing. These do not validate physical usbredir, OTG power/cables, ESP or storage adapters. [Testing](TESTING.md) records current evidence. Physical CP210x/CH340, ESP, second-phone RSA, FAT32/exFAT and container passthrough remain required hardware coverage.

@@ -1,30 +1,32 @@
-# build output
+# Generated builds, runtime downloads and test evidence
 build/
 app/build/
 dist/
+artifacts/
+build-runtime/
 .gradle/
 .kotlin/
+__pycache__/
+*.pyc
+.venv/
 
-# local machine config
+# Local editor and machine configuration
 local.properties
 .idea/
 *.iml
-
-# signing keys — never commit
-*.jks
-*.keystore
-.buddy-keys/
-
-# design exports (kept locally)
 design/
 
-# Generated installables and local captures (reports are kept separately)
-artifacts/*.apk
-artifacts/*.png
-artifacts/emulator/*.png
-artifacts/termux/*.png
-__pycache__/
-build-runtime/
+# Credentials and signing material
+.env
+.env.*
+!.env.example
+*.jks
+*.keystore
+*.p12
+.buddy-keys/
+.androidagent-keys/
+
+# Generated binaries; keep source locks, recipes and license notices
 app/src/main/jniLibs/
 app/src/main/assets/docker/*/base.qcow2.gz
 app/src/main/assets/docker/*/vmlinuz-virt
@@ -34,10 +36,3 @@ app/src/main/assets/docker/licenses/
 app/src/main/assets/docker/SOURCES.txt
 app/src/main/assets/terminal/*/runtime.zip
 app/src/main/assets/terminal/licenses/
-artifacts/docker/*.png
-artifacts/docker-ui/*.png
-artifacts/usb/*.png
-artifacts/api36/**/*.png
-artifacts/0.4.3/**/*.png
-
-artifacts/0.4.4/**/*.png

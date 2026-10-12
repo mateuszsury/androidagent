@@ -1,67 +1,62 @@
-# Architektura androidagent 0.4
+# Architecture
 
-## Wybór bazy
+androidagent is a native Java Android application derived from [Buddy](https://github.com/ghorbelhamdi/buddy-android), originally based on commit `8c69699b1338f3b3c177979bbd0a69140bbdb9ce`. It supports Android 11+, targets API 36, and packages ARM64/x86_64 terminal and VM runtimes. The chat UI is native; project web previews use Android WebView.
 
-Sprawdzono 9 października 2026:
-
-| Projekt | Przydatność | Decyzja |
-| --- | --- | --- |
-| [Buddy](https://github.com/ghorbelhamdi/buddy-android) | Natywny Android, lokalny MCP, Accessibility, `codex exec`, sesje i załączniki; Apache-2.0 | Baza lokalnego forka, commit `8c69699b1338f3b3c177979bbd0a69140bbdb9ce` |
-| [codex-mobile](https://github.com/friuns2/codex-mobile) | UI webowe i most do Codex app-server, wsparcie Termux; MIT | Warto rozważyć protokół app-server w kolejnej iteracji, bez kopiowania kodu w 0.1 |
-| [TermFold](https://github.com/Bibarud/TermFold) | Środowisko Debian i agenci w aplikacji Android; Apache-2.0 | Kandydat do wariantu jednego APK z własnym runtime; nie włączono jego kodu |
-| [android-codex-bridge](https://github.com/tamir-oss/android-codex-bridge) | Konfiguracja Termux + Shizuku/rish i diagnostyka | Materiał do późniejszej integracji Shizuku, nie gotowa baza interfejsu |
-| [OpenAI Codex](https://github.com/openai/codex) | Właściwy klient agenta | Używamy oficjalnego pakietu npm w Termux, nie imitacji modelu |
-
-Wybrano Buddy, bo już łączy lokalnego agenta z narzędziami telefonu. Interfejs rozmowy pozostaje natywny; podgląd aplikacji zbudowanych w Dockerze używa WebView. Część ustawień i zaawansowanych ekranów zachowuje angielskie teksty upstream.
-
-## Przepływ
+## Data flow
 
 ```mermaid
 flowchart TD
-  UI[Android: rozmowa i historia] --> HUB[ChatHub / trwałe Sessions]
-  HUB --> INTENT[Termux RUN_COMMAND]
-  INTENT --> HELPER[buddy-run]
-  HELPER --> CODEX[Codex CLI na telefonie]
-  HELPER --> CLAUDE[Claude Code: oficjalny musl runtime]
+  UI[Native chat and history] --> HUB[ChatHub and persistent sessions]
+  HUB --> RUNTIME[EmbeddedRuntime: app UID and PRoot]
+  RUNTIME --> HELPER[buddy-run: run identity and events]
+  HELPER --> CODEX[Official Codex CLI]
+  HELPER --> CLAUDE[Official Claude Code]
+  CODEX --> MODEL[Provider service after owner login]
   CLAUDE --> MODEL
+  CODEX --> MCP[Loopback MCP with run credentials]
   CLAUDE --> MCP
-  CLAUDE --> EVENTS
-  CODEX --> MODEL[Usługa modelu po zalogowaniu]
-  CODEX --> MCP[Lokalny MCP + token]
-  MCP --> USB[UsbSessions: przydział USB do rozmowy]
-  USB --> SERIAL[SerialTransport / JNI EspFlasher]
-  USB --> ADB[AdbClient: USB AUTH / shell_v2 / sync]
-  MCP --> SAF[UsbStorage: katalogi SAF]
-  USB --> REDIR[libusb + usbredirhost]
-  REDIR --> VM
-  MCP --> DOCKER[DockerTools: projekty i operacje]
-  DOCKER --> VM[DockerService / QEMU: UID aplikacji]
-  VM --> LINUX[Oddzielny Linux / Docker Engine]
-  LINUX --> CONTAINERS[Kontener i pliki własnego zadania]
-  CONTAINERS --> EXPORT[Zachowane wyniki w Androidzie]
-  MCP --> ACCESS[Accessibility: ekran i gesty]
-  MCP --> STATE[DeviceState: metryki Android]
-  MCP --> APPROVAL[Zgoda na dokładną komendę]
-  APPROVAL --> SHELL[LocalShell: UID aplikacji]
-  HELPER --> EVENTS[POST /event]
+  HELPER --> EVENTS[Authenticated event callbacks]
   EVENTS --> HUB
-  PANEL[Panel telefonu] --> STATE
-  PANEL --> SHELL
+  MCP --> STATE[Device status and approved commands]
+  MCP --> ACCESS[Optional Accessibility: screen and gestures]
+  MCP --> USB[USB sessions: owner and revocable grants]
+  USB --> DIRECT[UART, ESP, second-device ADB]
+  USB --> SAF[Selected storage folders]
+  USB --> REDIR[Raw USB or task UART bridge]
+  MCP --> DOCKER[Docker task controller]
+  DOCKER --> VM[DockerService and QEMU: app UID]
+  REDIR --> VM
+  VM --> LINUX[Separate Linux kernel and Docker Engine]
+  LINUX --> TASK[Container and its project directory]
+  TASK --> EXPORT[Preserved Android exports]
 ```
 
-Aplikacja `dev.mateuszsury.androidagent` wymaga Androida 11+, kompilowana jest przeciw API 36. Kod Java i fonty są zawarte w APK; model ani konto nie są wbudowane. Instalacja helpera kopiuje zasoby APK do Termux. Wrappery obu agentów wykrywają ARM64 lub x86_64 i mapują ścieżki DNS/TLS przez proot. Claude używa oficjalnego pakietu npm musl i biblioteki musl z Alpine, ze sprawdzeniem SHA256. Żadne binaria modelu ani klienta nie są wbudowane w APK. Stary instalator społecznościowy działający tylko na ARM64 zastąpiono skryptem zawartym w aplikacji. Claude przekazuje przyrostowe zdarzenia tekstu, narzędzia i błędy; końcowa odpowiedź jest zapisywana raz. Backend rozmowy pozostaje stały po zmianie domyślnego agenta.
+The current integration does not call an external Termux `RUN_COMMAND` service. Termux packages are extracted into versioned app-private storage; trusted native PRoot and loader entry points preserve their canonical prefix. The persistent home is separate from replaceable runtime files. Provider clients are downloaded from official pinned packages on the device. Account authentication is an explicit owner action.
 
-## Docker
+`buddy-run`, `~/.buddy` and some Buddy class names remain for compatibility. They are internal names, not a dependency on the separate Buddy or Termux applications.
 
-Docker używa własnego jądra w VM: QEMU TCG, Alpine Linux 3.23, Docker Engine 29.5.2, QCOW2 z osobnym dyskiem użytkownika. Nie wymaga Androidowych namespace/cgroups, roota ani Termux. Narzędzia MCP i panel natywny korzystają z jednego uwierzytelnionego kontrolera zadaniowego. Aplikacja nie udostępnia socketu Dockera ani powłoki całego gościa. [Pełny opis](DOCKER.md).
+## Boundaries
 
-## Najbliższe etapy
+| Component | Boundary |
+| --- | --- |
+| App and embedded agents | Android UID and app-private files; no root or other apps' private storage |
+| MCP | One listener on `127.0.0.1:8766`; installation or revocable per-run credentials |
+| Screen control | Own Accessibility service enabled by the owner; existing services are preserved |
+| Commands | MCP `run_command` requires developer mode and exact per-request approval; interactive terminal input is owner initiated |
+| Developer mode | Coding clients can access the app UID's whole private environment; PRoot is compatibility, not a security sandbox |
+| USB and SAF | Device/tree permission plus assignment to an active conversation run; revocation does not revive old handles |
+| Docker | Separate VM kernel, task-owned project mount, no privileged container or agent-visible Docker socket |
 
-Moduł [USB](USB.md) implementuje bezpośredni UART, ESP/JNI, USB ADB i SAF. `McpHost` ma jednego listenera, wspólnego dla Accessibility, AgentService i UsbService. Helper otrzymuje poświadczenie aktywnego uruchomienia, a urządzenia/katalogi wymagają przydziału przez panel. Surowe USB jest opcjonalnie przekazywane przez usbredir i QMP do pojedynczego węzła kontenera; UART ma osobny most z parametrami i kontrolą linii. Testy sprzętowe pozostają kolejnym etapem. Historyczny zakres: [plan USB](USB_PLAN.md).
+Client session IDs, models and histories belong to individual conversations. Changing the default backend only changes new conversations. Event callbacks carry run identity; stale callbacks and Stop requests cannot modify a newer run. Cancellation revokes credentials and ends owned process trees.
 
-1. Pełny test rozmowy z prawdziwym modelem po zalogowaniu właściciela konta oraz test telefonu ARM64. Emulator nie rozstrzyga zgodności różnych producentów.
-2. Przejście z `codex exec` do app-server: przyrostowe tokeny, edycja kolejki, bogatsze zatwierdzanie operacji i obsługa zmian plików. Obecny most przekazuje zdarzenia, a tekst odpowiedzi po zakończeniu elementu.
-3. Opcjonalny Shizuku UserService z osobnym uprawnieniem i widocznym trybem „Android shell”. Nigdy nie przedstawiać dostępu UID aplikacji jako dostępu shell lub root.
-4. Prowadzona instalacja runtime bez ręcznego wklejania poleceń, ewentualnie osobny wariant APK z runtime po weryfikacji TermFold i ograniczeń wykonywania binariów na Androidzie.
-5. Pełna lokalizacja, renderowanie Markdown, wyszukiwanie historii, menedżer projektów i przegląd zmian Git.
-6. Testy API 33–36, fizycznych urządzeń, dyktowania, ubijania procesów w tle i procesu aktualizacji. Podpis produkcyjny i kanał dystrybucji wymagają osobnej konfiguracji właściciela projektu.
+## Docker and USB
+
+QEMU TCG boots an Alpine Linux guest with Docker Engine and a persistent QCOW2 overlay. The controller exposes task operations, not a guest administrator shell. Real containerd Version RPC, Docker ping/info, image checks and disk synchronization determine readiness. Revision3 adds bounded per-boot diagnostics and absolute startup deadlines. [Docker details](DOCKER.md).
+
+Native USB modules provide UART/ESP, ADB to another Android device and SAF storage. Raw USB redirects the Android-granted descriptor through libusb/usbredir and QMP to one container device node. UART uses a separate authenticated task bridge. Native and raw-device owners are exclusive. [USB details](USB.md).
+
+## Direction
+
+Current opportunities include Codex app-server integration, broader localization, optional Shizuku UserService, richer project/Git views and more physical-device coverage. These are not implemented features. The embedded setup, project browser, signing and distribution already exist; earlier planning notes are retained only in the [historical snapshot](https://github.com/mateuszsury/androidagent/tree/6f5b3f566a4a85e0e10a5946de3afa55a8079c05/docs).
+
+[Testing](TESTING.md) separates physical Codex/Docker acceptance from unverified Claude account responses and USB hardware. [NOTICE](../NOTICE) and [third-party notices](../THIRD_PARTY_NOTICES.md) record upstream attribution.

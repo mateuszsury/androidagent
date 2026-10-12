@@ -1,0 +1,56 @@
+name: Bug report
+description: Report a reproducible application or build problem.
+title: "[Bug]: "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: >-
+        For vulnerabilities, use the repository Security tab instead.
+        Do not include credentials, account archives, login codes or personal messages.
+  - type: input
+    id: version
+    attributes:
+      label: App version or source commit
+      placeholder: 0.4.4 / versionCode 404
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Device and environment
+      description: Android version, device model, ABI and whether this is an emulator or physical device.
+      placeholder: Lenovo TB336FU, Android 16, arm64-v8a, physical
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Affected area
+      options:
+        - Chat or interface
+        - Embedded terminal or client setup
+        - Codex
+        - Claude Code
+        - Docker or WebView
+        - USB or storage
+        - Permissions or background operation
+        - Build or documentation
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Include relevant settings or permissions, without account credentials.
+    validations:
+      required: true
+  - type: textarea
+    id: behavior
+    attributes:
+      label: Expected and observed behavior
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Sanitized logs or screenshots
+      description: For VM startup, attach saved startup diagnostics. Remove personal data before sharing.
