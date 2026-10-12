@@ -42,7 +42,7 @@ def main():
     docs = sorted({*ROOT.glob('*.md'), *ROOT.joinpath('docs').rglob('*.md'),
                    ROOT/'docker/SOURCES.md', ROOT/'terminal/README.md',
                    ROOT/'terminal/SOURCES.md', ROOT/'usb/README.md',
-                   *ROOT.joinpath('.github').glob('*.md')})
+                   *ROOT.joinpath('.github').rglob('*.md')})
     errors = []
     links_checked = 0
     for path in docs:
