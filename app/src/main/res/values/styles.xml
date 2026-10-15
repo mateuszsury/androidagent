@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Screen transitions: a short fade with a gentle slide, like a terminal pane opening. -->
+    <style name="AppAnimation" parent="@android:style/Animation.Activity">
+        <item name="android:activityOpenEnterAnimation">@anim/screen_open_enter</item>
+        <item name="android:activityOpenExitAnimation">@anim/screen_open_exit</item>
+        <item name="android:activityCloseEnterAnimation">@anim/screen_close_enter</item>
+        <item name="android:activityCloseExitAnimation">@anim/screen_close_exit</item>
+    </style>
+
+    <style name="SheetAnimation">
+        <item name="android:windowEnterAnimation">@anim/sheet_enter</item>
+        <item name="android:windowExitAnimation">@anim/sheet_exit</item>
+    </style>
+
+    <style name="AppTheme.Dark" parent="@android:style/Theme.DeviceDefault.NoActionBar">
+        <item name="android:windowAnimationStyle">@style/AppAnimation</item>
+        <item name="android:colorAccent">#D97757</item>
+        <item name="android:windowBackground">#1A1917</item>
+    </style>
+
+    <style name="AppTheme.Light" parent="@android:style/Theme.DeviceDefault.Light.NoActionBar">
+        <item name="android:windowAnimationStyle">@style/AppAnimation</item>
+        <item name="android:colorAccent">#C2603F</item>
+        <item name="android:windowBackground">#FAF9F5</item>
+    </style>
+</resources>
