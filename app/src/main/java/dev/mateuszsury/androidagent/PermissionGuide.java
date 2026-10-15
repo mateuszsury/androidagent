@@ -30,23 +30,57 @@ public final class PermissionGuide {
         final boolean accessibilityEnabled;
         final boolean accessibilityConnected;
         final boolean batteryExempt;
+        // Agent tools: notification access, location, photos, installing APKs, system settings.
+        final boolean notificationAccess;
+        final boolean notificationAccessConnected;
+        final boolean locationFine;
+        final boolean locationCoarse;
+        final boolean photos;
+        final boolean installApps;
+        final boolean writeSettings;
 
-        State(boolean notifications, boolean microphone, boolean enabled, boolean connected, boolean exempt) {
+        State(boolean notifications, boolean microphone, boolean enabled, boolean connected, boolean exempt,
+              boolean notificationAccess, boolean notificationAccessConnected, boolean locationFine,
+              boolean locationCoarse, boolean photos, boolean installApps, boolean writeSettings) {
             this.notifications = notifications;
             this.microphone = microphone;
             this.accessibilityEnabled = enabled;
             this.accessibilityConnected = connected;
             this.batteryExempt = exempt;
+            this.notificationAccess = notificationAccess;
+            this.notificationAccessConnected = notificationAccessConnected;
+            this.locationFine = locationFine;
+            this.locationCoarse = locationCoarse;
+            this.photos = photos;
+            this.installApps = installApps;
+            this.writeSettings = writeSettings;
         }
+
+        /** How many of the listed consents are fully on (for the screen's subtitle). */
+        int enabledCount() {
+            boolean[] all = {notifications, microphone, accessibilityConnected, batteryExempt, notificationAccess,
+                    locationCoarse, photos, installApps, writeSettings};
+            int n = 0;
+            for (boolean b : all) if (b) n++;
+            return n;
+        }
+
+        static final int TOTAL = 9;
     }
 
     static State read(Context context) {
         boolean notifications = NotificationPermission.enabled(context)
                 && (Build.VERSION.SDK_INT < 33 || granted(context, Manifest.permission.POST_NOTIFICATIONS));
         PowerManager power = context.getSystemService(PowerManager.class);
+        boolean install;
+        try { install = context.getPackageManager().canRequestPackageInstalls(); }
+        catch (RuntimeException e) { install = false; }
         return new State(notifications, granted(context, Manifest.permission.RECORD_AUDIO),
                 accessibilityEnabled(context), BuddyService.get() != null,
-                power != null && power.isIgnoringBatteryOptimizations(context.getPackageName()));
+                power != null && power.isIgnoringBatteryOptimizations(context.getPackageName()),
+                NotifListener.granted(context), NotifListener.get() != null,
+                LocationTools.fineGranted(context), LocationTools.coarseGranted(context),
+                MediaTools.photosAllowed(context), install, Settings.System.canWrite(context));
     }
 
     private static boolean granted(Context context, String permission) {
@@ -88,5 +122,26 @@ public final class PermissionGuide {
 
     static Intent batteryListIntent() {
         return new Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS);
+    }
+
+    /** androidagent's own page under Notification access (Android 11+), else the list of listeners. */
+    static Intent notificationAccessIntent(Context context) {
+        return new Intent(Settings.ACTION_NOTIFICATION_LISTENER_DETAIL_SETTINGS)
+                .putExtra(Settings.EXTRA_NOTIFICATION_LISTENER_COMPONENT_NAME,
+                        NotifListener.component(context).flattenToString());
+    }
+
+    static Intent notificationAccessListIntent() {
+        return new Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS);
+    }
+
+    /** "Install unknown apps" for androidagent only. */
+    static Intent installAppsIntent(Context context) {
+        return new Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:" + context.getPackageName()));
+    }
+
+    /** "Modify system settings" for androidagent only. */
+    static Intent writeSettingsIntent(Context context) {
+        return new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS, Uri.parse("package:" + context.getPackageName()));
     }
 }
