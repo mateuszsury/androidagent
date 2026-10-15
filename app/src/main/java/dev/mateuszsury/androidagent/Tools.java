@@ -220,10 +220,13 @@ final class Tools {
             }
             if (keyboard) sb.append("\n(The on-screen keyboard is open.)\n");
             int total = lastNodes.size();
-            if (total > limit) {
-                int pages = (total + limit - 1) / limit;
-                sb.append("\n(Page ").append(page).append(" of ").append(pages - 1).append(": elements ")
-                        .append(Math.min(from, total)).append('-').append(Math.min(to, total) - 1).append(" of ").append(total).append('.');
+            int pages = Math.max(1, (total + limit - 1) / limit);
+            if (from >= total && page > 0) {
+                sb.append("\n(Page ").append(page).append(" is past the end: ").append(total)
+                        .append(" elements, pages 0-").append(pages - 1).append(".)\n");
+            } else if (total > limit) {
+                sb.append("\n(Showing elements ").append(Math.min(from, total)).append('-').append(Math.min(to, total) - 1)
+                        .append(" of ").append(total).append(": page ").append(page).append(", pages 0-").append(pages - 1).append('.');
                 if (to < total) sb.append(" Call read_screen with page=").append(page + 1).append(" for more.");
                 sb.append(")\n");
             }
