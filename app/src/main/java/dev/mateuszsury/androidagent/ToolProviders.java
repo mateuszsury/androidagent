@@ -23,6 +23,7 @@ final class ToolProviders {
     }
 
     static final Provider[] ALL = {
+            new ServiceTools(),
     };
 
     private ToolProviders() {

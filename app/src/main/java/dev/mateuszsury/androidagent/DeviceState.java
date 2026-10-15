@@ -27,6 +27,9 @@ final class DeviceState {
                     : nc.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET)
                         ? "Ethernet"
                         : "połączono";
+    java.util.List<NetAddresses.Address> addresses = NetAddresses.read(c);
+    org.json.JSONArray lan = new org.json.JSONArray();
+    for (NetAddresses.Address a : NetAddresses.lan(addresses)) lan.put(a.ip);
     return new JSONObject()
         .put("model", Build.MANUFACTURER + " " + Build.MODEL)
         .put("android", Build.VERSION.RELEASE)
@@ -41,6 +44,11 @@ final class DeviceState {
         .put("storage_total_bytes", disk.getTotalBytes())
         .put("uptime_seconds", SystemClock.elapsedRealtime() / 1000)
         .put("network", network)
+        .put("wifi_connected", nc != null && nc.hasTransport(NetworkCapabilities.TRANSPORT_WIFI))
+        // Servers bound to 0.0.0.0 are reachable from the same Wi-Fi/LAN at http://<lan_ipv4>:PORT.
+        .put("lan_ipv4", lan)
+        .put("ip_addresses", NetAddresses.json(addresses))
+        .put("background_services_running", ServiceManager.get(c).activeCount())
         .put("accessibility_connected", BuddyService.get() != null)
         .put("external_termux_required", false)
         .put("runtime_ready", EmbeddedRuntime.get(c).ready())
@@ -51,6 +59,19 @@ final class DeviceState {
 
   static String gb(long bytes) {
     return String.format(java.util.Locale.forLanguageTag("pl"), "%.1f GB", bytes / 1073741824.0);
+  }
+
+  private static String lanLine(JSONObject j) throws Exception {
+    org.json.JSONArray all = j.getJSONArray("ip_addresses");
+    StringBuilder s = new StringBuilder();
+    for (int i = 0; i < all.length(); i++) {
+      JSONObject a = all.getJSONObject(i);
+      if (!a.optBoolean("lan")) continue;
+      String type = a.optString("type");
+      s.append(s.length() == 0 ? "\nAdres w sieci lokalnej: " : ", ").append(a.optString("ip"))
+          .append(" (").append("wifi".equals(type) ? "Wi-Fi" : "hotspot".equals(type) ? "hotspot" : "Ethernet").append(')');
+    }
+    return s.toString();
   }
 
   static String summary(Context c) throws Exception {
@@ -70,6 +91,7 @@ final class DeviceState {
         + gb(j.getLong("storage_available_bytes"))
         + "\nSieć: "
         + j.getString("network")
+        + lanLine(j)
         + "\nCzas działania: "
         + j.getLong("uptime_seconds") / 60
         + " min\n\nSterowanie ekranem: "

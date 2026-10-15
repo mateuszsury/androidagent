@@ -68,6 +68,13 @@ final class RuntimeProcess {
         }
     }
 
+    /** The validated PID of a process from {@link #start}, or -1; may wait up to 5 s for it. */
+    static int pid(Process process) {
+        if (!(process instanceof ManagedProcess)) return -1;
+        Identity root = ((ManagedProcess) process).awaitRoot();
+        return root == null ? -1 : root.pid;
+    }
+
     private static final class Identity {
         final int pid, parent;
         final long started;

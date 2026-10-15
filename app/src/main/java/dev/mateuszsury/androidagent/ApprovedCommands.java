@@ -33,11 +33,16 @@ final class ApprovedCommands {
         private LocalShell shell;
 
         Pending(String owner, String command, String credential) {
+            this(owner, command, credential,
+                    "Wykonać dokładnie tę komendę w lokalnym katalogu androidagent?\n\n" + command);
+        }
+
+        /** An approval card with its own question (e.g. a background service), ending with the exact action. */
+        Pending(String owner, String command, String credential, String question) {
             this.owner = owner;
             this.command = command;
             this.credential = credential;
-            summary = (owner.startsWith("chat:") ? "" : "Żądanie zewnętrznego narzędzia.\n\n")
-                    + "Wykonać dokładnie tę komendę w lokalnym katalogu androidagent?\n\n" + command;
+            summary = (owner.startsWith("chat:") ? "" : "Żądanie zewnętrznego narzędzia.\n\n") + question;
         }
     }
 
@@ -93,6 +98,51 @@ final class ApprovedCommands {
                 shell = pending.shell;
             }
             if (shell != null) shell.stop();
+            changed();
+        }
+    }
+
+    /**
+     * Ask the owner, on the same in-chat card as {@code run_command}, to approve the exact action
+     * described by {@code question}; nothing is executed here. True only when approved while this
+     * caller's run is still the active one (a later run never inherits the answer).
+     */
+    boolean approve(String caller, String question) throws Exception {
+        return approve(caller, question, McpServer.credential());
+    }
+
+    boolean approve(String caller, String question, String credential) throws Exception {
+        if (Looper.myLooper() == Looper.getMainLooper())
+            throw new IllegalStateException("Zgoda wymaga osobnego wątku narzędzia.");
+        if (!Prefs.devMode(app)) throw new IllegalStateException("Włącz tryb programisty w ustawieniach androidagent.");
+        if (caller == null) throw new IllegalArgumentException("Brak właściciela żądania");
+        Pending pending = new Pending(caller, "", credential, question);
+        synchronized (this) {
+            McpHost.get(app).requireCaller(caller);
+            if (!authorized(pending)) throw new SecurityException("This tool access has ended.");
+            if (requests.size() >= 32) throw new IllegalStateException("Za dużo oczekujących próśb. Zatrzymaj poprzednie zadania.");
+            requests.put(pending.id, pending);
+        }
+        changed();
+        try {
+            long deadline = SystemClock.elapsedRealtime() + 5 * 60 * 1000L;
+            while (!pending.answered.await(200, TimeUnit.MILLISECONDS)) {
+                synchronized (this) {
+                    if (!authorized(pending) || SystemClock.elapsedRealtime() >= deadline) {
+                        pending.cancelled = true;
+                        pending.decided = true;
+                        pending.answered.countDown();
+                    }
+                }
+            }
+            synchronized (this) {
+                return pending.approved && authorized(pending);
+            }
+        } finally {
+            synchronized (this) {
+                requests.remove(pending.id);
+                pending.cancelled = true;
+            }
             changed();
         }
     }
