@@ -65,6 +65,12 @@
         <service android:name=".AgentService" android:exported="false" android:foregroundServiceType="specialUse">
             <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE" android:value="User-started local agent tool host and callbacks, independent of screen control" />
         </service>
+        <activity android:name=".ServicesActivity" android:exported="false" />
+        <service android:name=".ServicesService" android:exported="false" android:foregroundServiceType="specialUse">
+            <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE" android:value="Owner-approved long-running local servers and bots in the embedded terminal, with their own stop control" />
+        </service>
+        <!-- Process-start hook: restores autostart background services (no data is exposed) -->
+        <provider android:name=".ServicesBoot" android:authorities="dev.mateuszsury.androidagent.services" android:exported="false" />
         <activity android:name=".DockerActivity" android:exported="false" />
         <activity android:name=".DockerTaskActivity" android:exported="false" />
         <activity android:name=".DockerPreviewActivity" android:exported="false" />
