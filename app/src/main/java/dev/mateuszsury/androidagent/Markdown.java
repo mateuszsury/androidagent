@@ -737,6 +737,8 @@ final class Markdown {
         panel.addView(sep, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(c, 1)));
         HorizontalScrollView scroll = new HorizontalScrollView(c);
         scroll.setHorizontalScrollBarEnabled(false);
+        // Short lines still span the panel, so diff line backgrounds reach the edge.
+        scroll.setFillViewport(true);
         TextView codeView = monoText(c, "", 12, CODE_TEXT);
         codeView.setText(Syntax.highlight(copied, lang));
         codeView.setTextIsSelectable(true);
