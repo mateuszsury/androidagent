@@ -2,18 +2,17 @@ package dev.mateuszsury.androidagent;
 
 import android.accessibilityservice.AccessibilityService;
 import android.accessibilityservice.GestureDescription;
-import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.content.pm.ResolveInfo;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.graphics.Bitmap;
 import android.graphics.Path;
 import android.graphics.Rect;
-import android.net.Uri;
 import android.os.Bundle;
 import android.util.Base64;
 import android.util.DisplayMetrics;
 import android.view.Display;
 import android.view.accessibility.AccessibilityNodeInfo;
+import android.view.accessibility.AccessibilityNodeInfo.AccessibilityAction;
 import android.view.accessibility.AccessibilityWindowInfo;
 
 import org.json.JSONArray;
@@ -22,26 +21,30 @@ import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
-/** The phone-control tools exposed to Claude Code and Codex over MCP. */
+/**
+ * The screen-control tools (Accessibility) exposed to Claude Code and Codex over MCP. Tools that work without
+ * Accessibility live in {@link PhoneTools}, {@link IntentTools} and {@link DeviceTools}.
+ */
 final class Tools {
-    private static final int MAX_NODES = 350;
+    /** Elements remembered per read_screen (ids stay valid across its pages until the next read_screen). */
+    private static final int MAX_NODES = 1500;
+    private static final int PAGE_SIZE = 350;
     private static final int SCREENSHOT_WIDTH = 720;
 
+    private static final Set<String> NAMES = new HashSet<>(Arrays.asList(
+            "read_screen", "tap", "long_press", "find_and_tap", "type_text", "ime_action", "scroll", "swipe", "press",
+            "screenshot"));
+
     private final BuddyService svc;
-    private final java.util.Set<LocalShell> commands = new java.util.HashSet<>();
-    void cancelCommands() {
-        cancelLocalCommands();
-        DockerVm.get(svc).emergencyStop();
-        UsbSessions.get(svc).closeAll();
-    }
-    void cancelLocalCommands() { synchronized (commands) { for (LocalShell command : commands) command.stop(); } }
     private final Object lock = new Object();
     private final List<AccessibilityNodeInfo> lastNodes = new ArrayList<>();
     void clearNodes() { synchronized(lock) { for(AccessibilityNodeInfo n:lastNodes)n.recycle();lastNodes.clear(); } }
@@ -50,18 +53,20 @@ final class Tools {
         this.svc = svc;
     }
 
+    static boolean handles(String name) {
+        return NAMES.contains(name);
+    }
+
     // ---------------------------------------------------------------- schema
 
-    JSONArray list() throws JSONException {
+    static JSONArray list() throws JSONException {
         JSONArray t = new JSONArray();
-        JSONArray docker = DockerTools.list();
-        for (int i = 0; i < docker.length(); i++) t.put(docker.get(i));
-        t.put(tool("device_status", "Read live Android version, battery, RAM, storage, connectivity and granted capabilities.", props()));
-        t.put(tool("run_command", "Run an Android shell command under the androidagent app UID (not root). Requires developer mode and explicit approval of this exact command in its chat. Works without Accessibility. Timeout 10 seconds; output 32 KB. Working directory is the app workspace.", props().put("command", strProp("Exact shell command")), "command"));
         t.put(tool("read_screen",
-                "Read what is on the phone screen as a list of UI elements with ids, text, and tap coordinates. "
-                        + "Call this first and after every action to see the result. Element ids are only valid until the next read_screen.",
-                props()));
+                "Read what is on the phone screen as a list of UI elements with ids, text, resource ids (res=) and tap "
+                        + "coordinates. Call this first and after every action to see the result. Element ids are only "
+                        + "valid until the next read_screen. Long screens are paged: the reply says when to ask for the next page.",
+                props().put("page", intProp("0-based page of elements (default 0)"))
+                        .put("limit", intProp("Elements per page, default 350, max 1000"))));
         t.put(tool("tap",
                 "Tap an element (by id from the last read_screen) or a screen coordinate in pixels.",
                 props().put("element", intProp("Element id from read_screen"))
@@ -70,18 +75,35 @@ final class Tools {
                 "Long-press an element or coordinate.",
                 props().put("element", intProp("Element id from read_screen"))
                         .put("x", intProp("X in screen pixels")).put("y", intProp("Y in screen pixels"))));
+        t.put(tool("find_and_tap",
+                "Find a visible element by its text / content description (case-insensitive substring) or by its "
+                        + "resource id (the res= value from read_screen) and tap it, without a read_screen first. Clicks "
+                        + "the nearest clickable ancestor; falls back to a tap gesture. Exact text matches are preferred.",
+                props().put("text", strProp("Text or content description to find"))
+                        .put("resource_id", strProp("View resource id, e.g. send_button or com.app:id/send_button"))
+                        .put("index", intProp("Which match to tap when several match (0-based, default 0)"))
+                        .put("exact", boolProp("Only whole-text matches"))
+                        .put("long_press", boolProp("Long-press instead of tap"))));
         t.put(tool("type_text",
                 "Type into the focused text field (or the given element). Replaces its content unless append is true. "
-                        + "Set submit to press the keyboard's enter/send action afterwards.",
+                        + "Set submit to press the keyboard's enter/send action afterwards. Set paste to insert via the "
+                        + "clipboard (replaces the user's clipboard) for fields that ignore direct text input; this also "
+                        + "happens automatically when a field rejects direct input.",
                 props().put("text", strProp("Text to type"))
                         .put("element", intProp("Optional element id of the text field"))
                         .put("append", boolProp("Append instead of replacing"))
-                        .put("submit", boolProp("Press the IME enter/send action after typing")),
+                        .put("submit", boolProp("Press the IME enter/send action after typing"))
+                        .put("paste", boolProp("Insert through the clipboard instead of setting the text directly")),
                 "text"));
+        t.put(tool("ime_action",
+                "Press the keyboard's action key (enter / send / search / go / done) for the focused text field or the "
+                        + "given element.",
+                props().put("element", intProp("Optional element id of the text field"))));
         t.put(tool("scroll",
-                "Scroll the screen (or a scrollable element) in a direction. 'down' reveals content further down.",
+                "Scroll the screen (or a scrollable element) in a direction. 'down' reveals content further down. With "
+                        + "an element, scrolls that list via its accessibility scroll action (more reliable than a swipe).",
                 props().put("direction", enumProp("up", "down", "left", "right"))
-                        .put("element", intProp("Optional scrollable element id")),
+                        .put("element", intProp("Optional element id (a scrollable element or anything inside one)")),
                 "direction"));
         t.put(tool("swipe",
                 "Swipe from one point to another, in screen pixels.",
@@ -89,48 +111,20 @@ final class Tools {
                         .put("duration_ms", intProp("Default 300")),
                 "x1", "y1", "x2", "y2"));
         t.put(tool("press",
-                "Press a system button.",
-                props().put("button", enumProp("back", "home", "recents", "notifications", "quick_settings")),
+                "Press a system button or run a system action: back, home, recents, notifications, quick_settings, "
+                        + "lock_screen, take_screenshot (saved to the gallery) or power_dialog.",
+                props().put("button", enumProp("back", "home", "recents", "notifications", "quick_settings",
+                        "lock_screen", "take_screenshot", "power_dialog")),
                 "button"));
-        t.put(tool("open_app",
-                "Open an installed app by its name (e.g. 'Messenger') or package name.",
-                props().put("app", strProp("App name or package")), "app"));
-        t.put(tool("list_apps", "List launchable apps with their package names.", props()));
-        t.put(tool("open_url", "Open a URL or deep link (https://, mailto:, tel:, geo:, ...).",
-                props().put("url", strProp("The URL")), "url"));
         t.put(tool("screenshot",
                 "Take a screenshot (JPEG). Use only when read_screen is not enough (images, games, canvas UIs). "
                         + "The reply says how to convert image coordinates to screen pixels.",
                 props()));
-        t.put(tool("wait", "Wait for the UI to settle, up to 10000 ms.",
-                props().put("ms", intProp("Milliseconds")), "ms"));
-        t.put(tool("confirm",
-                "Ask the user to approve an action in the androidagent bubble and wait for the answer. "
-                        + "REQUIRED before sending messages, posting, buying, deleting, or changing settings. "
-                        + "Show the exact text or action. Returns APPROVED or DENIED.",
-                props().put("summary", strProp("Exactly what you are about to do, including any text to be sent")),
-                "summary"));
-        t.put(tool("notify", "Show a short status line in the androidagent bubble without stopping.",
-                props().put("text", strProp("Status text")), "text"));
-        t.put(tool("wait_for_install",
-                "After opening the Android installer for an APK, wait until the user has tapped Install/Update and confirmed. "
-                        + "Returns as soon as the package is installed (at least min_version_code if given), or early if the "
-                        + "installer is no longer on screen, or after the timeout. Use this instead of shell polling loops.",
-                props().put("package", strProp("Package name, e.g. com.buddyapps.flappy"))
-                        .put("min_version_code", intProp("Wait for at least this versionCode (for updates)"))
-                        .put("timeout_s", intProp("Default 120, max 300")),
-                "package"));
         return t;
     }
 
     private static JSONObject tool(String name, String desc, JSONObject properties, String... required) throws JSONException {
-        JSONObject schema = new JSONObject().put("type", "object").put("properties", properties);
-        if (required.length > 0) {
-            JSONArray r = new JSONArray();
-            for (String s : required) r.put(s);
-            schema.put("required", r);
-        }
-        return new JSONObject().put("name", name).put("description", desc).put("inputSchema", schema);
+        return ToolProviders.tool(name, desc, properties, required);
     }
 
     private static JSONObject props() {
@@ -159,50 +153,34 @@ final class Tools {
 
     JSONObject call(String name, JSONObject a) throws Exception {
         String revoked = svc.controlRevoked();
-        if (revoked != null && !"notify".equals(name)) return text(revoked);
+        if (revoked != null) return text(revoked);
         svc.onToolActivity(name);
-        if (name.startsWith("docker_")) return DockerTools.call(svc, name, a);
         switch (name) {
-            case "device_status": return text(DeviceState.read(svc).toString(2));
-            case "run_command": {
-                return ApprovedCommands.get(svc).run(McpServer.caller(), a.getString("command"));
-            }
-            case "read_screen": return text(readScreen());
+            case "read_screen": return text(readScreen(a.optInt("page", 0), a.optInt("limit", PAGE_SIZE)));
             case "tap": return text(tap(a, false));
             case "long_press": return text(tap(a, true));
+            case "find_and_tap": return text(findAndTap(a));
             case "type_text": return text(typeText(a));
+            case "ime_action": return text(imeAction(a));
             case "scroll": return text(scroll(a));
             case "swipe": return text(swipe(a));
             case "press": return text(press(a.getString("button")));
-            case "open_app": return text(openApp(a.getString("app")));
-            case "list_apps": return text(listApps());
-            case "open_url": return text(openUrl(a.getString("url")));
             case "screenshot": return screenshot();
-            case "wait": {
-                long ms = Math.max(0, Math.min(10000, a.optLong("ms", 1000)));
-                Thread.sleep(ms);
-                return text("Waited " + ms + " ms.");
-            }
-            case "confirm": return text(svc.askConfirm(a.getString("summary")));
-            case "wait_for_install":
-                return text(waitForInstall(a.getString("package"), a.optLong("min_version_code", 0),
-                        Math.max(10, Math.min(300, a.optInt("timeout_s", 120)))));
-            case "notify": {
-                svc.showStatus(a.getString("text"));
-                return text("Shown.");
-            }
             default:
                 throw new IllegalArgumentException("Unknown tool " + name);
         }
     }
 
     private static JSONObject text(String s) throws JSONException {
-        return new JSONObject().put("content", new JSONArray().put(new JSONObject().put("type", "text").put("text", s)));
+        return ToolProviders.text(s);
     }
 
     // ---------------------------------------------------------- read_screen
 
-    private String readScreen() {
+    private String readScreen(int page, int limit) {
+        limit = Math.max(20, Math.min(1000, limit));
+        page = Math.max(0, page);
+        int from = page * limit, to = from + limit;
         DisplayMetrics dm = svc.getResources().getDisplayMetrics();
         StringBuilder sb = new StringBuilder();
         sb.append("Screen ").append(dm.widthPixels).append('x').append(dm.heightPixels).append(" px\n");
@@ -210,6 +188,7 @@ final class Tools {
             for (AccessibilityNodeInfo n : lastNodes) n.recycle();
             lastNodes.clear();
             List<AccessibilityWindowInfo> windows = svc.getWindows();
+            List<String> lines = new ArrayList<>();
             boolean keyboard = false;
             for (AccessibilityWindowInfo w : windows) {
                 if (w.getType() == AccessibilityWindowInfo.TYPE_ACCESSIBILITY_OVERLAY) continue;
@@ -220,19 +199,40 @@ final class Tools {
                 AccessibilityNodeInfo root = w.getRoot();
                 if (root == null) continue;
                 CharSequence title = w.getTitle();
-                sb.append("\n## ").append(windowType(w.getType()))
-                        .append(" window").append(root.getPackageName() != null ? " [" + root.getPackageName() + "]" : "")
-                        .append(title != null ? " \"" + title + "\"" : "")
-                        .append(w.isActive() ? " (active)" : "").append('\n');
-                walk(root, sb, 0);
+                String header = "\n## " + windowType(w.getType()) + " window"
+                        + (root.getPackageName() != null ? " [" + root.getPackageName() + "]" : "")
+                        + (title != null ? " \"" + title + "\"" : "") + (w.isActive() ? " (active)" : "");
+                int first = lastNodes.size();
+                lines.clear();
+                walk(root, lines, 0);
+                int last = lastNodes.size();
+                sb.append(header).append('\n');
+                int shown = 0;
+                for (int i = 0; i < lines.size(); i++) {
+                    int id = first + i;
+                    if (id >= from && id < to) {
+                        sb.append(lines.get(i));
+                        shown++;
+                    }
+                }
+                if (shown == 0 && last > first)
+                    sb.append("(elements ").append(first).append('-').append(last - 1).append(" are on another page)\n");
             }
             if (keyboard) sb.append("\n(The on-screen keyboard is open.)\n");
-            if (lastNodes.size() >= MAX_NODES) sb.append("\n(Truncated at ").append(MAX_NODES).append(" elements; scroll for more.)\n");
+            int total = lastNodes.size();
+            if (total > limit) {
+                int pages = (total + limit - 1) / limit;
+                sb.append("\n(Page ").append(page).append(" of ").append(pages - 1).append(": elements ")
+                        .append(Math.min(from, total)).append('-').append(Math.min(to, total) - 1).append(" of ").append(total).append('.');
+                if (to < total) sb.append(" Call read_screen with page=").append(page + 1).append(" for more.");
+                sb.append(")\n");
+            }
+            if (total >= MAX_NODES) sb.append("\n(Stopped at ").append(MAX_NODES).append(" elements; scroll for more.)\n");
         }
         return sb.toString();
     }
 
-    private void walk(AccessibilityNodeInfo n, StringBuilder sb, int depth) {
+    private void walk(AccessibilityNodeInfo n, List<String> lines, int depth) {
         if (n == null) return;
         try {
         if (lastNodes.size() >= MAX_NODES || !n.isVisibleToUser()) return;
@@ -245,10 +245,13 @@ final class Tools {
             lastNodes.add(AccessibilityNodeInfo.obtain(n));
             Rect r = new Rect();
             n.getBoundsInScreen(r);
+            StringBuilder sb = new StringBuilder();
             sb.append(indent(depth)).append('[').append(id).append("] ").append(shortClass(n.getClassName()));
             if (!empty(text)) sb.append(" \"").append(clip(text)).append('"');
             if (!empty(desc) && (empty(text) || !desc.toString().equals(text.toString())))
                 sb.append(" desc=\"").append(clip(desc)).append('"');
+            String res = shortId(n.getViewIdResourceName());
+            if (res != null) sb.append(" res=").append(res);
             if (n.isEditable() && n.isShowingHintText()) sb.append(" (hint)");
             sb.append(" @").append(r.centerX()).append(',').append(r.centerY());
             StringBuilder f = new StringBuilder();
@@ -262,12 +265,20 @@ final class Tools {
             if (!n.isEnabled()) f.append(" disabled");
             if (f.length() > 0) sb.append(" {").append(f.toString().trim()).append('}');
             sb.append('\n');
+            lines.add(sb.toString());
         }
         int count = n.getChildCount();
         for (int i = 0; i < count && lastNodes.size() < MAX_NODES; i++) {
-            walk(n.getChild(i), sb, interesting ? depth + 1 : depth);
+            walk(n.getChild(i), lines, interesting ? depth + 1 : depth);
         }
         } finally { n.recycle(); }
+    }
+
+    /** "com.example:id/send_button" -> "send_button" (null when the view has no id). */
+    static String shortId(String full) {
+        if (full == null || full.isEmpty()) return null;
+        int slash = full.indexOf(":id/");
+        return slash >= 0 ? full.substring(slash + 4) : full;
     }
 
     private static String windowType(int t) {
@@ -313,6 +324,18 @@ final class Tools {
         }
     }
 
+    /** Windows whose content the agent may act on (not our overlay, not the keyboard). */
+    private List<AccessibilityNodeInfo> roots() {
+        List<AccessibilityNodeInfo> out = new ArrayList<>();
+        for (AccessibilityWindowInfo w : svc.getWindows()) {
+            if (w.getType() == AccessibilityWindowInfo.TYPE_ACCESSIBILITY_OVERLAY
+                    || w.getType() == AccessibilityWindowInfo.TYPE_INPUT_METHOD) continue;
+            AccessibilityNodeInfo root = w.getRoot();
+            if (root != null) out.add(root);
+        }
+        return out;
+    }
+
     // ------------------------------------------------------------- actions
 
     private String tap(JSONObject a, boolean longPress) throws Exception {
@@ -351,6 +374,69 @@ final class Tools {
         return null;
     }
 
+    private String findAndTap(JSONObject a) throws Exception {
+        String text = a.optString("text", "").trim();
+        String rid = a.optString("resource_id", "").trim();
+        if (text.isEmpty() == rid.isEmpty()) throw new IllegalArgumentException("Give exactly one of text or resource_id.");
+        boolean exact = a.optBoolean("exact"), longPress = a.optBoolean("long_press");
+        List<AccessibilityNodeInfo> whole = new ArrayList<>(), partial = new ArrayList<>();
+        for (AccessibilityNodeInfo root : roots()) {
+            List<AccessibilityNodeInfo> found = new ArrayList<>();
+            if (!text.isEmpty()) {
+                found.addAll(root.findAccessibilityNodeInfosByText(text));
+            } else if (rid.contains(":id/")) {
+                found.addAll(root.findAccessibilityNodeInfosByViewId(rid));
+            } else {
+                if (root.getPackageName() != null)
+                    found.addAll(root.findAccessibilityNodeInfosByViewId(root.getPackageName() + ":id/" + rid));
+                found.addAll(root.findAccessibilityNodeInfosByViewId("android:id/" + rid));
+            }
+            for (AccessibilityNodeInfo n : found) {
+                if (n == null || !n.isVisibleToUser()) continue;
+                boolean isWhole = text.isEmpty() || same(n.getText(), text) || same(n.getContentDescription(), text);
+                if (isWhole) whole.add(n);
+                else if (!exact) partial.add(n);
+            }
+        }
+        List<AccessibilityNodeInfo> matches = new ArrayList<>(whole);
+        matches.addAll(partial);
+        String what = text.isEmpty() ? "resource id " + rid : "\"" + text + "\"";
+        if (matches.isEmpty())
+            return "No visible element matches " + what + (exact ? " exactly" : "") + ". Call read_screen to see what is there.";
+        int index = a.optInt("index", 0);
+        if (index < 0 || index >= matches.size())
+            return matches.size() + " elements match " + what + "; index " + index + " is out of range (0-" + (matches.size() - 1) + ").";
+        AccessibilityNodeInfo n = matches.get(index);
+        String label = describe(n);
+        String count = matches.size() > 1 ? " (match " + index + " of " + matches.size() + ")" : "";
+        AccessibilityNodeInfo target = clickableAncestor(n, longPress);
+        if (target != null && target.performAction(longPress ? AccessibilityNodeInfo.ACTION_LONG_CLICK : AccessibilityNodeInfo.ACTION_CLICK)) {
+            Thread.sleep(400);
+            return (longPress ? "Long-pressed " : "Tapped ") + label + count + " via accessibility click. Call read_screen to see the result.";
+        }
+        Rect r = new Rect();
+        n.getBoundsInScreen(r);
+        if (r.isEmpty()) return "Found " + label + count + " but it has no on-screen area; scroll to it first.";
+        Path p = new Path();
+        p.moveTo(r.centerX(), r.centerY());
+        boolean ok = gesture(p, longPress ? 700 : 60);
+        return (ok ? (longPress ? "Long-pressed " : "Tapped ") : "Gesture was cancelled on ") + label + count + " at ("
+                + r.centerX() + ", " + r.centerY() + "). Call read_screen to see the result.";
+    }
+
+    private static boolean same(CharSequence value, String query) {
+        return value != null && value.toString().trim().equalsIgnoreCase(query);
+    }
+
+    private static String describe(AccessibilityNodeInfo n) {
+        StringBuilder b = new StringBuilder(shortClass(n.getClassName()));
+        CharSequence t = !empty(n.getText()) ? n.getText() : n.getContentDescription();
+        if (!empty(t)) b.append(" \"").append(clip(t)).append('"');
+        String res = shortId(n.getViewIdResourceName());
+        if (res != null) b.append(" res=").append(res);
+        return b.toString();
+    }
+
     private String typeText(JSONObject a) throws Exception {
         String text = a.getString("text");
         AccessibilityNodeInfo target = node(a);
@@ -358,32 +444,58 @@ final class Tools {
         if (target == null)
             throw new IllegalStateException("No text field is focused. Tap the text field first, then type.");
         if (!target.isFocused()) target.performAction(AccessibilityNodeInfo.ACTION_FOCUS);
-        String value = text;
-        if (a.optBoolean("append")) {
-            CharSequence cur = target.isShowingHintText() ? null : target.getText();
-            value = (cur == null ? "" : cur.toString()) + text;
+        boolean append = a.optBoolean("append");
+        CharSequence cur = target.isShowingHintText() ? null : target.getText();
+        boolean pasted;
+        if (a.optBoolean("paste")) {
+            pasted = paste(target, text, append, cur);
+        } else {
+            String value = append ? (cur == null ? "" : cur.toString()) + text : text;
+            Bundle args = new Bundle();
+            args.putCharSequence(AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, value);
+            // Fields that reject direct input (some web views, custom editors) usually still accept a paste.
+            pasted = !target.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, args) && paste(target, text, append, cur);
         }
-        Bundle args = new Bundle();
-        args.putCharSequence(AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, value);
-        boolean ok = target.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, args);
-        if (!ok) throw new IllegalStateException("This field did not accept text.");
-        String result = "Typed " + text.length() + " characters.";
+        String result = "Typed " + text.length() + " characters" + (pasted ? " (pasted via the clipboard, which now holds this text)." : ".");
         if (a.optBoolean("submit")) {
             Thread.sleep(150);
-            boolean sent = target.performAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_IME_ENTER.getId());
+            boolean sent = target.performAction(AccessibilityAction.ACTION_IME_ENTER.getId());
             result += sent ? " Pressed enter." : " Enter action not supported here; tap the send button instead.";
         }
         return result;
     }
 
+    /** Insert text through the clipboard: select what should be replaced (or move to the end), then paste. */
+    private boolean paste(AccessibilityNodeInfo target, String text, boolean append, CharSequence current) throws Exception {
+        DeviceTools.onMain(() -> {
+            svc.getSystemService(ClipboardManager.class).setPrimaryClip(ClipData.newPlainText("androidagent", text));
+            return null;
+        });
+        int len = current == null ? 0 : current.length();
+        Bundle sel = new Bundle();
+        sel.putInt(AccessibilityNodeInfo.ACTION_ARGUMENT_SELECTION_START_INT, append ? len : 0);
+        sel.putInt(AccessibilityNodeInfo.ACTION_ARGUMENT_SELECTION_END_INT, len);
+        target.performAction(AccessibilityNodeInfo.ACTION_SET_SELECTION, sel);
+        if (!target.performAction(AccessibilityNodeInfo.ACTION_PASTE))
+            throw new IllegalStateException("This field accepts neither direct text nor paste. Tap it and use the keyboard "
+                    + "app's own input, or ask the user to type it.");
+        return true;
+    }
+
+    private String imeAction(JSONObject a) throws Exception {
+        AccessibilityNodeInfo target = node(a);
+        if (target == null) target = findFocusedInput();
+        if (target == null) throw new IllegalStateException("No text field is focused. Tap the text field first.");
+        boolean ok = target.performAction(AccessibilityAction.ACTION_IME_ENTER.getId());
+        Thread.sleep(300);
+        return ok ? "Pressed the keyboard action key. Call read_screen to see the result."
+                : "This field has no keyboard action; tap the app's send/search button instead.";
+    }
+
     /** The focused text field, or the only visible text field when nothing has focus. */
     private AccessibilityNodeInfo findFocusedInput() {
         List<AccessibilityNodeInfo> editable = new ArrayList<>();
-        for (AccessibilityWindowInfo w : svc.getWindows()) {
-            if (w.getType() == AccessibilityWindowInfo.TYPE_ACCESSIBILITY_OVERLAY
-                    || w.getType() == AccessibilityWindowInfo.TYPE_INPUT_METHOD) continue;
-            AccessibilityNodeInfo root = w.getRoot();
-            if (root == null) continue;
+        for (AccessibilityNodeInfo root : roots()) {
             AccessibilityNodeInfo f = root.findFocus(AccessibilityNodeInfo.FOCUS_INPUT);
             if (f != null && f.isEditable()) return f;
             collectEditable(root, editable);
@@ -397,13 +509,48 @@ final class Tools {
         for (int i = 0; i < n.getChildCount(); i++) collectEditable(n.getChild(i), out);
     }
 
+    private static AccessibilityNodeInfo scrollableAncestor(AccessibilityNodeInfo n) {
+        AccessibilityNodeInfo cur = n;
+        for (int i = 0; cur != null && i < 12; i++) {
+            if (cur.isScrollable()) return cur;
+            cur = cur.getParent();
+        }
+        return null;
+    }
+
+    private static boolean supports(AccessibilityNodeInfo n, AccessibilityAction action) {
+        for (AccessibilityAction a : n.getActionList()) if (a.getId() == action.getId()) return true;
+        return false;
+    }
+
     private String scroll(JSONObject a) throws Exception {
         String dir = a.getString("direction").toLowerCase(Locale.ROOT);
+        AccessibilityAction directional;
+        switch (dir) {
+            case "down": directional = AccessibilityAction.ACTION_SCROLL_DOWN; break;
+            case "up": directional = AccessibilityAction.ACTION_SCROLL_UP; break;
+            case "right": directional = AccessibilityAction.ACTION_SCROLL_RIGHT; break;
+            case "left": directional = AccessibilityAction.ACTION_SCROLL_LEFT; break;
+            default: throw new IllegalArgumentException("direction must be up, down, left or right");
+        }
         AccessibilityNodeInfo n = node(a);
         Rect r = new Rect();
         if (n != null) {
+            AccessibilityNodeInfo s = scrollableAncestor(n);
+            if (s != null) {
+                boolean forward = dir.equals("down") || dir.equals("right");
+                boolean ok = supports(s, directional) && s.performAction(directional.getId());
+                if (!ok) ok = s.performAction(forward ? AccessibilityNodeInfo.ACTION_SCROLL_FORWARD
+                        : AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD);
+                if (ok) {
+                    Thread.sleep(400);
+                    return "Scrolled " + describe(s) + " " + dir + ". Call read_screen to see the new content.";
+                }
+            }
             n.getBoundsInScreen(r);
-        } else {
+            if (s != null && r.isEmpty()) s.getBoundsInScreen(r);
+        }
+        if (r.isEmpty()) {
             DisplayMetrics dm = svc.getResources().getDisplayMetrics();
             r.set(0, (int) (dm.heightPixels * 0.15), dm.widthPixels, (int) (dm.heightPixels * 0.85));
         }
@@ -414,8 +561,7 @@ final class Tools {
             case "down": p.moveTo(cx, cy + dy); p.lineTo(cx, cy - dy); break;
             case "up": p.moveTo(cx, cy - dy); p.lineTo(cx, cy + dy); break;
             case "right": p.moveTo(cx + dx, cy); p.lineTo(cx - dx, cy); break;
-            case "left": p.moveTo(cx - dx, cy); p.lineTo(cx + dx, cy); break;
-            default: throw new IllegalArgumentException("direction must be up, down, left or right");
+            default: p.moveTo(cx - dx, cy); p.lineTo(cx + dx, cy); break;
         }
         gesture(p, 350);
         Thread.sleep(400);
@@ -467,6 +613,9 @@ final class Tools {
             case "recents": action = AccessibilityService.GLOBAL_ACTION_RECENTS; break;
             case "notifications": action = AccessibilityService.GLOBAL_ACTION_NOTIFICATIONS; break;
             case "quick_settings": action = AccessibilityService.GLOBAL_ACTION_QUICK_SETTINGS; break;
+            case "lock_screen": action = AccessibilityService.GLOBAL_ACTION_LOCK_SCREEN; break;
+            case "take_screenshot": action = AccessibilityService.GLOBAL_ACTION_TAKE_SCREENSHOT; break;
+            case "power_dialog": action = AccessibilityService.GLOBAL_ACTION_POWER_DIALOG; break;
             default: throw new IllegalArgumentException("Unknown button " + button);
         }
         boolean ok = svc.performGlobalAction(action);
@@ -475,111 +624,6 @@ final class Tools {
         } catch (InterruptedException ignored) {
         }
         return ok ? "Pressed " + button + "." : "Could not press " + button + ".";
-    }
-
-    private List<ResolveInfo> launchables() {
-        Intent i = new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER);
-        return svc.getPackageManager().queryIntentActivities(i, 0);
-    }
-
-    private String openApp(String query) throws InterruptedException {
-        PackageManager pm = svc.getPackageManager();
-        String q = query.trim().toLowerCase(Locale.ROOT);
-        // Score every app: package name > exact label > label starts with query > label contains it.
-        List<String[]> top = new ArrayList<>(); // {package, label} with the best score
-        int bestScore = 0;
-        for (ResolveInfo ri : launchables()) {
-            String pkg = ri.activityInfo.packageName;
-            String label = String.valueOf(ri.loadLabel(pm));
-            String l = label.toLowerCase(Locale.ROOT);
-            int score = pkg.equalsIgnoreCase(q) ? 4 : l.equals(q) ? 3 : l.startsWith(q) ? 2 : l.contains(q) ? 1 : 0;
-            if (score == 0 || score < bestScore) continue;
-            if (score > bestScore) {
-                bestScore = score;
-                top.clear();
-            }
-            top.add(new String[]{pkg, label});
-        }
-        if (top.isEmpty()) return "No installed app matches '" + query + "'. Use list_apps to see names.";
-        if (top.size() > 1) {
-            // Don't guess between e.g. Amazon Shopping / Amazon Music / Amazon Alexa.
-            StringBuilder sb = new StringBuilder("Several apps match '" + query + "', so nothing was opened:\n");
-            for (String[] app : top) sb.append("- ").append(app[1]).append(" (").append(app[0]).append(")\n");
-            sb.append("Call open_app again with the exact name or package. If it's unclear which one the user means, ask them.");
-            return sb.toString();
-        }
-        String best = top.get(0)[0];
-        String bestLabel = top.get(0)[1];
-        Intent launch = pm.getLaunchIntentForPackage(best);
-        if (launch == null) return "App " + bestLabel + " cannot be launched.";
-        launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
-        svc.startActivity(launch);
-        Thread.sleep(1500);
-        return "Opened " + bestLabel + " (" + best + "). Call read_screen to see it.";
-    }
-
-    private long installedVersion(String pkg) {
-        try {
-            return svc.getPackageManager().getPackageInfo(pkg, 0).getLongVersionCode();
-        } catch (PackageManager.NameNotFoundException e) {
-            return -1;
-        }
-    }
-
-    /** Is an installer / Play Protect dialog what the user is looking at? */
-    private boolean installerOnScreen() {
-        for (AccessibilityWindowInfo w : svc.getWindows()) {
-            AccessibilityNodeInfo r = w.getRoot();
-            if (r == null || r.getPackageName() == null) continue;
-            String p = r.getPackageName().toString();
-            if (p.contains("packageinstaller") || p.equals("com.android.vending")) return true;
-            if (w.getType() == AccessibilityWindowInfo.TYPE_SYSTEM && w.getTitle() != null
-                    && w.getTitle().toString().toLowerCase(Locale.ROOT).contains("install")) return true;
-            if ("android".equals(p) && w.isActive()) return true; // "Open with" chooser
-        }
-        return false;
-    }
-
-    private String waitForInstall(String pkg, long minVersion, int timeoutS) throws InterruptedException {
-        long before = installedVersion(pkg);
-        long need = minVersion > 0 ? minVersion : (before < 0 ? 0 : before + 1);
-        svc.showStatus(before < 0 ? "Tap Install, then confirm" : "Tap Update, then confirm");
-        svc.nudge();
-        long start = System.currentTimeMillis(), lastSeen = start;
-        while (System.currentTimeMillis() - start < timeoutS * 1000L) {
-            long v = installedVersion(pkg);
-            if (v >= 0 && v >= need) {
-                svc.showStatus("Installed");
-                return "Installed " + pkg + " (versionCode " + v + "). The user confirmed the install.";
-            }
-            if (installerOnScreen()) lastSeen = System.currentTimeMillis();
-            else if (System.currentTimeMillis() - lastSeen > 12000) {
-                return "Not installed yet, and the installer is no longer on screen (the user may have closed it or "
-                        + "switched apps). Return to androidagent and reopen the installer, then call wait_for_install again.";
-            }
-            Thread.sleep(1000);
-        }
-        return "Timed out after " + timeoutS + " s: the user hasn't confirmed the install. Ask them whether they want to "
-                + "install it, instead of waiting longer.";
-    }
-
-    private String listApps() {
-        PackageManager pm = svc.getPackageManager();
-        List<String> lines = new ArrayList<>();
-        for (ResolveInfo ri : launchables()) {
-            lines.add(ri.loadLabel(pm) + " — " + ri.activityInfo.packageName);
-        }
-        Collections.sort(lines, String.CASE_INSENSITIVE_ORDER);
-        StringBuilder sb = new StringBuilder();
-        for (String l : lines) sb.append(l).append('\n');
-        return sb.toString();
-    }
-
-    private String openUrl(String url) throws InterruptedException {
-        Intent i = new Intent(Intent.ACTION_VIEW, Uri.parse(url)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        svc.startActivity(i);
-        Thread.sleep(1500);
-        return "Opened " + url + ". Call read_screen to see it.";
     }
 
     private JSONObject screenshot() throws Exception {

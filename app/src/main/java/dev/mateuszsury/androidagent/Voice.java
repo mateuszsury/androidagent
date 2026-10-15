@@ -12,6 +12,7 @@ import android.speech.SpeechRecognizer;
 import android.speech.tts.TextToSpeech;
 
 import java.util.ArrayList;
+import java.util.Locale;
 
 /** Speech in (Android's recognizer) and speech out (text-to-speech) for chats. Main thread only. */
 final class Voice {
@@ -30,6 +31,8 @@ final class Voice {
     private static TextToSpeech tts;
     private static boolean ttsReady;
     private static String pending;
+    private static Locale pendingLocale;
+    private static boolean languageOverridden;
 
     private Voice() {
     }
@@ -135,29 +138,61 @@ final class Voice {
     // ------------------------------------------------------------- speaking
 
     static void speak(Context c, String text) {
+        speak(c, text, null);
+    }
+
+    /**
+     * Speak text, optionally in a BCP-47 language (null = the engine's default voice). Returns a short note when
+     * that language's voice is unavailable (the default voice is used then), else null.
+     */
+    static String speak(Context c, String text, String languageTag) {
         String clean = text.replaceAll("```[\\s\\S]*?```", " code omitted. ")
                 .replaceAll("[*_`#>|]", "")
                 .replaceAll("\\[(.*?)\\]\\(.*?\\)", "$1")
                 .replaceAll("https?://\\S+", "link")
                 .trim();
-        if (clean.isEmpty()) return;
+        if (clean.isEmpty()) return null;
+        Locale locale = languageTag == null || languageTag.isEmpty() ? null : Locale.forLanguageTag(languageTag);
         if (tts == null) {
             pending = clean;
+            pendingLocale = locale;
             tts = new TextToSpeech(c.getApplicationContext(), status -> {
                 ttsReady = status == TextToSpeech.SUCCESS;
                 if (ttsReady) {
                     tts.setAudioAttributes(new AudioAttributes.Builder()
                             .setUsage(AudioAttributes.USAGE_ASSISTANT)
                             .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH).build());
-                    if (pending != null) say(pending);
+                    if (pending != null) {
+                        applyLanguage(pendingLocale);
+                        say(pending);
+                    }
                 }
                 pending = null;
+                pendingLocale = null;
             });
         } else if (ttsReady) {
+            String note = applyLanguage(locale);
             say(clean);
+            return note;
         } else {
             pending = clean;
+            pendingLocale = locale;
         }
+        return null;
+    }
+
+    private static String applyLanguage(Locale locale) {
+        if (locale == null) {
+            // Back to the engine's default voice after an explicit language was requested.
+            if (languageOverridden && tts.getDefaultVoice() != null) tts.setVoice(tts.getDefaultVoice());
+            languageOverridden = false;
+            return null;
+        }
+        languageOverridden = true;
+        int r = tts.setLanguage(locale);
+        if (r == TextToSpeech.LANG_MISSING_DATA || r == TextToSpeech.LANG_NOT_SUPPORTED)
+            return "no voice for " + locale.toLanguageTag() + " is installed, so the default voice is used.";
+        return null;
     }
 
     private static void say(String text) {
@@ -167,6 +202,7 @@ final class Voice {
 
     static void stopSpeaking() {
         pending = null;
+        pendingLocale = null;
         if (tts != null && ttsReady) tts.stop();
     }
 }

@@ -17,6 +17,12 @@
     <!-- Lets the setup screen ask Android to stop battery optimization for Buddy -->
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
 
+    <!-- Phone tools without Accessibility (PhoneTools / IntentTools / DeviceTools):
+         set_alarm / set_timer hand requests to the clock app (normal permission, no dialog);
+         set_brightness needs the owner-granted "Modify system settings" special access. -->
+    <uses-permission android:name="com.android.alarm.permission.SET_ALARM" />
+    <uses-permission android:name="android.permission.WRITE_SETTINGS" />
+
     <!-- Needed on Android 11+ to see launchable apps for open_app / list_apps -->
     <queries>
         <intent>
@@ -28,6 +34,37 @@
         </intent>
         <intent>
             <action android:name="android.intent.action.TTS_SERVICE" />
+        </intent>
+        <!-- Phone tools (IntentTools): report which app handles a link, the dialer, SMS composer,
+             share sheet, calendar editor and clock. Starting them needs no visibility. -->
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="https" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="geo" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.DIAL" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.SENDTO" />
+            <data android:scheme="smsto" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.SEND" />
+            <data android:mimeType="text/plain" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.INSERT" />
+            <data android:mimeType="vnd.android.cursor.dir/event" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.SET_ALARM" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.SET_TIMER" />
         </intent>
     </queries>
 

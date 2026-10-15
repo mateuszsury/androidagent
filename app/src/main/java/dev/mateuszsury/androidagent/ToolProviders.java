@@ -23,6 +23,7 @@ final class ToolProviders {
     }
 
     static final Provider[] ALL = {
+            PhoneTools.INSTANCE, IntentTools.INSTANCE, DeviceTools.INSTANCE,
     };
 
     private ToolProviders() {
