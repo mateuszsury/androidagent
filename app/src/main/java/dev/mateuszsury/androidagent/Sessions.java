@@ -19,6 +19,13 @@ final class Sessions {
         final String text;
         /** Attachment ids (see Attachments); empty for most messages. */
         final List<String> files;
+        /**
+         * Optional structured details, persisted under "m". For STEP messages (tool calls):
+         * {"tool": raw tool name, "args": short argument summary, "id": tool_use id,
+         *  "state": "running"|"ok"|"error", "result": first lines of output, "lines": total lines}.
+         * Older records have none; renderers must fall back to {@link #text}.
+         */
+        org.json.JSONObject meta;
 
         Msg(Bubble.Kind kind, String text) {
             this(kind, text, null);
@@ -190,6 +197,7 @@ final class Sessions {
         for (Msg m : s.messages) {
             JSONObject mo = new JSONObject().put("k", m.kind.name()).put("t", m.text);
             if (!m.files.isEmpty()) mo.put("f", new JSONArray(m.files));
+            if (m.meta != null && m.meta.length() > 0) mo.put("m", m.meta);
             msgs.put(mo);
         }
         return new JSONObject().put("id", s.id).put("backend", s.backend).put("title", s.title).put("model", s.model)
@@ -213,7 +221,9 @@ final class Sessions {
                         List<String> files = new ArrayList<>();
                         JSONArray f = m.optJSONArray("f");
                         if (f != null) for (int k = 0; k < f.length(); k++) files.add(f.getString(k));
-                        s.messages.add(new Msg(Bubble.Kind.valueOf(m.getString("k")), m.getString("t"), files));
+                        Msg msg = new Msg(Bubble.Kind.valueOf(m.getString("k")), m.getString("t"), files);
+                        msg.meta = m.optJSONObject("m");
+                        s.messages.add(msg);
                     }
                     all.add(s);
                 } catch (Exception invalidRecord) {

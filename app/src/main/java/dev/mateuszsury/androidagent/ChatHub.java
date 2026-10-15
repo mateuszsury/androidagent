@@ -17,6 +17,10 @@ final class ChatHub {
         void onChatsChanged();
 
         void onMessage(Sessions.Session ses, Sessions.Msg msg);
+
+        /** An earlier message changed in place (a tool call got its result or final state). */
+        default void onMessageUpdated(Sessions.Session ses, Sessions.Msg msg) {
+        }
     }
 
     interface CommandRunner {
