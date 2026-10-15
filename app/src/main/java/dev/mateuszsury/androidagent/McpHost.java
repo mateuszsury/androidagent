@@ -79,7 +79,7 @@ final class McpHost implements McpServer.Handler {
     }
     private static void cleanup(Runnable action){try{action.run();}catch(RuntimeException e){android.util.Log.w("androidagentStop","Resource cleanup failed",e);}}
     @Override public JSONArray listTools()throws JSONException{
-        JSONArray all=new Tools(BuddyService.get()).list();JSONArray usb=UsbTools.list();for(int i=0;i<usb.length();i++)all.put(usb.get(i));return all;
+        JSONArray all=new Tools(BuddyService.get()).list();JSONArray usb=UsbTools.list();for(int i=0;i<usb.length();i++)all.put(usb.get(i));ToolProviders.listInto(app,all);return all;
     }
     @Override public JSONObject callTool(String name,JSONObject a)throws Exception{
         if(controlRevoked()!=null&&!"notify".equals(name))throw new IllegalStateException(controlRevoked());
@@ -89,6 +89,8 @@ final class McpHost implements McpServer.Handler {
         if(name.startsWith("docker_")){synchronized(UsbDocker.taskAccess){requireCaller(caller);UsbSessions.get(app).authorizeTask(caller,a.optString("task"));return DockerTools.call(app,name,a);}}
         if("device_status".equals(name))return UsbTools.result(DeviceState.read(app));
         if("run_command".equals(name))return ApprovedCommands.get(app).run(caller,a.getString("command"));
+        ToolProviders.Provider provider=ToolProviders.find(name);
+        if(provider!=null){requireCaller(caller);return provider.call(app,caller,name,a);}
         BuddyService svc=BuddyService.get();
         if(svc==null)throw new IllegalStateException("This screen-control tool needs Accessibility. USB and Docker work without it.");
         return svc.callTool(name,a);
