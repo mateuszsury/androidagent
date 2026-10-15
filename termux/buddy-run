@@ -259,7 +259,11 @@ S=$D/sessions/$SID
 mkdir -p "$S"
 event() { jq -cn --arg type "$1" --arg text "${2:-}" --arg s "$SID" --arg r "$RUN" --arg active "${3:-}" \
   '{type:$type,text:$text,buddy_session:$s,buddy_run:$r} + (if $active != "" then {active_run:$active} else {} end)' | post; }
-tag() { jq -c --arg s "$SID" --arg r "$RUN" '. + {buddy_session:$s,buddy_run:$r}' 2>/dev/null; }
+# Tool results reach the app as text only: image data and the CLI's raw tool_use_result copy are
+# dropped, so a screenshot does not post megabytes of base64 for a "[obraz]" placeholder.
+tag() { jq -c --arg s "$SID" --arg r "$RUN" '(if .type == "user" then del(.tool_use_result)
+    | (.message.content[]? | objects | select(.type == "tool_result") | .content | arrays | .[] | objects
+       | select(.type == "image")) |= {type:"image"} else . end) + {buddy_session:$s,buddy_run:$r}' 2>/dev/null; }
 
 if [ -n "$RUN" ] && [ -f "$S/cancel-$RUN" ]; then
   rm -f "$S/cancel-$RUN"
@@ -273,7 +277,7 @@ if ! mkdir "$S/run-lock" 2>/dev/null; then
     rmdir "$S/run-lock" 2>/dev/null || true
     mkdir "$S/run-lock" 2>/dev/null || exit 1
   else
-    event buddy_error "An earlier request in this chat is still running." "$(cat "$S/run" 2>/dev/null)"
+    event buddy_error "Poprzednie zadanie w tej rozmowie nadal trwa." "$(cat "$S/run" 2>/dev/null)"
     event buddy_done
     exit 0
   fi
@@ -314,16 +318,16 @@ if [ -n "${FILES:-}" ]; then
   IFS=, read -ra ids <<< "$FILES"
   for id in "${ids[@]}"; do
     if ! [[ "$id" =~ ^[A-Za-z0-9._-]{1,120}$ && "$id" != *..* && "$id" != . ]]; then
-      event buddy_error "Invalid attachment identifier. Attach the file again."
+      event buddy_error "Nieprawidłowy identyfikator załącznika. Dołącz plik ponownie."
       exit 0
     fi
-    DOWNLOAD_TMP=$(mktemp "$S/.attachment.XXXXXX") || { event buddy_error "Can't prepare the attachment file."; exit 0; }
+    DOWNLOAD_TMP=$(mktemp "$S/.attachment.XXXXXX") || { event buddy_error "Nie można przygotować pliku załącznika."; exit 0; }
     if curl -s -f -m 120 -H "Authorization: Bearer $TOKEN" "$URL/file/$id" -o "$DOWNLOAD_TMP" && mv -T -- "$DOWNLOAD_TMP" "$S/files/$id"; then
       DOWNLOAD_TMP=""
       ATT+=("$S/files/$id")
       case "${id,,}" in *.jpg|*.jpeg|*.png|*.webp|*.gif) IMGS+=("$S/files/$id") ;; esac
     else
-      event buddy_error "Couldn't get the attachment ${id#*_} from Buddy."
+      event buddy_error "Nie udało się pobrać załącznika ${id#*_} z aplikacji."
       exit 0
     fi
   done
@@ -401,29 +405,56 @@ run_codex() {
 }
 
 # Translate Codex's JSONL events into the Claude Code stream format the bubble understands.
+# Tool calls carry Codex's item id as the tool_use id; their item.completed events become
+# Claude-style tool_result user turns (output clipped to 4000 characters) for that id.
 stream_codex() {
   while IFS= read -r line || [ -n "$line" ]; do
     [ -z "$line" ] && continue
     tid=$(printf '%s' "$line" | jq -r 'select(.type=="thread.started") | .thread_id // empty' 2>/dev/null)
     [ -n "$tid" ] && printf '%s' "$tid" > "$S/codex-thread"
     printf '%s' "$line" | jq -c --arg s "$SID" --arg r "${RUN:-}" '
-      (if .type == "item.started" and .item.type == "mcp_tool_call" then
-        {type:"assistant", message:{content:[{type:"tool_use",
+      def result($id; $text; $error):
+        {type:"user", message:{role:"user", content:[{type:"tool_result", tool_use_id:$id,
+          content:($text | .[0:4000]), is_error:$error}]}};
+      (.item.id // "") as $id
+      | (if .type == "item.started" and .item.type == "mcp_tool_call" then
+        {type:"assistant", message:{content:[{type:"tool_use", id:$id,
           name:("mcp__" + (.item.server // "phone") + "__" + (.item.tool // "")),
           input:(.item.arguments // {})}]}}
+      elif .type == "item.completed" and .item.type == "mcp_tool_call" then
+        result($id;
+          (if .item.error != null then (.item.error.message // "error")
+           else [.item.result.content[]? | if .type == "text" then (.text // "") elif .type == "image" then "[obraz]" else empty end]
+                | join("\n") end);
+          (.item.error != null or .item.status == "failed"))
       elif .type == "item.started" and .item.type == "command_execution" then
-        {type:"assistant", message:{content:[{type:"tool_use", name:"Bash",
+        {type:"assistant", message:{content:[{type:"tool_use", id:$id, name:"Bash",
           input:{command:(.item.command // "")}}]}}
+      elif .type == "item.completed" and .item.type == "command_execution" then
+        .item.exit_code as $code | ((.item.aggregated_output // "") | .[0:4000]) as $out
+        | ($code != null and $code != 0) as $failed
+        | result($id;
+            (if $failed then (if $out == "" or ($out | endswith("\n")) then $out else $out + "\n" end) + "exit \($code)"
+             else $out end);
+            ($failed or .item.status == "declined"))
       elif .type == "item.completed" and .item.type == "file_change" then
-        {type:"assistant", message:{content:[{type:"tool_use", name:"Edit", input:{}}]}}
+        [.item.changes[]? | .path // empty] as $paths
+        | {type:"assistant", message:{content:[{type:"tool_use", id:$id, name:"Edit",
+            input:(if ($paths | length) > 0 then {file_path:$paths[0]} else {} end)}]}},
+          result($id; [.item.changes[]? | "\(.path // "?") (\(.kind // "update"))"] | join("\n");
+            (.item.status == "failed"))
+      elif .type == "item.completed" and .item.type == "web_search" then
+        {type:"assistant", message:{content:[{type:"tool_use", id:$id, name:"WebSearch",
+          input:{query:(.item.query // "")}}]}},
+        result($id; ""; false)
       elif .type == "item.completed" and .item.type == "agent_message" then
         {type:"assistant", message:{content:[{type:"text", text:(.item.text // "")}]}}
       elif .type == "turn.completed" then
         {type:"result", subtype:"success", result:""}
       elif .type == "turn.failed" then
-        {type:"result", subtype:"error", is_error:true, result:("Codex: " + (.error.message // "turn failed"))}
+        {type:"result", subtype:"error", is_error:true, result:("Codex: " + (.error.message // "zadanie nie powiodło się"))}
       elif .type == "error" then
-        {type:"buddy_error", text:("Codex: " + (.message // "error"))}
+        {type:"buddy_error", text:("Codex: " + (.message // "błąd"))}
       else empty end) | . + {buddy_session:$s,buddy_run:$r}' 2>/dev/null | while IFS= read -r ev; do printf '%s' "$ev" | post; done
   done
 }
@@ -453,7 +484,7 @@ stream_codex() {
   # discards context and can repeat side effects from a partially completed turn.
   if [ "$status" -ne 0 ]; then
     detail=$(tail -c 400 "$S/last-error.log" 2>/dev/null)
-    event buddy_error "$name failed (exit $status)${detail:+: $detail}"
+    event buddy_error "$name zakończył się błędem (kod $status)${detail:+: $detail}"
   fi
 ) &
 wait $! 2>/dev/null
