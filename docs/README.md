@@ -11,6 +11,7 @@ These guides describe androidagent 0.4.4. UI labels may still be Polish; the gui
 | [Docker](DOCKER.md) | Build/run, preview, export, cleanup, migration and diagnostics |
 | [USB](USB.md) | UART/ESP, second-device ADB, storage and Docker passthrough |
 | [Permissions](PERMISSIONS.md) | System consent and background behavior |
+| [Phone access](PHONE-ACCESS.md) | Agent workspace files, APK install, notifications, location and photos |
 | [Terminal sources](TERMINAL-SOURCES.md) | Android execution, pinned clients and licensing |
 | [Testing](TESTING.md) | Emulator, ARM guest and physical device evidence |
 | [WebView](WEBVIEW.md) | Preview tests and software-emulator troubleshooting |

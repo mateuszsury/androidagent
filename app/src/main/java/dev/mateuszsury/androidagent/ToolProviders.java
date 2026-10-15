@@ -23,6 +23,7 @@ final class ToolProviders {
     }
 
     static final Provider[] ALL = {
+            new FileTools(), new NotificationTools(), new LocationTools(), new MediaTools(),
     };
 
     private ToolProviders() {
