@@ -243,7 +243,7 @@ final class PhoneTools implements ToolProviders.Provider {
                     .setSmallIcon(R.drawable.ic_launcher_monochrome)
                     .setContentTitle("Agent chce otworzyć: " + what)
                     .setContentText("Dotknij, aby otworzyć.")
-                    .setCategory(Notification.CATEGORY_RECOMMENDATION)
+                    .setCategory(Notification.CATEGORY_REMINDER)
                     .setContentIntent(tap)
                     .setAutoCancel(true)
                     .build();
