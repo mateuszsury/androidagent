@@ -9,6 +9,7 @@ These guides describe androidagent 0.4.4. UI labels may still be Polish; the gui
 | [Architecture](ARCHITECTURE.md) | App, embedded clients, MCP, VM and USB data flow |
 | [Claude Code](CLAUDE.md) | Install, authenticate, choose models and resume sessions |
 | [Docker](DOCKER.md) | Build/run, preview, export, cleanup, migration and diagnostics |
+| [Background services](SERVICES.md) | Long-running servers and bots, URLs, logs, autostart and Stop |
 | [USB](USB.md) | UART/ESP, second-device ADB, storage and Docker passthrough |
 | [Permissions](PERMISSIONS.md) | System consent and background behavior |
 | [Terminal sources](TERMINAL-SOURCES.md) | Android execution, pinned clients and licensing |
