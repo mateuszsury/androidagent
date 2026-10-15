@@ -14,6 +14,11 @@ import java.util.zip.GZIPInputStream;
 /** Owns one Linux guest in app-private storage. Never runs Docker on the Android kernel. */
 final class DockerVm {
     static final int API_PORT = 18780, PREVIEW_PORT = 18781;
+    /** Guest ports the guest agent hands out, one per task; 8080 also has the boot-time PREVIEW_PORT forward. */
+    static final int GUEST_PREVIEW_FIRST = 8080, GUEST_PREVIEW_LAST = 8179;
+    /** Host ports for forwards added at runtime with QMP hostfwd_add, one per published task. */
+    static final int HOST_PREVIEW_FIRST = 18800, HOST_PREVIEW_LAST = 18899;
+    private static final String NETDEV = "net", PREFS = "docker_vm", LAN_KEY = "lan_preview";
     private static DockerVm instance;
     static synchronized DockerVm get(Context c) {
         if (instance == null) instance = new DockerVm(c.getApplicationContext());
@@ -36,14 +41,24 @@ final class DockerVm {
     private volatile DockerDiagnostics diagnostics;
     private volatile long lastGuestResponse, bootStarted;
     private volatile String lastProbeError = "";
-    private volatile int ramMb, vcpus;
+    private volatile int ramMb, vcpus, startAttempts;
+    /** One published guest port -> its host forward in the current QEMU process. */
+    private static final class Forward {
+        final int guest, host; final String bind; final boolean boot;
+        Forward(int guest, int host, String bind, boolean boot) { this.guest = guest; this.host = host; this.bind = bind; this.boot = boot; }
+    }
+    private final Object forwarding = new Object();
+    private final Map<Integer, Forward> forwards = new HashMap<>();
+    private final Map<Integer, Long> forwardRetry = new HashMap<>();
+    private int forwardGeneration = -1;
+    private volatile String lastForwardError = "";
     private DockerVm(Context c) {
         context = c;
         directory = new File(c.getFilesDir(), "docker");
         directory.mkdirs();
         abi = android.os.Build.SUPPORTED_ABIS[0];
         emulatedAndroid = "ranchu".equals(android.os.Build.HARDWARE) || "goldfish".equals(android.os.Build.HARDWARE);
-        android.content.SharedPreferences prefs = c.getSharedPreferences("docker_vm", 0);
+        android.content.SharedPreferences prefs = c.getSharedPreferences(PREFS, 0);
         String existing = prefs.getString("token", null);
         if (existing == null) {
             byte[] random = new byte[32]; new java.security.SecureRandom().nextBytes(random);
@@ -61,11 +76,22 @@ final class DockerVm {
                 .put("ram_mb", ramMb).put("vcpus", vcpus)
                 .put("startup_budget_seconds", emulatedAndroid ? 900 : 1200)
                 .put("last_guest_response_host_ms", lastGuestResponse)
-                .put("last_probe_error", lastProbeError).put("diagnostics", diagnostics.status());
+                .put("last_probe_error", lastProbeError).put("diagnostics", diagnostics.status())
+                .put("lan_exposure", lanExposure(context)).put("previews", previews());
     }
     String console() { return console; }
     boolean alive() { Process p = process; return p != null && p.isAlive(); }
     int stoppedGeneration() { return stoppedEpoch; }
+    boolean starting() { String s = state; return "preparing".equals(s) || "booting".equals(s); }
+    /** Counts boot attempts (and refused starts) so a caller can tell a new error from an old one. */
+    int startAttempts() { return startAttempts; }
+    /** DockerService could not enter the foreground (Android background-start rules): report it, do not hang. */
+    void startRejected(String reason) {
+        synchronized (lifecycle) {
+            if (alive() || starting() || "stopping".equals(state)) return;
+            state = "error"; detail = reason; startAttempts++;
+        }
+    }
 
     void boot(int ram, int cores) {
         final int generation;
@@ -73,7 +99,7 @@ final class DockerVm {
         synchronized (lifecycle) {
             McpHost.get(context).requireReady();
             if (alive() || "preparing".equals(state) || "booting".equals(state) || "stopping".equals(state)) return;
-            generation = ++epoch;
+            generation = ++epoch; startAttempts++;
             state = "preparing"; detail = "Przygotowywanie środowiska"; console = "";
             guest = new JSONObject(); lastGuestResponse = 0; lastProbeError = "";
             ramMb = Math.max(512, Math.min(2048, ram)); vcpus = Math.max(1, Math.min(2, cores));
@@ -174,6 +200,9 @@ final class DockerVm {
                 String startupError = null;
                 try {
                     JSONObject result = requestRaw(new JSONObject().put("op", "status"), 12000);
+                    // Re-adds forwards after a restart, follows the LAN setting
+                    // and drops forwards of cleaned tasks. Never under lifecycle.
+                    if (result.optBoolean("ready")) syncForwards(result, generation);
                     synchronized (lifecycle) {
                         if (epoch != generation || process != running) break;
                         lastGuestResponse = SystemClock.elapsedRealtime(); lastProbeError = "";
@@ -350,7 +379,170 @@ final class DockerVm {
         final int generation = epoch;
         JSONObject result = requestRaw(args, 60000);
         if (generation != epoch) throw new IOException("Środowisko zostało zatrzymane");
+        published(args.optString("op"), result, generation);
         return result;
+    }
+
+    // ------------------------------------------------------------ published app ports
+
+    /** Owner setting (default off): bind preview forwards on all interfaces so Wi-Fi peers can open them. */
+    static boolean lanExposure(Context c) { return c.getSharedPreferences(PREFS, 0).getBoolean(LAN_KEY, false); }
+    /** Applied to running forwards by the next heartbeat (about 2 s). The control API always stays on loopback. */
+    static void setLanExposure(Context c, boolean on) { c.getSharedPreferences(PREFS, 0).edit().putBoolean(LAN_KEY, on).apply(); }
+
+    /** Host port of a task's published app, for opening {@link DockerPreviewActivity}; PREVIEW_PORT if unknown. */
+    int previewPort(String task) {
+        JSONArray tasks = guest.optJSONArray("tasks");
+        if (tasks != null) for (int i = 0; i < tasks.length(); i++) {
+            JSONObject t = tasks.optJSONObject(i);
+            if (t != null && t.optString("id").equals(task) && t.optInt("host_port", 0) > 0) return t.optInt("host_port");
+        }
+        return PREVIEW_PORT;
+    }
+
+    private JSONArray previews() throws JSONException {
+        JSONArray out = new JSONArray();
+        JSONArray tasks = alive() ? guest.optJSONArray("tasks") : null;
+        if (tasks != null) for (int i = 0; i < tasks.length(); i++) {
+            JSONObject t = tasks.optJSONObject(i);
+            if (t == null || t.optJSONObject("preview") == null) continue;
+            JSONObject p = new JSONObject().put("task", t.optString("id")).put("name", t.optString("name"));
+            for (String key : new String[]{"url", "host_port", "container_port", "guest_port", "lan_url", "preview_error"})
+                if (t.has(key)) p.put(key, t.get(key));
+            out.put(p);
+        }
+        return out;
+    }
+
+    /** Adds URLs to a run result and drops forwards that the guest released on run/cancel/cleanup. */
+    private void published(String op, JSONObject result, int generation) {
+        JSONArray released = result.optJSONArray("released_guest_ports");
+        if (released != null) for (int i = 0; i < released.length(); i++) unforward(released.optInt(i), generation);
+        JSONObject preview = result.optJSONObject("preview");
+        if (!"run".equals(op) || preview == null) return;
+        try {
+            Forward f = forward(preview.getInt("guest_port"), generation);
+            describe(result, f, preview.getInt("container_port"));
+            describe(preview, f, preview.getInt("container_port"));
+        } catch (Exception e) {
+            try { result.put("preview_error", e.getMessage()); } catch (JSONException ignored) {}
+        }
+    }
+
+    private void syncForwards(JSONObject status, int generation) {
+        JSONArray tasks = status.optJSONArray("tasks");
+        Set<Integer> wanted = new HashSet<>();
+        if (tasks != null) for (int i = 0; i < tasks.length(); i++) {
+            JSONObject task = tasks.optJSONObject(i), preview = task == null ? null : task.optJSONObject("preview");
+            if (preview == null) continue;
+            int guestPort = preview.optInt("guest_port", -1);
+            wanted.add(guestPort);
+            try {
+                try { describe(task, forward(guestPort, generation), preview.optInt("container_port")); }
+                catch (Exception e) { task.put("preview_error", e.getMessage()); }
+            } catch (JSONException ignored) {}
+        }
+        List<Integer> stale = new ArrayList<>();
+        synchronized (forwarding) {
+            if (forwardGeneration == generation) for (Integer port : forwards.keySet()) if (!wanted.contains(port)) stale.add(port);
+        }
+        for (int port : stale) unforward(port, generation);
+    }
+
+    private void describe(JSONObject target, Forward f, int containerPort) throws JSONException {
+        target.put("url", "http://127.0.0.1:" + f.host).put("host_port", f.host)
+                .put("container_port", containerPort).put("guest_port", f.guest);
+        if ("0.0.0.0".equals(f.bind)) {
+            String address = wifiAddress(context);
+            target.put("lan_url", address == null ? JSONObject.NULL : "http://" + address + ":" + f.host);
+        }
+    }
+
+    /**
+     * Ensures one QEMU user-network forward for a guest port. Loopback 8080 reuses the boot forward on
+     * PREVIEW_PORT (the legacy URL); everything else is added with QMP {@code hostfwd_add} from
+     * 18800–18899, preferring 18800 + (guest − 8080). A setting change re-binds the forward.
+     */
+    private Forward forward(int guestPort, int generation) throws Exception {
+        if (guestPort < GUEST_PREVIEW_FIRST || guestPort > GUEST_PREVIEW_LAST) throw new IOException("Nieprawidłowy port podglądu w Linuxie: " + guestPort);
+        String bind = lanExposure(context) ? "0.0.0.0" : "127.0.0.1";
+        synchronized (forwarding) {
+            if (forwardGeneration != generation) { forwards.clear(); forwardRetry.clear(); forwardGeneration = generation; }
+            Forward current = forwards.get(guestPort);
+            if (current != null && current.bind.equals(bind)) return current;
+            if (current != null) { forwards.remove(guestPort); if (!current.boot) removeForward(current); }
+            if (guestPort == GUEST_PREVIEW_FIRST && "127.0.0.1".equals(bind)) {
+                Forward legacy = new Forward(guestPort, PREVIEW_PORT, bind, true);
+                forwards.put(guestPort, legacy);
+                return legacy;
+            }
+            Long retry = forwardRetry.get(guestPort);
+            if (retry != null && SystemClock.elapsedRealtime() < retry) throw new IOException(lastForwardError);
+            Set<Integer> taken = new HashSet<>();
+            for (Forward f : forwards.values()) taken.add(f.host);
+            int preferred = HOST_PREVIEW_FIRST + guestPort - GUEST_PREVIEW_FIRST;
+            String failure = "Brak wolnego portu " + HOST_PREVIEW_FIRST + "–" + HOST_PREVIEW_LAST + " dla podglądu";
+            for (int n = 0; n <= HOST_PREVIEW_LAST - HOST_PREVIEW_FIRST; n++) {
+                int host = HOST_PREVIEW_FIRST + (preferred - HOST_PREVIEW_FIRST + n) % (HOST_PREVIEW_LAST - HOST_PREVIEW_FIRST + 1);
+                if (taken.contains(host)) continue;
+                if (epoch != generation) throw new IOException("Środowisko zostało zatrzymane");
+                String reply = hmp("hostfwd_add " + NETDEV + " tcp:" + bind + ":" + host + "-:" + guestPort);
+                if (reply.isEmpty()) {
+                    Forward added = new Forward(guestPort, host, bind, false);
+                    forwards.put(guestPort, added); forwardRetry.remove(guestPort);
+                    return added;
+                }
+                // Another Android app holds this host port: try the next one.
+                if (!reply.startsWith("Could not set up host forwarding rule")) { failure = "QEMU: " + reply; break; }
+            }
+            lastForwardError = failure;
+            forwardRetry.put(guestPort, SystemClock.elapsedRealtime() + 30000);
+            throw new IOException(failure);
+        }
+    }
+
+    private void unforward(int guestPort, int generation) {
+        synchronized (forwarding) {
+            if (forwardGeneration != generation) return;
+            forwardRetry.remove(guestPort);
+            Forward f = forwards.remove(guestPort);
+            if (f != null && !f.boot) removeForward(f);
+        }
+    }
+
+    private void removeForward(Forward f) {
+        try { hmp("hostfwd_remove " + NETDEV + " tcp:" + f.bind + ":" + f.host); }
+        catch (Exception e) { lastForwardError = "hostfwd_remove: " + e.getMessage(); }
+    }
+
+    /** HMP through QMP: slirp reports hostfwd failures as the returned text, not as a QMP error. */
+    private String hmp(String line) throws Exception {
+        return qmp("human-monitor-command", new JSONObject().put("command-line", line)).optString("return", "").trim();
+    }
+
+    /** The phone's IPv4 on Wi-Fi/Ethernet, or on its own hotspot; null when there is none. */
+    static String wifiAddress(Context c) {
+        try {
+            android.net.ConnectivityManager cm = c.getSystemService(android.net.ConnectivityManager.class);
+            if (cm != null) for (android.net.Network network : cm.getAllNetworks()) {
+                android.net.NetworkCapabilities caps = cm.getNetworkCapabilities(network);
+                if (caps == null || !(caps.hasTransport(android.net.NetworkCapabilities.TRANSPORT_WIFI)
+                        || caps.hasTransport(android.net.NetworkCapabilities.TRANSPORT_ETHERNET))) continue;
+                android.net.LinkProperties link = cm.getLinkProperties(network);
+                if (link != null) for (android.net.LinkAddress address : link.getLinkAddresses())
+                    if (address.getAddress() instanceof Inet4Address && !address.getAddress().isLoopbackAddress())
+                        return address.getAddress().getHostAddress();
+            }
+        } catch (RuntimeException ignored) {}
+        try {
+            for (NetworkInterface nic : Collections.list(NetworkInterface.getNetworkInterfaces())) {
+                String name = nic.getName();
+                if (!nic.isUp() || !(name.startsWith("wlan") || name.startsWith("swlan") || name.startsWith("ap") || name.startsWith("eth"))) continue;
+                for (InetAddress address : Collections.list(nic.getInetAddresses()))
+                    if (address instanceof Inet4Address && address.isSiteLocalAddress()) return address.getHostAddress();
+            }
+        } catch (Exception ignored) {}
+        return null;
     }
     private JSONObject requestRaw(JSONObject args, int timeout) throws Exception {
         HttpURLConnection connection = connect("/request", timeout);
