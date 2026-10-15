@@ -6,7 +6,7 @@ androidagent packages QEMU and an Alpine Linux guest with a real Docker Engine. 
 
 1. Open **Docker**, choose 512 MB/1 GB/2 GB RAM and 1 or 2 vCPUs, then start the environment. The first launch extracts its image; later launches reuse the disk.
 2. Create a task or try the example app. The demo builds an interactive HTML page and a small server from the included `alpine:3.23` image as `USER 1000:1000`; it does not require a registry or model account.
-3. Edit the task files, build its Dockerfile and run a container. Follow asynchronous operations in the log. One published preview uses `http://127.0.0.1:18781`; open it in the app's WebView.
+3. Edit the task files, build its Dockerfile and run a container. Follow asynchronous operations in the log. Each task can publish one container port with its own phone URL (see [Published ports](#published-ports-and-wi-fi-access)); the first one keeps `http://127.0.0.1:18781`. Open it in the app's WebView preview.
 4. Execute commands inside that task's container. `/workspace` is its project mount. Normal image startup preserves `WORKDIR`, `ENTRYPOINT` and `CMD`; write durable output under `/workspace`, for example `/workspace/out/app.apk`.
 5. Export a result before cleanup. The app stores it outside the VM and exposes an Android sharing URI.
 6. Clean up the selected task to remove its container, generated images and working files. Other tasks and exported results remain. Resetting the entire VM disk is a separate confirmed action.
@@ -15,23 +15,41 @@ Rerunning a task replaces its previous container. Project files remain; changes 
 
 ## Agent tools
 
-Both Codex and Claude Code receive these 13 MCP tools. The owner starts the VM from the app; agents are not given the Docker socket or a guest administrator shell.
+Both Codex and Claude Code receive these 15 MCP tools. The owner normally starts the VM from the app. `docker_start`/`docker_stop` work only after the owner enables developer mode (the same opt-in as `run_command`); otherwise they return an error asking the agent to involve the user. Agents are not given the Docker socket or a guest administrator shell.
 
 | Tool | Operation |
 | --- | --- |
-| `docker_status` | VM readiness, architecture, engine and task status |
+| `docker_status` | VM readiness, architecture, engine and task status; `previews` lists each published app's `url`, `host_port`, `container_port` (and `lan_url`) |
+| `docker_start` | Start the VM: `memory_mb` 512–2048, `cpus` 1–2; returns immediately, then poll `docker_status` |
+| `docker_stop` | Gracefully stop the VM: cancel operations, stop containers, sync the disk |
 | `docker_diagnostics` | Saved startup evidence by byte `offset`/`limit`, at most 32768 bytes per response |
 | `docker_create` | Create a task and project directory |
 | `docker_write`, `docker_read`, `docker_files` | UTF-8 files and directory listings |
 | `docker_build` | Build the Dockerfile asynchronously |
-| `docker_run` | Run the task image or an OCI image, optionally with a preview port |
-| `docker_exec` | Execute an asynchronous task-container command |
+| `docker_run` | Run the task image or an OCI image detached; `port` publishes it and returns `url`, `host_port`, `container_port` |
+| `docker_exec` | Execute an asynchronous task-container command; a timeout stops only that command |
 | `docker_logs` | Operation status, exit result or container logs |
-| `docker_cancel` | Cancel an operation and stop its container |
+| `docker_cancel` | Cancel an operation, stop its container and unpublish its port |
 | `docker_export` | Preserve a file in Android storage and obtain a sharing URI |
 | `docker_cleanup` | Clean up that task only |
 
 Build/run/exec return operation IDs: poll with `docker_logs`. The initial result is not a completed build. A task accepts one active operation at a time.
+
+`docker_start` launches the same foreground service as the panel. Android 12+ may refuse to start a foreground service while androidagent is in the background (for example when an agent runs behind another app); the tool then fails with that reason and the owner starts the VM on the Docker screen. A battery-optimisation exemption usually allows the start.
+
+## Published ports and Wi-Fi access
+
+QEMU user networking forwards only what Android asks for. The control API (`127.0.0.1:18780` → guest 7080) and the legacy preview (`127.0.0.1:18781` → guest 8080) are fixed at boot. Every `docker_run` with `port=P`:
+
+1. The guest agent gives the task one guest port `G` from 8080–8179 (the lowest free one, so the first task keeps 8080) and stores it in the task's `task.json`; a rerun keeps it. The container is started with `-p G:P`.
+2. Android forwards a host port to `G`. Loopback `G = 8080` reuses `18781`; other ports are added at runtime through the QMP socket with `human-monitor-command` → `hostfwd_add net tcp:127.0.0.1:H-:G`, where `H` is taken from 18800–18899 (preferring `18800 + G − 8080`; a host port held by another app is skipped). slirp reports failures as returned text, which the app checks.
+3. `docker_run` and `docker_status` return `{"url": "http://127.0.0.1:H", "host_port": H, "container_port": P}`. The preview screen accepts the `port` and `title` extras (default 18781).
+
+`docker_cancel`, `docker_cleanup` or a run without `port` release the guest port and remove the forward (`hostfwd_remove net tcp:127.0.0.1:H`). Stopping the VM ends all forwards; after a restart, the status heartbeat restores forwards for tasks that still hold a port. At most 100 tasks can publish a port at once.
+
+**Wi-Fi access** is an owner setting, off by default (`lan_preview` in the `docker_vm` preferences, `DockerVm.setLanExposure`). When it is on, preview forwards bind `0.0.0.0` instead of loopback (the first task then uses `18800`, because `18781` stays loopback-only) and results add `lan_url` with the phone's Wi-Fi, Ethernet or hotspot IPv4 address. The change applies to running forwards within a few seconds.
+
+Security: with Wi-Fi access on, **anyone on the same network can open every published container app without authentication**, including its APIs and any data it serves. Use it on trusted networks only and turn it off afterwards. Untrusted networks (cafés, hotels, company guest Wi-Fi) may also scan for these ports. The control API, phone MCP and USB/UART bridges always stay on loopback and keep their tokens.
 
 ## Isolation and limits
 
@@ -43,7 +61,7 @@ Containers receive only their own project mount, without `--privileged` or the D
 | Build context | 512 MiB, without symlinks |
 | Exported file | 128 MiB |
 | Operation output | Last 64000 characters |
-| Operation timeout | 15 minutes of guest time |
+| Operation timeout | 15 minutes of guest time; an exec timeout stops only that command, never the task's server |
 | Default container | 512 MB, 1 CPU, 256 PIDs; RAM configurable up to 2 GB |
 | Container log | 2 × 5 MB rotation |
 | VM disk | 8 GB virtual capacity, allocated progressively |
@@ -79,7 +97,7 @@ Physical devices use a host clock. Android software emulators use `icount shift=
 
 ## Data migration
 
-0.4.2 → 0.4.3 → 0.4.4 retain the same base-disk/kernel hashes and persistent QCOW2. The changed initramfs replaces only owned runtime code under `/opt/androidagent`; it does not reset task files, Docker layers, terminal HOME or exports. Interrupted runtime replacement is retried at next boot. Android validates base/kernel compatibility before updating initramfs.
+0.4.2 → 0.4.3 → 0.4.4 retain the same base-disk/kernel hashes and persistent QCOW2. Changes to `docker/guest/agent.py` (such as per-task preview ports and exec-only timeouts) ship only after `tools/prepare-docker-runtime.py` re-embeds the runtime into each ABI's initramfs; the same migration then applies. The changed initramfs replaces only owned runtime code under `/opt/androidagent`; it does not reset task files, Docker layers, terminal HOME or exports. Interrupted runtime replacement is retried at next boot. Android validates base/kernel compatibility before updating initramfs.
 
 0.4.2 changed the base relative to 0.4.1. An incompatible base is not silently swapped beneath an overlay; export data and explicitly reset if necessary. New full guest rebuilds can also change base compatibility. Exported Android files survive VM reset.
 
