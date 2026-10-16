@@ -102,10 +102,21 @@ public class DockerActivity extends Screen {
                 .onClick(v -> create(false));
         taskCard.addView(create.view, full());
         taskCard.addView(hairline(), dividerParams());
-        ToolUi.Row demo = new ToolUi.Row(this, R.drawable.ms_build_circle, "Wypróbuj przykładową aplikację", "strona WWW · podgląd na :8080", true)
+        ToolUi.Row demo = new ToolUi.Row(this, R.drawable.ms_build_circle, "Wypróbuj przykładową aplikację", "strona WWW · port 8080 kontenera", true)
                 .onClick(v -> create(true));
         taskCard.addView(demo.view, full());
         body.addView(taskCard, cardParams(this));
+
+        // ------------------------------------------------------------ sharing published apps
+        LinearLayout sharing = ToolUi.group(this);
+        sharing.addView(switchRow(this, "Podgląd w sieci Wi-Fi", "Inne urządzenia w tej sieci otworzą aplikację bez logowania",
+                DockerVm.lanExposure(this), on -> {
+                    DockerVm.setLanExposure(this, on);
+                    lastTasks = null; // the next heartbeat re-binds forwards and adds Wi-Fi addresses
+                }), full());
+        LinearLayout.LayoutParams sp = cardParams(this);
+        sp.topMargin = dp(this, 2);
+        body.addView(sharing, sp);
 
         // ------------------------------------------------------------ exports
         body.addView(sectionLabel(this, "Zachowane pliki"), full());
@@ -276,6 +287,24 @@ public class DockerActivity extends Screen {
                         : "succeeded".equals(jobState) ? OK : "failed".equals(jobState) ? ERR : FAINT);
                 d.setPulsing("running".equals(jobState) || "queued".equals(jobState));
                 r.trail(d);
+            }
+            String url = task.optString("url", ""), lan = task.isNull("lan_url") ? "" : task.optString("lan_url", "");
+            int port = task.optInt("host_port", 0);
+            if (!url.isEmpty() && port > 0) {
+                // Each task publishes its own phone port: tap opens the preview, long press copies.
+                LinearLayout links = row(this);
+                links.addView(ToolUi.urlChip(this, url, ACCENT_TEXT, () -> startActivity(
+                        DockerPreviewActivity.intent(this, port, task.optString("name")))), wrap());
+                if (!lan.isEmpty()) {
+                    TextView wifi = ToolUi.urlChip(this, lan, INFO, null);
+                    wifi.setContentDescription("Adres w sieci Wi-Fi " + lan);
+                    LinearLayout.LayoutParams wp = wrap();
+                    wp.leftMargin = dp(this, 6);
+                    links.addView(wifi, wp);
+                }
+                r.extra(links, 8);
+            } else if (task.has("preview_error")) {
+                r.setMeta(meta + " · podgląd: " + task.optString("preview_error"));
             }
             if (tasks.getChildCount() > 0) tasks.addView(hairline(), dividerParams());
             tasks.addView(r.view, full());
