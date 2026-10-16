@@ -520,7 +520,9 @@ final class IntentTools implements ToolProviders.Provider {
     private static String composeSms(Context app, String number, String body) throws InterruptedException {
         String n = checkNumber(number);
         if (body.length() > 5000) throw new IllegalArgumentException("body is too long (max 5000 characters)");
-        Intent i = new Intent(Intent.ACTION_SENDTO, Uri.parse("smsto:" + Uri.encode(n, ";,+"))).putExtra("sms_body", body);
+        // "sms_body" is the classic extra; current messaging apps (e.g. Google Messages) also read EXTRA_TEXT.
+        Intent i = new Intent(Intent.ACTION_SENDTO, Uri.parse("smsto:" + Uri.encode(n, ";,+")))
+                .putExtra("sms_body", body).putExtra(Intent.EXTRA_TEXT, body);
         PhoneTools.launch(app, i, "the SMS composer");
         return settle("Opened the SMS composer to " + n + " with " + body.length() + " characters filled in. Nothing was "
                 + "sent: the user reviews it and taps Send. Do not tap Send yourself.");
