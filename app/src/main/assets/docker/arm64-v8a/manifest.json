@@ -4,7 +4,7 @@
   "files": {
     "base.qcow2.gz": "7399ae1c32e046f67bc5bc1de6ff2b71af4ed1329eefe3600396ab6bc67821d4",
     "vmlinuz-virt": "0431ad6e5e0296080add279573c773287b55427bf3ec94fbc2c9f985d0b79966",
-    "initramfs-virt": "a90aadf9d2bbdb6d913271de3a8f1d9df97fe9aa20d9b83a603e88cc332f56ba"
+    "initramfs-virt": "42ac3dd166a99fb7b192b137b770c15becc1a00916bf432d22fcd5c55933bd53"
   },
   "runtime_revision": 3,
   "migration": "same-base-and-kernel-owned-runtime-in-initramfs",
@@ -12,7 +12,7 @@
     "revision": 3,
     "files": {
       "init.sh": "a11e7d4e8c63b9943ff1cb51be073838b02baf5db286e1338a55fb5b01b523f3",
-      "agent.py": "f2c853323ea0b360d5ce2b99a5ba01359f0e0201782e3433e8b0eb6f310bafda",
+      "agent.py": "b67880aa0b6552ca824082a4bf21f429ba27168db8d4c456aa29a598b00c38a8",
       "engine.py": "f9557c59224b57b2c40cd1c84edd8177bc059a550727452592b5743c208a7834",
       "diagnostics.py": "5f027cd4f49397cded32bcc6fd46613f8ae8b01bef46081e2d72254fa1c3777c",
       "python/androidagent_serial/__init__.py": "cb9242d4e3621486d3113e13355112cfaca78762d39bf1ad22f0555442185ab8",
