@@ -884,6 +884,7 @@ public class AndroidAgentTests extends Instrumentation {
         });
     test("MCP: Stop closes active and queued client sockets", RuntimeRegressionChecks::mcpShutdown);
     test("MCP: complete chunk framing and bounded headers", RuntimeRegressionChecks::mcpFraming);
+    test("MCP: helper events bypass tool calls waiting for the user", AgentRegressionChecks::eventsBypassBlockedTools);
     test("MCP: a new run cannot revive an old credential or queued request",
         () -> RuntimeRegressionChecks.mcpRunGeneration(app));
     test("attachments: bounded panorama decode and file provider projection",
@@ -1350,6 +1351,14 @@ public class AndroidAgentTests extends Instrumentation {
         () -> mainCheck(() -> AgentRegressionChecks.busyRequestRecoversSurvivingHelper(app)));
     test("agents: rejected dispatch preserves draft and revokes run access",
         () -> mainCheck(() -> AgentRegressionChecks.failedDispatchDoesNotPersistUserMessage(app)));
+    test("agents: tool calls carry meta and receive their results in place",
+        () -> mainCheck(() -> AgentRegressionChecks.toolCallsCarryResults(app)));
+    test("agents: tool argument summaries stay short",
+        () -> mainCheck(AgentRegressionChecks::toolArgumentSummaries));
+    test("agents: stall watchdog ends dead helpers but never live ones",
+        () -> mainCheck(() -> AgentRegressionChecks.stallWatchdog(app)));
+    test("agents: running chats are limited to runtime request slots",
+        () -> mainCheck(() -> AgentRegressionChecks.runningLimit(app)));
     test("UI: long model name keeps selector chevron within its bounds",
         () -> UiRegressionChecks.longModelChipFits(this, current));
     final Sessions.Session[] uiChat = {null};
