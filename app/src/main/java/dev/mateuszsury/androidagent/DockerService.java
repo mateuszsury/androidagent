@@ -44,8 +44,16 @@ public class DockerService extends Service {
         Notification note = new Notification.Builder(this, "docker").setSmallIcon(R.drawable.ms_terminal)
                 .setContentTitle("Docker na telefonie").setContentText("Środowisko tworzenia aplikacji jest aktywne")
                 .setContentIntent(open).setOngoing(true).addAction(new Notification.Action.Builder(null, "Zatrzymaj", stop).build()).build();
-        if (Build.VERSION.SDK_INT >= 34) startForeground(NOTICE, note, android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE);
-        else startForeground(NOTICE, note);
+        try {
+            if (Build.VERSION.SDK_INT >= 34) startForeground(NOTICE, note, android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE);
+            else startForeground(NOTICE, note);
+        } catch (RuntimeException denied) {
+            // Android 12+ can refuse a foreground start that an agent requested
+            // while androidagent was in the background. Never boot without it.
+            DockerVm.get(this).startRejected("Android nie pozwolił uruchomić środowiska w tle. Otwórz androidagent → Docker i uruchom je tam.");
+            stopSelf(id);
+            return START_NOT_STICKY;
+        }
         if (wake == null) {
             wake = getSystemService(PowerManager.class).newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "androidagent:docker");
             wake.acquire(24 * 60 * 60 * 1000L);

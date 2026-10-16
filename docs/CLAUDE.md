@@ -16,7 +16,7 @@ The current client version is **2.1.296**. The embedded runtime supplies pinned 
 - `stream-json --include-partial-messages` delivers live text and tool progress. The final response is stored once; subagent output is kept separate from the main response stream.
 - Models include Default, Sonnet, Opus, Haiku and a custom identifier. The official client resolves aliases; account access and exact model versions are not guaranteed by the UI.
 - Resume uses the real `session_id`. Attachments are fetched through the authenticated phone server into the conversation's work directory.
-- Both agents receive the same MCP phone, USB and [13 Docker tools](DOCKER.md#agent-tools). Per-run credentials and grants are revocable.
+- Both agents receive the same MCP phone, USB and [15 Docker tools](DOCKER.md#agent-tools). Per-run credentials and grants are revocable.
 - Normal mode supplies WebSearch/WebFetch/Read and MCP, with attachment-directory read permissions. Shell and file modification tools are removed from the tool set.
 - Developer mode enables Bash/Read/Write/Edit/Glob/Grep/Skill/Agent and related coding tools as **androidagent's UID**. Approved coding tools can access its whole private environment without separate MCP approval cards. Other noninteractive permission requests are denied. MCP `run_command` still requires its own exact-command approval.
 - Stop cancels the owned helper process tree and phone access without deleting the conversation.
