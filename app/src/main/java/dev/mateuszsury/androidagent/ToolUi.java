@@ -159,6 +159,14 @@ final class ToolUi {
             return this;
         }
 
+        /** Add a view under the meta line (chips, links). */
+        Row extra(View v, int topDp) {
+            LinearLayout.LayoutParams p = wrap();
+            p.topMargin = dp(view.getContext(), topDp);
+            ((LinearLayout) meta.getParent()).addView(v, p);
+            return this;
+        }
+
         /** Put a view (badge, dot) before the chevron. */
         Row trail(View v) {
             LinearLayout.LayoutParams p = wrap();
@@ -492,6 +500,32 @@ final class ToolUi {
         b.setTextColor(ERR);
         b.setBackground(outlined(c, ERR_SOFT, 10, Theme.withAlpha(ERR, 0x40), 1));
         return b;
+    }
+
+    /**
+     * A mono link chip for a published app URL: tap runs {@code open} (or copies when null), long
+     * press copies the address.
+     */
+    static TextView urlChip(Activity a, String url, int color, Runnable open) {
+        String label = url.replaceFirst("^https?://", "");
+        TextView t = single(monoText(a, label, 12, color));
+        t.setTypeface(mono(a, 600));
+        t.setPadding(dp(a, 9), dp(a, 4), dp(a, 9), dp(a, 4));
+        t.setBackground(outlined(a, Theme.withAlpha(color, 0x14), 8, Theme.withAlpha(color, 0x50), 1));
+        t.setForeground(a.getDrawable(ripple(a, false)));
+        t.setContentDescription("Adres aplikacji " + label);
+        Runnable copy = () -> {
+            android.content.ClipboardManager cm = a.getSystemService(android.content.ClipboardManager.class);
+            if (cm != null) cm.setPrimaryClip(android.content.ClipData.newPlainText("URL", url));
+            android.widget.Toast.makeText(a, "Skopiowano " + label, android.widget.Toast.LENGTH_SHORT).show();
+        };
+        t.setOnClickListener(v -> (open == null ? copy : open).run());
+        t.setOnLongClickListener(v -> {
+            copy.run();
+            return true;
+        });
+        Motion.press(t);
+        return t;
     }
 
     /** Human size: 812 B, 14.2 KB, 3.1 MB, 1.2 GB. */
