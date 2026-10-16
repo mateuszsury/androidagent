@@ -21,6 +21,14 @@ public class DockerTaskActivity extends Screen {
     private CheckBox preview;
     private Typeface bold;
     private boolean polling, visible;
+    private LinearLayout links;
+    private String shownLinks = "";
+    private final Runnable linkTick = new Runnable() {
+        @Override public void run() {
+            renderLinks();
+            if (visible) handler.postDelayed(this, 2000);
+        }
+    };
     private final Handler handler = new Handler(Looper.getMainLooper());
     private final Runnable pollTick = this::pollJob;
 
@@ -77,7 +85,7 @@ public class DockerTaskActivity extends Screen {
         run.addView(commandCaption, full());
         command = field("Komenda w kontenerze", "", false);
         run.addView(command, fieldParams(8));
-        preview = ToolUi.checkBox(this, "Podgląd aplikacji na porcie 8080");
+        preview = ToolUi.checkBox(this, "Opublikuj port 8080 kontenera");
         preview.setChecked(getIntent().getBooleanExtra("demo", false));
         run.addView(preview, fieldParams(8));
         Button start = button(this, "Uruchom kontener", true);
@@ -110,10 +118,17 @@ public class DockerTaskActivity extends Screen {
         cancel.setOnClickListener(v -> operation("cancel"));
         body.addView(ToolUi.buttons(this, logs, cancel), sideParams(10));
         Button view = button(this, "Otwórz podgląd", false);
-        view.setOnClickListener(v -> startActivity(new Intent(this, DockerPreviewActivity.class)));
+        // Each task publishes its own phone port; the preview opens exactly that one.
+        view.setOnClickListener(v -> startActivity(DockerPreviewActivity.intent(this, vm.previewPort(task), taskName())));
         LinearLayout.LayoutParams vp = sideParams(8);
         vp.height = dp(this, 46);
         body.addView(view, vp);
+        links = row(this);
+        links.setPadding(dp(this, 20), 0, dp(this, 20), 0);
+        links.setVisibility(View.GONE);
+        LinearLayout.LayoutParams lp = full();
+        lp.topMargin = dp(this, 10);
+        body.addView(links, lp);
 
         // ------------------------------------------------------------ export + cleanup
         body.addView(sectionLabel(this, "Zachowaj wynik"), full());
@@ -271,8 +286,46 @@ public class DockerTaskActivity extends Screen {
         output.setText(s);
     }
 
-    @Override protected void onResume() { super.onResume(); visible = true; if (job != null) pollJob(); }
-    @Override protected void onPause() { visible = false; handler.removeCallbacks(pollTick); super.onPause(); }
+    @Override protected void onResume() { super.onResume(); visible = true; if (job != null) pollJob(); handler.removeCallbacks(linkTick); handler.post(linkTick); }
+    @Override protected void onPause() { visible = false; handler.removeCallbacks(pollTick); handler.removeCallbacks(linkTick); super.onPause(); }
+
+    /** This task in the VM heartbeat (in memory, no request): name, published url/host_port, lan_url. */
+    private JSONObject taskInfo() {
+        JSONArray list = vm.guest.optJSONArray("tasks");
+        if (list != null) for (int i = 0; i < list.length(); i++) {
+            JSONObject t = list.optJSONObject(i);
+            if (t != null && task.equals(t.optString("id"))) return t;
+        }
+        return null;
+    }
+
+    private String taskName() {
+        JSONObject t = taskInfo();
+        return t == null ? null : t.optString("name", null);
+    }
+
+    /** The published app's addresses: phone URL (opens the preview) and, when enabled, the Wi-Fi URL. */
+    private void renderLinks() {
+        JSONObject t = taskInfo();
+        String url = t == null ? "" : t.optString("url", "");
+        String lan = t == null || t.isNull("lan_url") ? "" : t.optString("lan_url", "");
+        int port = t == null ? 0 : t.optInt("host_port", 0);
+        String sig = url + "|" + lan + "|" + port;
+        if (sig.equals(shownLinks)) return;
+        shownLinks = sig;
+        links.removeAllViews();
+        if (url.isEmpty() || port <= 0) { ToolUi.setVisible(links, false); return; }
+        TextView label = monoText(this, "adres", 11, FAINT);
+        label.setPadding(0, 0, dp(this, 8), 0);
+        links.addView(label, wrap());
+        links.addView(ToolUi.urlChip(this, url, ACCENT_TEXT, () -> startActivity(DockerPreviewActivity.intent(this, port, taskName()))), wrap());
+        if (!lan.isEmpty()) {
+            LinearLayout.LayoutParams p = wrap();
+            p.leftMargin = dp(this, 6);
+            links.addView(ToolUi.urlChip(this, lan, INFO, null), p);
+        }
+        if (links.getVisibility() != View.VISIBLE) { links.setVisibility(View.VISIBLE); Motion.fadeIn(links, 0); }
+    }
     @Override protected void onDestroy() { handler.removeCallbacksAndMessages(null); super.onDestroy(); }
     @Override protected void onSaveInstanceState(Bundle out) {
         if (filename != null) {
