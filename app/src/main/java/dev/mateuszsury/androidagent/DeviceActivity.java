@@ -2,19 +2,47 @@ package dev.mateuszsury.androidagent;
 
 import static dev.mateuszsury.androidagent.Ui.*;
 
+import android.os.Build;
 import android.os.Bundle;
-import android.view.*;
-import android.widget.*;
+import android.os.Handler;
+import android.os.Looper;
+import android.text.SpannableStringBuilder;
+import android.text.Spanned;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.TypefaceSpan;
+import android.util.TypedValue;
+import android.view.View;
+import android.view.inputmethod.EditorInfo;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.HorizontalScrollView;
+import android.widget.LinearLayout;
+import android.widget.ScrollView;
+import android.widget.TextView;
 import org.json.JSONObject;
 
 /** Live status and an honest, app-scoped terminal; no model needed. */
 public class DeviceActivity extends Screen {
-  private LinearLayout metrics;
+  private static final String[] QUICK = {"uname -a", "id", "df -h .", "ls -la", "getprop ro.product.model", "ps -A | head"};
+  private final Handler handler = new Handler(Looper.getMainLooper());
+  private final Runnable tick =
+      new Runnable() {
+        @Override
+        public void run() {
+          refresh();
+          handler.postDelayed(this, 5000);
+        }
+      };
   private TextView output;
   private EditText command;
   private Button run;
   private LocalShell shell;
   private boolean busy;
+  // Metrics: built once, updated in place.
+  private TextView model, system, batteryValue, batteryState, ramValue, ramSub, diskValue, diskSub, error;
+  private ToolUi.Meter batteryMeter, ramMeter, diskMeter;
+  private ToolUi.Status network, control, runtime, uptime;
+  private String signature = "";
 
   @Override
   protected void onCreate(Bundle state) {
@@ -22,46 +50,136 @@ public class DeviceActivity extends Screen {
     LinearLayout root = column(this);
     root.setBackgroundColor(BG);
     root.setFitsSystemWindows(true);
-    LinearLayout bar = row(this);
-    bar.setPadding(dp(this, 8), dp(this, 8), dp(this, 16), dp(this, 8));
-    ImageButton back = iconButton(this, R.drawable.ms_arrow_back, "Wróć");
-    back.setOnClickListener(v -> finish());
-    bar.addView(back, new LinearLayout.LayoutParams(dp(this, 48), dp(this, 48)));
-    bar.addView(title(this, "Twój telefon", 20), weight1());
-    Button refresh = button(this, "Odśwież", false);
-    refresh.setOnClickListener(v -> refresh());
-    bar.addView(refresh);
-    root.addView(bar, full());
+    TextView refresh = barAction(this, "Odśwież");
+    refresh.setOnClickListener(
+        v -> {
+          signature = "";
+          refresh();
+          Motion.pop(v, 0);
+        });
+    root.addView(topBar(this, "Twój telefon", "~/telefon · odczyt lokalny", refresh), full());
     ScrollView scroll = new ScrollView(this);
-    LinearLayout content = column(this);
-    content.setPadding(dp(this, 22), dp(this, 12), dp(this, 22), dp(this, 24));
-    metrics = column(this);
-    content.addView(metrics, full());
-    TextView label = title(this, "Terminal", 22);
-    label.setPadding(0, dp(this, 26), 0, dp(this, 8));
-    content.addView(label);
+    scroll.setClipToPadding(false);
+    LinearLayout content = ToolUi.body(this);
+
+    // ---------------------------------------------------------------- hero
+    LinearLayout hero = terminalBox(this, "urządzenie", ACCENT);
+    model = title(this, Build.MANUFACTURER + " " + Build.MODEL, 20);
+    model.setTypeface(sans(this, 650));
+    hero.addView(model, full());
+    system = monoText(this, "Android " + Build.VERSION.RELEASE + " · API " + Build.VERSION.SDK_INT, 12, MUTED);
+    system.setPadding(0, dp(this, 4), 0, 0);
+    hero.addView(system, full());
+    LinearLayout.LayoutParams heroP = cardParams(this);
+    heroP.topMargin = dp(this, 12);
+    content.addView(hero, heroP);
+
+    // ---------------------------------------------------------------- battery
+    LinearLayout battery = card(this);
+    LinearLayout head = row(this);
+    head.addView(ToolUi.caption(this, "Bateria"), weight1());
+    batteryState = badge(this, "", MUTED);
+    head.addView(batteryState, wrap());
+    battery.addView(head, full());
+    batteryValue = monoText(this, "—", 30, TEXT);
+    batteryValue.setTypeface(mono(this, 600));
+    batteryValue.setPadding(0, dp(this, 6), 0, 0);
+    battery.addView(batteryValue, wrap());
+    batteryMeter = new ToolUi.Meter(this, OK);
+    battery.addView(batteryMeter, ToolUi.meterParams(this, 8, 10));
+    content.addView(battery, cardParams(this));
+
+    // ---------------------------------------------------------------- RAM + storage
+    LinearLayout pair = row(this);
+    pair.setGravity(android.view.Gravity.TOP);
+    LinearLayout ram = card(this), disk = card(this);
+    ramValue = metric(ram, "Pamięć RAM");
+    ramSub = sub(ram);
+    ramMeter = new ToolUi.Meter(this, MUTED);
+    ram.addView(ramMeter, ToolUi.meterParams(this, 6, 10));
+    diskValue = metric(disk, "Miejsce");
+    diskSub = sub(disk);
+    diskMeter = new ToolUi.Meter(this, MUTED);
+    disk.addView(diskMeter, ToolUi.meterParams(this, 6, 10));
+    pair.addView(ram, new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1));
+    LinearLayout.LayoutParams dp2 = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1);
+    dp2.leftMargin = dp(this, 10);
+    pair.addView(disk, dp2);
+    content.addView(pair, cardParams(this));
+
+    // ---------------------------------------------------------------- status rows
+    LinearLayout statuses = ToolUi.group(this);
+    network = new ToolUi.Status(this, "Połączenie");
+    control = new ToolUi.Status(this, "Sterowanie ekranem");
+    runtime = new ToolUi.Status(this, "Środowisko agentów");
+    uptime = new ToolUi.Status(this, "Czas działania");
+    ToolUi.add(statuses, network.view);
+    ToolUi.add(statuses, control.view);
+    ToolUi.add(statuses, runtime.view);
+    ToolUi.add(statuses, uptime.view);
+    content.addView(statuses, cardParams(this));
+    error = text(this, "", 13, ERR);
+    error.setPadding(dp(this, 20), 0, dp(this, 20), 0);
+    error.setVisibility(View.GONE);
+    content.addView(error, full());
+
+    // ---------------------------------------------------------------- terminal
+    TextView label = sectionLabel(this, "Terminal");
+    label.setPadding(dp(this, 20), dp(this, 22), dp(this, 20), dp(this, 6));
+    content.addView(label, full());
     TextView detail =
-        text(
+        ToolUi.note(
             this,
             "Komendy wykonują się na telefonie z uprawnieniami androidagent. Pliki zapisujesz w"
                 + " jego katalogu roboczym. Pełny terminal i klienci agentów są dostępni we wbudowanym środowisku.",
-            13,
-            MUTED);
-    detail.setLineSpacing(dp(this, 3), 1);
+            13);
     content.addView(detail, full());
-    command = new EditText(this);
+
+    TextView fieldLabel = ToolUi.caption(this, "Komenda powłoki");
+    fieldLabel.setPadding(dp(this, 20), dp(this, 14), dp(this, 20), dp(this, 8));
+    content.addView(fieldLabel, full());
+    command = input(this, "Komenda powłoki", true);
     command.setSingleLine(true);
     command.setText("id; uname -a");
-    command.setTextColor(TEXT);
-    command.setTextSize(13);
-    command.setTypeface(mono(this, 400));
-    command.setHint("Komenda powłoki");
+    command.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
     command.setContentDescription("Komenda powłoki");
-    command.setPadding(dp(this, 14), dp(this, 14), dp(this, 14), dp(this, 14));
-    command.setBackground(rounded(this, CARD, 14));
-    LinearLayout.LayoutParams inputP = full();
-    inputP.topMargin = dp(this, 18);
-    content.addView(command, inputP);
+    command.setImeOptions(EditorInfo.IME_ACTION_GO | EditorInfo.IME_FLAG_NO_FULLSCREEN);
+    command.setOnEditorActionListener(
+        (v, action, event) -> {
+          if (action == EditorInfo.IME_ACTION_GO && !busy) {
+            execute();
+            return true;
+          }
+          return false;
+        });
+    LinearLayout field = ToolUi.prompt(this, "$", command);
+    content.addView(field, sideParams(0));
+
+    HorizontalScrollView chipScroll = new HorizontalScrollView(this);
+    chipScroll.setHorizontalScrollBarEnabled(false);
+    chipScroll.setClipToPadding(false);
+    chipScroll.setPadding(dp(this, 16), 0, dp(this, 16), 0);
+    LinearLayout chips = row(this);
+    for (String q : QUICK) {
+      TextView chip = monoText(this, q, 12, MUTED);
+      chip.setPadding(dp(this, 10), dp(this, 6), dp(this, 10), dp(this, 6));
+      chip.setBackground(outlined(this, 0x00000000, 8, OUTLINE, 1));
+      chip.setOnClickListener(
+          v -> {
+            if (busy) return;
+            command.setText(q);
+            command.setSelection(q.length());
+          });
+      Motion.press(chip);
+      LinearLayout.LayoutParams cp = wrap();
+      cp.rightMargin = dp(this, 8);
+      chips.addView(chip, cp);
+    }
+    chipScroll.addView(chips);
+    LinearLayout.LayoutParams chipP = full();
+    chipP.topMargin = dp(this, 10);
+    content.addView(chipScroll, chipP);
+
     run = button(this, "Uruchom komendę", true);
     run.setOnClickListener(
         v -> {
@@ -69,80 +187,160 @@ public class DeviceActivity extends Screen {
             if (shell != null) shell.stop();
           } else execute();
         });
-    content.addView(run, full());
-    output = monoText(this, "$ Gotowy. Katalog: workspace/", 12, CODE_TEXT);
-    output.setTextIsSelectable(true);
-    output.setPadding(dp(this, 16), dp(this, 16), dp(this, 16), dp(this, 16));
-    output.setBackground(rounded(this, CODE, 16));
-    output.setMinHeight(dp(this, 130));
-    content.addView(output, full());
-    TextView hint = text(this, "Limit: 10 s · wynik do 32 KB · bez roota", 11, MUTED);
-    hint.setPadding(0, dp(this, 10), 0, dp(this, 20));
-    content.addView(hint);
-    Button setup = button(this, "Otwórz środowisko i klientów", false);
-    setup.setOnClickListener(v -> EmbeddedRuntime.open(this));
-    content.addView(setup, full());
+    LinearLayout.LayoutParams runP = sideParams(12);
+    runP.height = dp(this, 46);
+    content.addView(run, runP);
+
+    output = terminalText(this, "");
+    output.setMinHeight(dp(this, 140));
+    output.setText(style("$ Gotowy. Katalog: workspace/"));
+    content.addView(output, sideParams(12));
+    TextView hint = monoText(this, "limit 10 s · wynik do 32 KB · bez roota", 11, FAINT);
+    hint.setPadding(dp(this, 20), dp(this, 8), dp(this, 20), dp(this, 6));
+    content.addView(hint, full());
+
+    LinearLayout more = ToolUi.group(this);
+    ToolUi.Row setup =
+        new ToolUi.Row(this, R.drawable.ms_terminal, "Otwórz środowisko i klientów", "Pełny terminal · Codex · Claude Code", true)
+            .onClick(v -> EmbeddedRuntime.open(this));
+    ToolUi.add(more, setup.view);
+    LinearLayout.LayoutParams moreP = cardParams(this);
+    moreP.topMargin = dp(this, 14);
+    content.addView(more, moreP);
+
     scroll.addView(content);
     root.addView(scroll, new LinearLayout.LayoutParams(-1, 0, 1));
     setContentView(root);
     if (state != null) {
       command.setText(state.getString("command", "id"));
-      output.setText(state.getString("output", ""));
+      output.setText(style(state.getString("output", "")));
     }
+    refresh();
+    Motion.stagger(content, 40, 35);
     if (getIntent().getBooleanExtra("terminal", false))
       scroll.post(() -> scroll.smoothScrollTo(0, label.getTop()));
+  }
+
+  private LinearLayout.LayoutParams sideParams(int top) {
+    LinearLayout.LayoutParams p = full();
+    p.leftMargin = p.rightMargin = dp(this, 16);
+    p.topMargin = dp(this, top);
+    return p;
+  }
+
+  private TextView metric(LinearLayout card, String name) {
+    card.addView(ToolUi.caption(this, name), full());
+    TextView v = single(monoText(this, "—", 20, TEXT));
+    v.setTypeface(mono(this, 600));
+    v.setPadding(0, dp(this, 6), 0, 0);
+    card.addView(v, full());
+    return v;
+  }
+
+  private TextView sub(LinearLayout card) {
+    TextView s = single(monoText(this, "", 11, FAINT));
+    s.setPadding(0, dp(this, 2), 0, 0);
+    card.addView(s, full());
+    return s;
   }
 
   @Override
   protected void onResume() {
     super.onResume();
-    refresh();
+    handler.removeCallbacks(tick);
+    handler.post(tick);
+  }
+
+  @Override
+  protected void onPause() {
+    handler.removeCallbacks(tick);
+    super.onPause();
   }
 
   private void refresh() {
-    metrics.removeAllViews();
     try {
       JSONObject s = DeviceState.read(this);
-      TextView model = title(this, s.getString("model"), 23);
-      metrics.addView(model);
-      TextView android =
-          text(
-              this, "Android " + s.getString("android") + "  ·  API " + s.getInt("api"), 13, MUTED);
-      android.setPadding(0, dp(this, 5), 0, dp(this, 22));
-      metrics.addView(android);
-      metric(
-          "Bateria",
-          s.getInt("battery_percent") + "%" + (s.getBoolean("charging") ? " · ładowanie" : ""));
-      metric("Wolna pamięć RAM", DeviceState.gb(s.getLong("ram_available_bytes")));
-      metric("Wolne miejsce", DeviceState.gb(s.getLong("storage_available_bytes")));
-      metric("Połączenie", s.getString("network"));
-      metric(
-          "Sterowanie ekranem", s.getBoolean("accessibility_connected") ? "Aktywne" : "Wyłączone");
-      metric("Środowisko agentów", s.getBoolean("runtime_ready") ? "Gotowe"
-          : s.getBoolean("runtime_busy") ? "Przygotowywanie" : "Nieprzygotowane");
+      // Only touch views whose values changed: no flicker, no needless accessibility events.
+      String sig = s.toString().replaceAll("\"uptime_seconds\":\\d+", "");
+      long up = s.getLong("uptime_seconds");
+      uptime.set(up >= 3600 ? (up / 3600) + " h " + String.format(java.util.Locale.ROOT, "%02d", (up % 3600) / 60) + " min" : (up / 60) + " min", FAINT);
+      if (sig.equals(signature)) return;
+      signature = sig;
+      ToolUi.setText(model, s.getString("model"));
+      ToolUi.setText(system, "Android " + s.getString("android") + " · API " + s.getInt("api") + " · bez roota");
+      int level = s.getInt("battery_percent");
+      boolean charging = s.getBoolean("charging");
+      int color = level < 0 ? FAINT : level < 20 ? ERR : level < 50 ? WARN : OK;
+      ToolUi.setText(batteryValue, level < 0 ? "—" : level + "%");
+      ToolUi.setText(batteryState, charging ? "ładowanie" : "na baterii");
+      batteryState.setTextColor(charging ? OK : MUTED);
+      batteryState.setBackground(rounded(this, Theme.withAlpha(charging ? OK : MUTED, 0x22), 6));
+      batteryMeter.set(level < 0 ? 0 : level / 100f, color);
+      batteryMeter.setContentDescription("Bateria " + level + "%");
+      long ramFree = s.getLong("ram_available_bytes"), ramTotal = s.optLong("ram_total_bytes", 0);
+      ToolUi.setText(ramValue, DeviceState.gb(ramFree));
+      ToolUi.setText(ramSub, ramTotal > 0 ? "wolne z " + DeviceState.gb(ramTotal) : "wolne");
+      ramMeter.set(used(ramFree, ramTotal), usage(used(ramFree, ramTotal)));
+      long diskFree = s.getLong("storage_available_bytes"), diskTotal = s.optLong("storage_total_bytes", 0);
+      ToolUi.setText(diskValue, DeviceState.gb(diskFree));
+      ToolUi.setText(diskSub, diskTotal > 0 ? "wolne z " + DeviceState.gb(diskTotal) : "wolne");
+      diskMeter.set(used(diskFree, diskTotal), usage(used(diskFree, diskTotal)));
+      String net = s.getString("network");
+      network.set(net, "offline".equals(net) ? ERR : OK);
+      boolean screen = s.getBoolean("accessibility_connected");
+      control.set(screen ? "Aktywne" : "Wyłączone", screen ? OK : FAINT);
+      boolean ready = s.getBoolean("runtime_ready"), preparing = s.getBoolean("runtime_busy");
+      runtime.set(ready ? "Gotowe" : preparing ? "Przygotowywanie" : "Nieprzygotowane", ready ? OK : preparing ? ACCENT : FAINT);
+      runtime.dot.setPulsing(preparing);
+      ToolUi.setVisible(error, false);
     } catch (Exception e) {
-      metrics.addView(text(this, e.getMessage(), 14, ERR));
+      error.setText(String.valueOf(e.getMessage()));
+      ToolUi.setVisible(error, true);
     }
   }
 
-  private void metric(String name, String value) {
-    LinearLayout r = row(this);
-    r.setPadding(0, dp(this, 12), 0, dp(this, 12));
-    r.addView(text(this, name, 14, MUTED), weight1());
-    r.addView(title(this, value, 14));
-    metrics.addView(r, full());
-    View line = new View(this);
-    line.setBackgroundColor(LINE);
-    metrics.addView(line, new LinearLayout.LayoutParams(-1, dp(this, 1)));
+  private static float used(long free, long total) {
+    return total <= 0 ? 0f : 1f - (float) free / total;
+  }
+
+  private static int usage(float used) {
+    return used > 0.92f ? ERR : used > 0.8f ? WARN : Theme.withAlpha(TEXT, 0xB0);
+  }
+
+  /** Colours a "$ cmd\n\noutput\n\n[exit n]" transcript; the characters stay exactly as given. */
+  private CharSequence style(String full) {
+    SpannableStringBuilder sb = new SpannableStringBuilder(full);
+    int flags = Spanned.SPAN_EXCLUSIVE_EXCLUSIVE;
+    if (full.startsWith("$ ")) {
+      sb.setSpan(new ForegroundColorSpan(ACCENT), 0, 1, flags);
+      int end = full.indexOf('\n');
+      if (end > 2) sb.setSpan(new TypefaceSpan(mono(this, 600)), 2, end, flags);
+      else sb.setSpan(new ForegroundColorSpan(CODE_MUTED), 2, full.length(), flags);
+    }
+    int exit = full.lastIndexOf("\n[exit ");
+    if (exit >= 0) {
+      boolean ok = full.startsWith("\n[exit 0]", exit) || full.startsWith("\n[exit 0 ", exit);
+      sb.setSpan(new ForegroundColorSpan(AnsiText.PALETTE[ok ? 2 : 1]), exit + 1, full.length(), flags);
+    }
+    int failed = full.indexOf("\n\nBłąd: ");
+    if (failed >= 0) sb.setSpan(new ForegroundColorSpan(AnsiText.PALETTE[1]), failed + 2, full.length(), flags);
+    if (full.endsWith("Wykonywanie…"))
+      sb.setSpan(new ForegroundColorSpan(CODE_MUTED), full.length() - "Wykonywanie…".length(), full.length(), flags);
+    return sb;
   }
 
   private void execute() {
     String cmd = command.getText().toString().trim();
-    if (cmd.isEmpty()) return;
+    if (cmd.isEmpty()) {
+      Motion.shake(command);
+      return;
+    }
     busy = true;
     run.setText("Zatrzymaj");
+    run.setTextColor(ERR);
+    run.setBackground(outlined(this, ERR_SOFT, 10, Theme.withAlpha(ERR, 0x40), 1));
     command.setEnabled(false);
-    output.setText("$ " + cmd + "\n\nWykonywanie…");
+    output.setText(style("$ " + cmd + "\n\nWykonywanie…"));
     shell = new LocalShell();
     LocalShell task = shell;
     new Thread(
@@ -160,7 +358,9 @@ public class DeviceActivity extends Screen {
                     busy = false;
                     command.setEnabled(true);
                     run.setText("Uruchom komendę");
-                    output.setText("$ " + cmd + "\n\n" + done);
+                    run.setTextColor(ON_ACCENT);
+                    run.setBackground(rounded(this, ACCENT, 10));
+                    output.setText(style("$ " + cmd + "\n\n" + done));
                   });
             },
             "androidagent-terminal")
@@ -176,6 +376,7 @@ public class DeviceActivity extends Screen {
 
   @Override
   protected void onDestroy() {
+    handler.removeCallbacksAndMessages(null);
     if (shell != null) shell.stop();
     super.onDestroy();
   }
