@@ -37,6 +37,16 @@ REQUEST_LIMIT = 1024 * 1024
 LABEL = 'dev.mateuszsury.androidagent.task'
 USB = {}
 SERIAL = {}  # Ephemeral grants: never restored after a VM restart.
+# One published app port per task. The guest port is persisted in task.json
+# until cancel/cleanup; Android forwards it from its own host port. 8080 is
+# also the boot-time 127.0.0.1:18781 forward, so the first task keeps the
+# legacy preview URL. 8081-8179 are forwarded at runtime through QMP.
+PREVIEW_GUEST_PORTS = range(8080, 8180)
+JOB_TIMEOUT = 900
+# docker exec cannot be stopped through its CLI client: the command runs under
+# containerd. Each exec carries this marker so a timeout stops only that exec.
+JOB_MARKER = 'ANDROIDAGENT_JOB'
+PROC = Path('/proc')
 
 
 def usb_device(slot, vid, pid):
@@ -101,6 +111,103 @@ def engine_info():
         return json.loads(response.read(1024 * 1024))
     finally:
         connection.close()
+
+
+def read_task(path):
+    return json.loads((path / 'task.json').read_text())
+
+
+def write_task(path, info):
+    temporary = path / 'task.json.part'
+    temporary.write_text(json.dumps(info))
+    temporary.replace(path / 'task.json')
+
+
+def preview_ports(exclude=None):
+    used = {}
+    for path in ROOT.iterdir():
+        if path.name == exclude:
+            continue
+        try:
+            preview = read_task(path).get('preview')
+        except (OSError, ValueError):
+            continue
+        if isinstance(preview, dict) and isinstance(preview.get('guest_port'), int):
+            used[preview['guest_port']] = path.name
+    return used
+
+
+def container_port(value):
+    if isinstance(value, bool) or not isinstance(value, (int, str)):
+        raise ValueError('Invalid container port')
+    try:
+        port = int(value)
+    except ValueError:
+        raise ValueError('Invalid container port') from None
+    if not 1 <= port <= 65535:
+        raise ValueError('Invalid container port')
+    return port
+
+
+def allocate_preview(path, port):
+    """Give this task one unique guest port; a rerun keeps the same one."""
+    info = read_task(path)
+    current = info.get('preview') if isinstance(info.get('preview'), dict) else {}
+    used = preview_ports(exclude=path.name)
+    guest = current.get('guest_port')
+    if guest not in PREVIEW_GUEST_PORTS or guest in used:
+        guest = next((candidate for candidate in PREVIEW_GUEST_PORTS if candidate not in used), None)
+        if guest is None:
+            raise ValueError('Every preview port is in use; cancel or clean up another task first')
+    info['preview'] = {'guest_port': guest, 'container_port': port}
+    write_task(path, info)
+    return dict(info['preview'])
+
+
+def release_preview(path):
+    """Forget the task's guest port. Returns released ports for Android to unforward."""
+    try:
+        info = read_task(path)
+    except (OSError, ValueError):
+        return []
+    preview = info.pop('preview', None)
+    if preview is None:
+        return []
+    write_task(path, info)
+    port = preview.get('guest_port') if isinstance(preview, dict) else None
+    return [port] if isinstance(port, int) else []
+
+
+def marked_processes(job_id, proc=None):
+    needle = (JOB_MARKER + '=' + job_id).encode()
+    found = []
+    for entry in (proc or PROC).iterdir():
+        if not entry.name.isdigit():
+            continue
+        try:
+            environ = (entry / 'environ').read_bytes()
+        except OSError:
+            continue
+        if needle in environ.split(b'\0'):
+            found.append(int(entry.name))
+    return found
+
+
+def stop_marked(job_id, grace=2.0):
+    """Stop only one exec's processes. The container and its server keep running."""
+    for sig in (signal.SIGTERM, signal.SIGKILL):
+        pids = marked_processes(job_id)
+        if not pids:
+            return True
+        for pid in pids:
+            try:
+                os.kill(pid, sig)
+            except (ProcessLookupError, PermissionError):
+                pass
+        deadline = time.monotonic() + grace
+        while time.monotonic() < deadline and marked_processes(job_id):
+            time.sleep(.05)
+    return not marked_processes(job_id)
 
 
 def work_file(path, name):
@@ -178,11 +285,11 @@ def snapshot_context(path, destination):
                 archive.addfile(info, source)
 
 
-def start_job(task, kind, argv, build_context=False):
+def start_job(task, kind, argv, build_context=False, job_id=None, on_timeout=None):
     path = task_dir(task)
     if active(task):
         raise ValueError('This task already has an active operation')
-    job = {'id': uuid.uuid4().hex, 'task': task, 'kind': kind, 'state': 'queued', 'output': '', 'started_at': int(time.time())}
+    job = {'id': job_id or uuid.uuid4().hex, 'task': task, 'kind': kind, 'state': 'queued', 'output': '', 'started_at': int(time.time())}
     JOBS[job['id']] = job
     save_job(job)
     def execute():
@@ -200,16 +307,25 @@ def start_job(task, kind, argv, build_context=False):
                                         stdout=subprocess.PIPE, stderr=subprocess.STDOUT, start_new_session=True)
                 PROCESSES[job['id']] = proc
                 job['state'] = 'running'
+            expired = threading.Event()
             def timeout():
                 if proc.poll() is None:
+                    expired.set()
                     with LOCK:
-                        job['state'] = 'timed_out'
+                        note = f'\n[androidagent] {kind} exceeded {JOB_TIMEOUT} s and was stopped.'
+                        if kind == 'exec':
+                            note += ' The container keeps running.'
+                        job['output'] = (job['output'] + note + '\n')[-OUTPUT_LIMIT:]
                     terminate(proc)
-                    # docker exec's client can exit while its container command
-                    # remains alive. Stop this task's container on timeout too.
-                    with LOCK:
-                        cancel(task)
-            timer = threading.Timer(900, timeout)
+                    # Only this operation's own leftovers: an exec timeout must
+                    # never stop a long-running server in the same container.
+                    if on_timeout:
+                        try:
+                            on_timeout()
+                        except Exception as error:
+                            with LOCK:
+                                job['output'] = (job['output'] + 'Timeout cleanup failed: ' + str(error))[-OUTPUT_LIMIT:]
+            timer = threading.Timer(JOB_TIMEOUT, timeout)
             timer.start()
             try:
                 while True:
@@ -220,11 +336,14 @@ def start_job(task, kind, argv, build_context=False):
                         job['output'] = (job['output'] + chunk.decode(errors='replace'))[-OUTPUT_LIMIT:]
                 code = proc.wait()
             finally:
+                # The task stays busy until timeout cleanup ends, so a new run
+                # can never be stopped by an older operation's cleanup.
                 timer.cancel()
+                timer.join()
             with LOCK:
                 job['exit_code'] = code
                 if job['state'] == 'running':
-                    job['state'] = 'succeeded' if code == 0 else 'failed'
+                    job['state'] = 'timed_out' if expired.is_set() else 'succeeded' if code == 0 else 'failed'
         except Exception as error:
             with LOCK:
                 if job['state'] not in ('cancelled', 'timed_out'):
@@ -265,6 +384,10 @@ def cancel(task):
             proc = PROCESSES.get(job['id'])
             if proc:
                 terminate(proc)
+    stop_containers(task)
+
+
+def stop_containers(task):
     # Stop commands running in detached containers as well as Docker CLI jobs.
     ids = command(['docker', 'ps', '-q', '--filter', 'label=' + LABEL + '=' + task], check=False)
     if ids:
@@ -426,11 +549,13 @@ def dispatch(a):
                 argv += ['--mount', 'type=bind,src=/opt/androidagent/python,dst=/opt/androidagent/python,readonly',
                          '-e', 'PYTHONPATH=/opt/androidagent/python', '-e', 'ANDROIDAGENT_SERIAL_URL=' + next(iter(serial.values()))]
             port = a.get('port')
+            preview, released = None, []
             if port is not None:
-                port = int(port)
-                if not 1 <= port <= 65535:
-                    raise ValueError('Invalid container port')
-                argv += ['-p', '8080:' + str(port)]
+                port = container_port(port)
+                preview = allocate_preview(path, port)
+                argv += ['-p', str(preview['guest_port']) + ':' + str(port)]
+            else:
+                released = release_preview(path)
             cmd = a.get('command')
             if cmd:
                 argv += ['-w', '/workspace']
@@ -443,12 +568,21 @@ def dispatch(a):
             # a slow phone. The fixed script receives every value as an argument.
             replace = ['sh', '-c', 'docker rm -f "$1" >/dev/null 2>&1; shift; exec "$@"',
                        'androidagent-run', container]
-            return start_job(task, 'run', replace + argv)
+            # docker run -d returns once the server starts; only a slow
+            # pull/create can time out, and then only this run is stopped.
+            result = start_job(task, 'run', replace + argv, on_timeout=lambda: stop_containers(task))
+            result['preview'] = preview
+            if released:
+                result['released_guest_ports'] = released
+            return result
         if op == 'exec':
             cmd = a.get('command')
             if not isinstance(cmd, str) or not cmd or len(cmd) > 8192:
                 raise ValueError('Command must contain 1–8192 characters')
-            return start_job(task, 'exec', ['docker', 'exec', '-w', '/workspace', container, 'sh', '-lc', cmd])
+            job_id = uuid.uuid4().hex
+            return start_job(task, 'exec', ['docker', 'exec', '-e', JOB_MARKER + '=' + job_id, '-w', '/workspace',
+                                            container, 'sh', '-lc', cmd],
+                             job_id=job_id, on_timeout=lambda: stop_marked(job_id))
         if op == 'logs':
             job_id = a.get('job')
             if job_id:
@@ -459,9 +593,11 @@ def dispatch(a):
             return {'output': command(['docker', 'logs', '--tail', '200', container], check=False)[-OUTPUT_LIMIT:]}
         if op == 'cancel':
             cancel(task)
-            return task_info(path)
+            released = release_preview(path)
+            return {**task_info(path), 'released_guest_ports': released}
         if op == 'cleanup':
             cancel(task)
+            released = release_preview(path)
             USB.pop(task, None)
             SERIAL.pop(task, None)
             ids = command(['docker', 'ps', '-aq', '--filter', 'label=' + LABEL + '=' + task], check=False)
@@ -474,7 +610,7 @@ def dispatch(a):
             shutil.rmtree(path)
             for key in [key for key, job in JOBS.items() if job['task'] == task]:
                 JOBS.pop(key)
-            return {'cleaned': task, 'shared_cache_retained': True}
+            return {'cleaned': task, 'shared_cache_retained': True, 'released_guest_ports': released}
         raise ValueError('Unknown operation')
 
 
