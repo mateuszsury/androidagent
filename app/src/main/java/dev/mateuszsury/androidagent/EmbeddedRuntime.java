@@ -232,6 +232,12 @@ final class EmbeddedRuntime {
         StringBuilder dns=new StringBuilder();try{ConnectivityManager cm=app.getSystemService(ConnectivityManager.class);LinkProperties p=cm.getLinkProperties(cm.getActiveNetwork());if(p!=null)for(InetAddress address:p.getDnsServers())dns.append("nameserver ").append(address.getHostAddress()).append('\n');}catch(Exception ignored){}
         if(dns.length()==0){File original=new File(prefix(),"etc/resolv.conf");dns.append(original.isFile()?read(original,8192):"nameserver 1.1.1.1\nnameserver 8.8.8.8\n");}dns.append("options timeout:3 attempts:2\n");File temporary=new File(file.getPath()+".new");write(temporary,dns.toString(),false);if(!temporary.renameTo(file))throw new IOException("Nie można zaktualizować DNS środowiska");
     }
+    /** Owner-approved background service (ServiceManager): its own PRoot tree, never in helperProcesses, so neither a run's Stop nor emergencyStop ends it. */
+    ProcessBuilder serviceCommand(String script,String...args)throws Exception{
+        if(!ready())throw new IllegalStateException("Środowisko nie jest przygotowane");
+        List<String> full=new ArrayList<>();Collections.addAll(full,PREFIX+"/bin/bash","--noprofile","--norc","-c",script,"androidagent-service");Collections.addAll(full,args);
+        return command(full.toArray(new String[0]));
+    }
     ProcessBuilder interactiveCommand(String...args)throws Exception{
         StringBuilder shell=new StringBuilder("exec");for(String arg:args)shell.append(" '").append(arg.replace("'","'\\''")).append("'");
         return command(PREFIX+"/bin/script","--quiet","--return","--flush","--echo","never","--command",shell.toString(),"/dev/null");
