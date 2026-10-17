@@ -36,20 +36,64 @@ on:
       certificate_sha256:
         description: 'publish: expected signing certificate SHA-256 (hex)'
         default: '67857a20ad476b9d66e947e0501b9f1f787ba44c6289b5d0645e2994742e8fab'
+  # Pushing release/request.json (see docs/MAINTAINING.md) runs a stage without dispatch rights.
+  push:
+    paths:
+      - 'release/request.json'
 permissions:
   contents: write
 concurrency:
-  group: release-${{ inputs.version }}
+  group: release-${{ github.run_id }}
   cancel-in-progress: false
 jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      stage: ${{ steps.p.outputs.stage }}
+      version: ${{ steps.p.outputs.version }}
+      base_release: ${{ steps.p.outputs.base_release }}
+      update_terminal_lock: ${{ steps.p.outputs.update_terminal_lock }}
+      transfer_ref: ${{ steps.p.outputs.transfer_ref }}
+      apk_sha256: ${{ steps.p.outputs.apk_sha256 }}
+      certificate_sha256: ${{ steps.p.outputs.certificate_sha256 }}
+      test_note: ${{ steps.p.outputs.test_note }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: p
+        env:
+          INPUTS: ${{ toJSON(inputs) }}
+        run: |
+          if [ "$GITHUB_EVENT_NAME" = push ] && [ ! -f release/request.json ]; then
+            echo 'The push removed the release request; nothing to run.'; echo 'stage=none' >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          if [ "$GITHUB_EVENT_NAME" = push ]; then cp release/request.json "$RUNNER_TEMP/req.json"
+          else printf '%s' "$INPUTS" > "$RUNNER_TEMP/req.json"; fi
+          python3 - "$RUNNER_TEMP/req.json" <<'PY'
+          import json, os, sys
+          r = json.load(open(sys.argv[1]))
+          d = {'stage': 'build', 'version': '', 'base_release': 'v0.4.4', 'update_terminal_lock': 'true',
+               'transfer_ref': os.environ.get('GITHUB_REF_NAME', ''), 'apk_sha256': '',
+               'certificate_sha256': '67857a20ad476b9d66e947e0501b9f1f787ba44c6289b5d0645e2994742e8fab',
+               'test_note': 'Built and emulator-tested by the Release workflow (stage build); signed offline with the release key.'}
+          for k in d:
+              v = r.get(k)
+              if v not in (None, ''):
+                  d[k] = str(v).lower() if isinstance(v, bool) else str(v)
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as out:
+              for k, v in d.items():
+                  out.write(f'{k}={v}\n')
+          print(json.dumps(d, indent=2))
+          PY
+
   build:
-    if: inputs.stage == 'build'
+    needs: plan
+    if: needs.plan.outputs.stage == 'build'
     runs-on: ubuntu-latest
     timeout-minutes: 180
     env:
       ANDROID_SERIAL: emulator-5554
-      VERSION: ${{ inputs.version }}
-      BASE_RELEASE: ${{ inputs.base_release }}
+      VERSION: ${{ needs.plan.outputs.version }}
+      BASE_RELEASE: ${{ needs.plan.outputs.base_release }}
       GH_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@v4
@@ -104,7 +148,7 @@ jobs:
           python3 tools/check-usb-assets.py
       - name: Prepare the embedded terminal runtime
         run: |
-          if [ "${{ inputs.update_terminal_lock }}" = true ]; then
+          if [ "${{ needs.plan.outputs.update_terminal_lock }}" = true ]; then
             python3 tools/prepare-terminal.py --update-lock
             COMMIT=$(jq -r .recipes_commit terminal/runtime-lock.json)
             sed -i -E "s#(termux-packages/tree/)[0-9a-f]{40}(/scripts/bootstrap)#\1$COMMIT\2#" terminal/SOURCES.md
@@ -126,64 +170,81 @@ jobs:
           cp "artifacts/androidagent-$VERSION.apk" "$RUNNER_TEMP/androidagent-$VERSION-test-signed.apk"
           cp terminal/runtime-lock.json "$RUNNER_TEMP/runtime-summary.json" release-out/
           ( cd release-out && sha256sum *.apk | tee SHA256SUMS-build.txt )
-      - name: Start an Android 15 emulator
-        run: |
-          echo no | avdmanager create avd --force --name release --package 'system-images;android-35;google_apis;x86_64' --device pixel_3a
-          "$ANDROID_SDK_ROOT/emulator/emulator" -avd release -port 5554 -no-window -no-audio -no-boot-anim -no-snapshot -gpu swiftshader_indirect -memory 4096 > "$RUNNER_TEMP/emulator.log" 2>&1 &
-          adb wait-for-device
-          timeout 300 bash -c 'until [ "$(adb shell getprop sys.boot_completed | tr -d "\r")" = 1 ]; do sleep 3; done'
-          adb shell settings put global window_animation_scale 0
-          adb shell settings put global transition_animation_scale 0
-          adb shell settings put global animator_duration_scale 0
-          adb shell input keyevent 82
-      - name: Clean install, embedded runtime and official clients without login
-        env:
-          ANDROIDAGENT_EVIDENCE_DIR: release-out/evidence
-          ANDROIDAGENT_EMBEDDED_EVIDENCE_DIR: release-out/evidence/embedded-runtime
-          ANDROIDAGENT_EMBEDDED_APK_COMMIT: ${{ github.sha }}
-          ANDROIDAGENT_EMBEDDED_INSTRUMENTATION_COMMIT: ${{ github.sha }}
-        run: ./tools/test-embedded-runtime.sh --clean "$RUNNER_TEMP/androidagent-$VERSION-test-signed.apk"
       - name: Push the refreshed runtime lock to a release branch
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git checkout -b "release/v$VERSION"
+          git rm -r -q --ignore-unmatch release release-upload
           git add -A terminal app/src/main/assets/terminal app/src/main/assets/docker/*/manifest.json
           if ! git diff --cached --quiet; then
             git commit -m "Refresh the pinned Termux runtime for $VERSION" \
-              -m "Generated by the release workflow (tools/prepare-terminal.py --update-lock) and verified by the clean embedded-runtime suite on an Android 15 emulator."
+              -m "Generated by the release workflow (tools/prepare-terminal.py --update-lock); asset, host and build checks passed."
           fi
           git push --force origin "release/v$VERSION"
           git rev-parse HEAD | tee release-out/release-commit.txt
-      - name: Device logs
-        if: always()
-        run: |
-          mkdir -p release-out/evidence
-          adb logcat -d > release-out/evidence/logcat.txt 2>/dev/null || true
-          cp "$RUNNER_TEMP/emulator.log" release-out/evidence/emulator.log 2>/dev/null || true
       - uses: actions/upload-artifact@v4
-        if: always()
         with:
-          name: androidagent-${{ inputs.version }}-unsigned
+          name: androidagent-${{ needs.plan.outputs.version }}-unsigned
           retention-days: 14
           compression-level: 0
           path: release-out/
+      - name: Start an Android 15 emulator
+        timeout-minutes: 20
+        run: |
+          # Hosted runners have KVM, but /dev/kvm is not open to the runner user by default.
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+          ls -la /dev/kvm
+          "$ANDROID_SDK_ROOT/emulator/emulator" -accel-check || true
+          echo no | avdmanager create avd --force --name release --package 'system-images;android-35;google_apis;x86_64' --device pixel_3a
+          "$ANDROID_SDK_ROOT/emulator/emulator" -avd release -port 5554 -no-window -no-audio -no-boot-anim -no-snapshot -no-metrics -gpu swiftshader_indirect -memory 4096 -accel on > "$RUNNER_TEMP/emulator.log" 2>&1 &
+          if ! timeout 420 adb wait-for-device || ! timeout 600 bash -c 'until [ "$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d "\r")" = 1 ]; do sleep 3; done'; then
+            echo "Emulator did not boot"; tail -80 "$RUNNER_TEMP/emulator.log"; exit 1
+          fi
+          adb shell settings put global window_animation_scale 0
+          adb shell settings put global transition_animation_scale 0
+          adb shell settings put global animator_duration_scale 0
+          adb shell input keyevent 82
+      - name: Clean install, embedded runtime and official clients without login
+        timeout-minutes: 90
+        env:
+          ANDROIDAGENT_EVIDENCE_DIR: evidence
+          ANDROIDAGENT_EMBEDDED_EVIDENCE_DIR: evidence/embedded-runtime
+          ANDROIDAGENT_EMBEDDED_APK_COMMIT: ${{ github.sha }}
+          ANDROIDAGENT_EMBEDDED_INSTRUMENTATION_COMMIT: ${{ github.sha }}
+        run: ./tools/test-embedded-runtime.sh --clean "$RUNNER_TEMP/androidagent-$VERSION-test-signed.apk"
+      - name: Device logs
+        if: always()
+        run: |
+          mkdir -p evidence
+          timeout 60 adb logcat -d > evidence/logcat.txt 2>/dev/null || true
+          cp "$RUNNER_TEMP/emulator.log" evidence/emulator.log 2>/dev/null || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: androidagent-${{ needs.plan.outputs.version }}-evidence
+          retention-days: 14
+          path: evidence/
 
   publish:
-    if: inputs.stage == 'publish'
+    needs: plan
+    if: needs.plan.outputs.stage == 'publish'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
-      VERSION: ${{ inputs.version }}
+      VERSION: ${{ needs.plan.outputs.version }}
+      TEST_NOTE: ${{ needs.plan.outputs.test_note }}
       GH_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.transfer_ref }}
+          ref: ${{ needs.plan.outputs.transfer_ref }}
       - name: Reassemble and verify the signed APK
         env:
-          EXPECTED_SHA: ${{ inputs.apk_sha256 }}
-          EXPECTED_CERT: ${{ inputs.certificate_sha256 }}
+          EXPECTED_SHA: ${{ needs.plan.outputs.apk_sha256 }}
+          EXPECTED_CERT: ${{ needs.plan.outputs.certificate_sha256 }}
         run: |
           bash tools/ci-android-sdk.sh 'build-tools;35.0.0'
           mkdir -p out
@@ -213,7 +274,7 @@ jobs:
             grep -E 'certificate SHA-256 digest' out/signature.txt || true
             echo '```'
             echo
-            echo 'Built and emulator-tested by the Release workflow (stage build); signed offline with the release key.'
+            echo "$TEST_NOTE"
           } >> "$RUNNER_TEMP/notes.md"
           gh release create "v$VERSION" "$APK" out/SHA256SUMS.txt \
             --repo "$GITHUB_REPOSITORY" --target "$TARGET" \

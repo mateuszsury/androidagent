@@ -1,8 +1,8 @@
 {
   "version": 1,
   "archive": "runtime.zip",
-  "sha256": "506698689774710ca603b52ef2db43e66bd6eba8be2a2d332021099bb4fca9bd",
-  "bytes": 95351692,
+  "sha256": "4c5448766787f2a723c583f9d56b8c096e10c5f87cc2ffe765f020f59dd8110e",
+  "bytes": 95378326,
   "abi": "arm64-v8a",
   "prefix": "/data/data/com.termux/files/usr",
   "bootstrap_release": "bootstrap-2026.10.11-r1+apt.android-7",
@@ -961,11 +961,11 @@
     },
     {
       "path": "usr/lib/libsqlite3.so",
-      "target": "libsqlite3.so.3.54.0"
+      "target": "libsqlite3.so.3.54.1"
     },
     {
       "path": "usr/lib/libsqlite3.so.0",
-      "target": "libsqlite3.so.3.54.0"
+      "target": "libsqlite3.so.3.54.1"
     },
     {
       "path": "usr/lib/libssl.so",
@@ -6489,8 +6489,8 @@
     "usr/lib/libpython3.so",
     "usr/lib/libreadline.so.8.3",
     "usr/lib/libsmartcols.so",
-    "usr/lib/libsqlite3.54.0.so",
-    "usr/lib/libsqlite3.so.3.54.0",
+    "usr/lib/libsqlite3.54.1.so",
+    "usr/lib/libsqlite3.so.3.54.1",
     "usr/lib/libssh2.so",
     "usr/lib/libssl.so.3",
     "usr/lib/libtalloc.so.2.5.0",
@@ -6732,15 +6732,15 @@
     },
     "libaaterm_proot.so": {
       "source": "bin/proot",
-      "sha256": "49ce4da3b3fb0bcb278472850aa41ba0f06534b5c63e9a0adb5732fc3882d42f",
+      "sha256": "63f7549a2af8018f095a36d875be64caa715c29f3c60ee822097bbab881679ba",
       "source_sha256": "1545b85b312505db6eb6908ff8b2ded0a77a3bd689c50ae85aa7c1d8445dd717",
-      "bytes": 331041
+      "bytes": 329505
     },
     "libaaterm_talloc.so": {
       "source": "lib/libtalloc.so.2.5.0",
-      "sha256": "7c9509585fb56095bd1fb3e2a291e8efd5ac3dd6e444de88c0970c00842311fe",
+      "sha256": "36974a5a9229ed363941ac930e735b050b1113d918fb88d60e1bfd76d3d1ec60",
       "source_sha256": "742b438c4d09e276985a61d44164c9de207b6d8cc268f3018cb3001961bcb309",
-      "bytes": 69153
+      "bytes": 67553
     }
   },
   "packages": {
@@ -6750,7 +6750,7 @@
     "c-ares": "1.34.8",
     "ca-certificates": "1:2026.09.25",
     "coreutils": "9.12",
-    "curl": "8.22.0",
+    "curl": "8.23.0",
     "dash": "0.5.13.5",
     "dialog": "1.3-20260721-0",
     "diffutils": "3.12-2",
@@ -6773,7 +6773,7 @@
     "libc++": "30",
     "libcap-ng": "2:0.9.6",
     "libcrypt": "0.2-6",
-    "libcurl": "8.22.0",
+    "libcurl": "8.23.0",
     "libexpat": "2.9.0",
     "libffi": "3.8.0",
     "libgmp": "6.3.0-2",
@@ -6781,18 +6781,18 @@
     "libicu": "78.3",
     "liblzma": "5.8.4",
     "libmount": "2.42.4",
-    "libmpfr": "4.2.1-1",
+    "libmpfr": "4.2.2",
     "libnghttp2": "1.70.0",
     "libnghttp3": "1.18.0",
     "libngtcp2": "1.25.0",
     "libsmartcols": "2.42.4",
-    "libsqlite": "3.54.0",
+    "libsqlite": "3.54.1",
     "libssh2": "1.11.1-2",
     "libtalloc": "2.5.0",
     "ncurses": "6.6.20260307+really6.5.20250830",
     "ncurses-ui-libs": "6.6.20260307+really6.5.20250830",
     "nodejs-lts": "24.18.0-1",
-    "npm": "11.20.0",
+    "npm": "11.21.1",
     "oniguruma": "6.9.10-1",
     "openssl": "1:3.6.5",
     "pcre2": "10.49",
