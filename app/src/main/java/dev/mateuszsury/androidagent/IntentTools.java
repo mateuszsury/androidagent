@@ -502,7 +502,7 @@ final class IntentTools implements ToolProviders.Provider {
 
     // ------------------------------------------------------- phone and SMS
 
-    private static String checkNumber(String number) {
+    static String checkNumber(String number) {
         String n = number == null ? "" : number.trim();
         if (n.isEmpty()) throw new IllegalArgumentException("number is empty");
         if (!n.matches("[0-9+*#,;()\\-. pPwW]{1,64}")) throw new IllegalArgumentException("number may contain only digits, +, *, #, spaces and separators");
