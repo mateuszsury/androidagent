@@ -73,7 +73,7 @@ jobs:
           echo "ANDROIDAGENT_EMBEDDED_APK_COMMIT=$GITHUB_SHA" >> "$GITHUB_ENV"
           echo "ANDROIDAGENT_EMBEDDED_INSTRUMENTATION_COMMIT=$GITHUB_SHA" >> "$GITHUB_ENV"
           sudo chmod 666 /dev/kvm
-          sdkmanager 'platforms;android-36' 'build-tools;35.0.0' 'platform-tools' 'ndk;29.0.14206865' 'emulator' 'system-images;android-${{ matrix.api }};google_apis;x86_64'
+          bash tools/ci-android-sdk.sh 'platforms;android-36' 'build-tools;35.0.0' 'platform-tools' 'ndk;29.0.14206865' 'emulator' 'system-images;android-${{ matrix.api }};google_apis;x86_64'
       - name: Prepare embedded terminal and Docker runtimes
         run: |
           sudo apt-get update
