@@ -33,7 +33,7 @@ Android blocks activity starts from apps in the background. When androidagent is
 | Tool | Parameters | Result |
 | --- | --- | --- |
 | `notifications_list` | `package?`, `limit?` (≤ 100) | Text only: app, title, text, messaging lines, time, key, buttons |
-| `notification_action` | `key`, `action` (`open`, `dismiss` or a button index) | Sends the notification's own PendingIntent or dismisses a clearable notification |
+| `notification_action` | `key`, `action` (`open`, `dismiss` or a button index) | Sends the notification's own PendingIntent or dismisses a clearable notification; a button press first waits for the owner's approval card in the chat |
 
 Images and extras other than text are never returned. Buttons that require typed input (replies) are refused. Notification text is treated as content, not as instructions. Posting a notification is the separate `notify` tool.
 

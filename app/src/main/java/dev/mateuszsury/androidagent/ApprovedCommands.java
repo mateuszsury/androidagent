@@ -41,8 +41,15 @@ final class ApprovedCommands {
         final String id = UUID.randomUUID().toString();
         final String owner;
         final String summary;
-        /** True for a generic approval (MCP confirm); false for an exact shell command. */
+        /** True for a generic approval (MCP confirm, service start); false for an exact shell command. */
         final boolean generic;
+        /** Valid only while developer mode stays on: shell commands and background services. */
+        final boolean devOnly;
+        /**
+         * Leading characters of {@link #summary} that androidagent wrote around the exact action (provenance,
+         * question, service details); the card dims only these, never a part of the agent's own text.
+         */
+        final int framing;
         private final String command;
         private final String credential;
         private final CountDownLatch answered = new CountDownLatch(1);
@@ -50,17 +57,20 @@ final class ApprovedCommands {
         private LocalShell shell;
 
         Pending(String owner, String command, String credential) {
-            this(owner, command, credential, false);
+            this(owner, command, credential, false, true, 0);
         }
 
-        private Pending(String owner, String text, String credential, boolean generic) {
+        private Pending(String owner, String text, String credential, boolean generic, boolean devOnly, int framing) {
             this.owner = owner;
             this.command = text;
             this.credential = credential;
             this.generic = generic;
+            this.devOnly = devOnly;
             // The agent's own text is shown verbatim; only external callers get a provenance line.
-            summary = (owner.startsWith("chat:") ? "" : "Żądanie zewnętrznego narzędzia.\n\n")
-                    + (generic ? text : "Wykonać dokładnie tę komendę w lokalnym katalogu androidagent?\n\n" + text);
+            String provenance = owner.startsWith("chat:") ? "" : "Żądanie zewnętrznego narzędzia.\n\n";
+            String question = generic ? "" : "Wykonać dokładnie tę komendę w lokalnym katalogu androidagent?\n\n";
+            summary = provenance + question + text;
+            this.framing = provenance.length() + question.length() + Math.max(0, Math.min(framing, text.length()));
         }
     }
 
@@ -119,6 +129,16 @@ final class ApprovedCommands {
         return confirm(caller, summary, McpServer.credential());
     }
 
+    private static final String APPROVED = "APPROVED by the user. Go ahead.";
+
+    /**
+     * A generic approval that the calling tool enforces itself (it acts only on true), unlike the advisory
+     * MCP confirm. Same card, binding, timeout and cancellation as {@link #confirm}.
+     */
+    boolean consent(String caller, String summary) throws Exception {
+        return APPROVED.equals(confirm(caller, summary));
+    }
+
     String confirm(String caller, String summary, String credential) throws Exception {
         if (Looper.myLooper() == Looper.getMainLooper())
             throw new IllegalStateException("Prośba o zgodę wymaga osobnego wątku narzędzia.");
@@ -126,12 +146,12 @@ final class ApprovedCommands {
             throw new IllegalArgumentException("summary is required: describe exactly what you are about to do.");
         if (summary.length() > 8192) throw new IllegalArgumentException("summary is too long (max 8192 characters).");
         if (caller == null) throw new IllegalArgumentException("Brak właściciela prośby");
-        Pending pending = new Pending(caller, summary, credential, true);
+        Pending pending = new Pending(caller, summary, credential, true, false, 0);
         register(pending);
         try {
             awaitDecision(pending);
             synchronized (this) {
-                if (pending.approved && authorized(pending)) return "APPROVED by the user. Go ahead.";
+                if (pending.approved && authorized(pending)) return APPROVED;
                 if (pending.timedOut)
                     return "TIMEOUT: the user did not answer within 5 minutes. Do not do it; ask what they want instead.";
                 if (pending.denied) return "DENIED by the user. Do not do it; ask what they want instead.";
@@ -152,15 +172,25 @@ final class ApprovedCommands {
      * True only when approved while this caller's run is still the active one.
      */
     boolean approve(String caller, String question) throws Exception {
-        return approve(caller, question, McpServer.credential());
+        return approve(caller, question, 0, McpServer.credential());
+    }
+
+    /** {@code framing}: leading characters of {@code question} written by androidagent (dimmed on the card). */
+    boolean approve(String caller, String question, int framing) throws Exception {
+        return approve(caller, question, framing, McpServer.credential());
     }
 
     boolean approve(String caller, String question, String credential) throws Exception {
+        return approve(caller, question, 0, credential);
+    }
+
+    boolean approve(String caller, String question, int framing, String credential) throws Exception {
         if (Looper.myLooper() == Looper.getMainLooper())
             throw new IllegalStateException("Zgoda wymaga osobnego wątku narzędzia.");
         if (!Prefs.devMode(app)) throw new IllegalStateException("Włącz tryb programisty w ustawieniach androidagent.");
         if (caller == null) throw new IllegalArgumentException("Brak właściciela żądania");
-        Pending pending = new Pending(caller, question, credential, true);
+        // Developer mode is re-checked while it waits, like run_command: turning it off cancels the request.
+        Pending pending = new Pending(caller, question, credential, true, true, framing);
         register(pending);
         try {
             awaitDecision(pending);
@@ -265,7 +295,7 @@ final class ApprovedCommands {
     private boolean authorized(Pending pending) {
         McpHost host = McpHost.get(app);
         if (pending.cancelled || host.controlRevoked() != null) return false;
-        if (!pending.generic && !Prefs.devMode(app)) return false;
+        if (pending.devOnly && !Prefs.devMode(app)) return false;
         if (!pending.owner.startsWith("chat:")) return true;
         return pending.credential != null && pending.owner.equals(host.principal(pending.credential));
     }
