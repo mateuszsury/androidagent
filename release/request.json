@@ -1,0 +1,7 @@
+{
+  "stage": "build",
+  "version": "0.5.0",
+  "base_release": "v0.4.4",
+  "update_terminal_lock": true,
+  "attempt": 2
+}
