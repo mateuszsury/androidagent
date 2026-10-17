@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.BlendMode;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.RadialGradient;
@@ -18,6 +19,8 @@ import java.util.Random;
  * Tesla-coil effect between the dragged bubble and the dismiss target: both crackle with sparks,
  * lightning reaches from each toward the other as they get closer, then locks into a continuous arc.
  * Bolts are regenerated constantly so they flicker. Positions are in screen pixels; time-based.
+ * Coloured like an ember rather than ice: the accent (coral), a hot peach and amber, with additive
+ * (PLUS) blending so overlapping bolts burn towards warm white.
  */
 final class ArcView extends View {
     private static final class Bolt {
@@ -41,7 +44,12 @@ final class ArcView extends View {
     private float clock, flash;
     private float debtA, debtB, debtReach, debtArc;
 
-    private static final int CYAN = 0xFF7DF9FF, BLUE = 0xFF4F8BFF, VIOLET = 0xFFB07CFF;
+    /** Warm white for the bolt cores and the electrode glow. */
+    private static final int CORE = 0xFFFFF4EC, AMBER = 0xFFF2B65A;
+    /** HOT: bright peach (most bolts), DEEP: the accent itself, AMBER: the odd golden spark. */
+    private int hot = 0xFFFFA27F, deep = 0xFFD97757;
+    private RadialGradient glowShader;
+    private final Matrix glowMatrix = new Matrix();
 
     ArcView(Context c) {
         super(c);
@@ -55,7 +63,20 @@ final class ArcView extends View {
         corePaint.setStrokeJoin(Paint.Join.ROUND);
     }
 
+    /** Take the accent from the current theme (called when a drag starts). */
+    private void palette() {
+        int accent = Ui.ACCENT;
+        if (accent == deep && glowShader != null) return;
+        deep = accent;
+        hot = Theme.lighten(accent, 0.3f);
+        // a unit-radius gradient, moved and scaled per frame by a matrix: no allocation while drawing
+        glowShader = new RadialGradient(0f, 0f, 1f,
+                new int[]{withAlpha(0xFFFFE6D6, 150), withAlpha(deep, 80), withAlpha(AMBER, 30), 0},
+                new float[]{0f, 0.35f, 0.7f, 1f}, Shader.TileMode.CLAMP);
+    }
+
     void update(float bubbleX, float bubbleY, float targetX, float targetY, boolean snapped) {
+        if (!running) palette();
         ax = bubbleX;
         ay = bubbleY;
         bx = targetX;
@@ -72,13 +93,14 @@ final class ArcView extends View {
 
     /** Flash and a burst of bolts from the target, then everything fades. */
     void explode() {
+        palette();
         if (!Float.isNaN(bx)) {
             flash = 1f;
             for (int i = 0; i < 16; i++) {
                 double a = rnd.nextDouble() * Math.PI * 2;
                 float len = (90 + rnd.nextFloat() * 130) * dp;
                 addBolt(bx, by, bx + (float) Math.cos(a) * len, by + (float) Math.sin(a) * len,
-                        0.18f + rnd.nextFloat() * 0.12f, 1.4f, rnd.nextBoolean() ? CYAN : VIOLET, true);
+                        0.18f + rnd.nextFloat() * 0.12f, 1.4f, rnd.nextBoolean() ? hot : AMBER, true);
             }
         }
         ax = Float.NaN;
@@ -127,7 +149,7 @@ final class ArcView extends View {
                     float r = 38 * dp;
                     addBolt(bx + (float) Math.cos(a) * r, by + (float) Math.sin(a) * r,
                             bx + (float) Math.cos(a + span) * r, by + (float) Math.sin(a + span) * r,
-                            0.06f + rnd.nextFloat() * 0.05f, 1.3f, rnd.nextFloat() < 0.7f ? CYAN : VIOLET, false);
+                            0.06f + rnd.nextFloat() * 0.05f, 1.3f, rnd.nextFloat() < 0.7f ? hot : AMBER, false);
                 }
             } else {
                 // surface sparks on both electrodes
@@ -154,7 +176,7 @@ final class ArcView extends View {
                         float rim = (fromA ? 28 : 31) * dp;
                         addBolt(sx + (float) Math.cos(ang) * rim, sy + (float) Math.sin(ang) * rim,
                                 sx + (float) Math.cos(ang) * (rim + reach), sy + (float) Math.sin(ang) * (rim + reach),
-                                0.06f + rnd.nextFloat() * 0.06f, 0.8f + closeness * 0.6f, rnd.nextFloat() < 0.75f ? CYAN : VIOLET, true);
+                                0.06f + rnd.nextFloat() * 0.06f, 0.8f + closeness * 0.6f, rnd.nextFloat() < 0.75f ? hot : deep, true);
                     }
                 }
                 // close enough: a continuous arc between the two
@@ -162,7 +184,7 @@ final class ArcView extends View {
                     debtArc += dt * (8 + 26 * (closeness - 0.62f) / 0.38f);
                     while (debtArc >= 1) {
                         debtArc--;
-                        addBolt(ax, ay, bx, by, 0.05f + rnd.nextFloat() * 0.05f, 1f + closeness, CYAN, true);
+                        addBolt(ax, ay, bx, by, 0.05f + rnd.nextFloat() * 0.05f, 1f + closeness, hot, true);
                     }
                 }
             }
@@ -195,7 +217,7 @@ final class ArcView extends View {
             glowPaint.setColor(withAlpha(b.color, (int) (170 * t)));
             glowPaint.setStrokeWidth(b.width * 3 * dp);
             c.drawPath(b.path, glowPaint);
-            corePaint.setColor(withAlpha(0xFFFFFFFF, (int) (245 * t)));
+            corePaint.setColor(withAlpha(CORE, (int) (245 * t)));
             corePaint.setStrokeWidth(Math.max(1f, b.width * 1.2f * dp));
             c.drawPath(b.path, corePaint);
         }
@@ -210,7 +232,7 @@ final class ArcView extends View {
         float sx = x + (float) Math.cos(a) * rim, sy = y + (float) Math.sin(a) * rim;
         double a2 = a + (rnd.nextFloat() - 0.5f) * 0.9f;
         addBolt(sx, sy, sx + (float) Math.cos(a2) * len, sy + (float) Math.sin(a2) * len,
-                0.07f + rnd.nextFloat() * 0.08f, width, rnd.nextFloat() < 0.6f ? CYAN : (rnd.nextBoolean() ? BLUE : VIOLET), false);
+                0.07f + rnd.nextFloat() * 0.08f, width, rnd.nextFloat() < 0.6f ? hot : (rnd.nextBoolean() ? deep : AMBER), false);
     }
 
     /** A jagged bolt from (x1,y1) to (x2,y2), built by midpoint displacement, sometimes forked. */
@@ -258,10 +280,12 @@ final class ArcView extends View {
     }
 
     private void glow(Canvas c, float x, float y, float radius, float strength) {
-        fill.setShader(new RadialGradient(x, y, radius,
-                new int[]{withAlpha(0xFFD8F7FF, (int) (150 * strength)), withAlpha(BLUE, (int) (80 * strength)),
-                        withAlpha(VIOLET, (int) (30 * strength)), 0},
-                new float[]{0f, 0.35f, 0.7f, 1f}, Shader.TileMode.CLAMP));
+        if (glowShader == null || radius <= 0f) return;
+        glowMatrix.setScale(radius, radius);
+        glowMatrix.postTranslate(x, y);
+        glowShader.setLocalMatrix(glowMatrix);
+        fill.setShader(glowShader);
+        fill.setAlpha(Math.max(0, Math.min(255, (int) (255 * strength))));
         c.drawCircle(x, y, radius, fill);
     }
 
