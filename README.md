@@ -34,7 +34,7 @@ No separate Termux installation, manual `pkg`/`npm` setup, root or computer is r
 | --- | --- |
 | Chat | Native conversation history, drafts, attachments, model selection, light/dark themes and selectable code |
 | Agents | Official Codex CLI **0.162.1** and Claude Code **2.1.296**, separate sessions, resume, tool progress, official login and error handling |
-| Phone tools | Battery, RAM, storage and network status; approved commands; screen reading and gestures through optional Accessibility |
+| Phone tools | Device status, owner approvals and notifications, apps/links/intents, settings panels, dialer/SMS composer/calendar/alarms (the owner sends), volume, media, torch, clipboard, speech and brightness; screen reading and gestures through optional Accessibility ([details](docs/PERMISSIONS.md#phone-tools-without-accessibility)) |
 | Terminal and files | Embedded interactive shell and PTY, Python/Node/Git, project files, command output, cancellation and exit status |
 | Docker | Local Linux VM, image builds, containers, exec/logs, interactive WebView previews, exports, cancellation and task cleanup |
 | USB | Direct UART, ESP flashing, ADB to a second Android device, SAF storage, raw USB passthrough and UART bridges to Docker |
