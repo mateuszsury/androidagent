@@ -4,7 +4,7 @@
   "files": {
     "base.qcow2.gz": "7399ae1c32e046f67bc5bc1de6ff2b71af4ed1329eefe3600396ab6bc67821d4",
     "vmlinuz-virt": "0431ad6e5e0296080add279573c773287b55427bf3ec94fbc2c9f985d0b79966",
-    "initramfs-virt": "42ac3dd166a99fb7b192b137b770c15becc1a00916bf432d22fcd5c55933bd53"
+    "initramfs-virt": "c05f7a8ba8ecd54d5ee320fbd03c3afa29a8eb543cff3bbca2441838306228c3"
   },
   "runtime_revision": 3,
   "migration": "same-base-and-kernel-owned-runtime-in-initramfs",
