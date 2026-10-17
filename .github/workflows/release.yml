@@ -1,34 +1,49 @@
 name: Release
-# Maintainer-triggered signed release. Reuses the previous release's Docker guest base
-# (disk/kernel), QEMU and USB JNI so existing VM disks keep working, optionally refreshes the
-# pinned Termux runtime, builds and signs the APK, runs the clean embedded-runtime suite on an
-# emulator and only then publishes the GitHub release and the refreshed lock branch.
+# Two maintainer-triggered stages; the signing key never enters CI.
+#
+# stage=build: reuse the base release's Docker guest base (disk/kernel), QEMU and USB JNI so
+#   existing VM disks keep working, optionally refresh the pinned Termux runtime, build the APK,
+#   run the clean embedded-runtime suite on an emulator (with an ephemeral test key), push
+#   release/vX.Y.Z with the refreshed lock and upload the UNSIGNED aligned APK as an artifact.
+# The maintainer signs that APK offline with the release key and commits it, split into
+# <100 MB parts, to a transfer branch.
+# stage=publish: reassemble the signed APK from the transfer branch, verify its SHA256 and
+#   signing certificate against the inputs and create the GitHub release on release/vX.Y.Z.
 on:
   workflow_dispatch:
     inputs:
+      stage:
+        description: 'build or publish'
+        required: true
+        default: 'build'
       version:
-        description: 'Version to release (must equal BuildInfo.VERSION)'
+        description: 'Version (must equal BuildInfo.VERSION)'
         required: true
         default: '0.5.0'
       base_release:
-        description: 'Earlier release whose Docker guest, QEMU and USB binaries are reused'
-        required: true
+        description: 'build: earlier release whose Docker guest, QEMU and USB binaries are reused'
         default: 'v0.4.4'
       update_terminal_lock:
-        description: 'Refresh the pinned Termux runtime (packages.termux.dev drops old versions)'
+        description: 'build: refresh the pinned Termux runtime (packages.termux.dev drops old versions)'
         type: boolean
         default: true
-      publish:
-        description: 'Create the GitHub release after the tests pass'
-        type: boolean
-        default: true
+      transfer_ref:
+        description: 'publish: branch holding release-upload/androidagent-VERSION.apk.part-*'
+        default: ''
+      apk_sha256:
+        description: 'publish: expected SHA256 of the signed APK'
+        default: ''
+      certificate_sha256:
+        description: 'publish: expected signing certificate SHA-256 (hex)'
+        default: '67857a20ad476b9d66e947e0501b9f1f787ba44c6289b5d0645e2994742e8fab'
 permissions:
   contents: write
 concurrency:
   group: release-${{ inputs.version }}
   cancel-in-progress: false
 jobs:
-  release:
+  build:
+    if: inputs.stage == 'build'
     runs-on: ubuntu-latest
     timeout-minutes: 180
     env:
@@ -47,26 +62,17 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Check version and signing secrets
-        env:
-          KEYSTORE_B64: ${{ secrets.ANDROIDAGENT_KEYSTORE_B64 }}
-          KEYSTORE_PASSWORD: ${{ secrets.ANDROIDAGENT_KEYSTORE_PASSWORD }}
+      - name: Check version
         run: |
           CODE_VERSION=$(sed -n 's/.*VERSION = "\(.*\)";/\1/p' app/src/main/java/dev/mateuszsury/androidagent/BuildInfo.java)
           [ "$CODE_VERSION" = "$VERSION" ] || { echo "BuildInfo.VERSION is $CODE_VERSION, not $VERSION"; exit 1; }
-          if gh release view "v$VERSION" >/dev/null 2>&1; then echo "Release v$VERSION already exists"; exit 1; fi
-          [ -n "$KEYSTORE_B64" ] && [ -n "$KEYSTORE_PASSWORD" ] || { echo "Add the ANDROIDAGENT_KEYSTORE_B64 and ANDROIDAGENT_KEYSTORE_PASSWORD secrets"; exit 1; }
-          KEYS="$RUNNER_TEMP/release-keys"
-          mkdir -p "$KEYS" && chmod 700 "$KEYS"
-          printf '%s' "$KEYSTORE_B64" | base64 -d > "$KEYS/release.jks"
-          printf '%s' "$KEYSTORE_PASSWORD" > "$KEYS/password"
-          chmod 600 "$KEYS/release.jks" "$KEYS/password"
-          echo "KEYSTORE=$KEYS/release.jks" >> "$GITHUB_ENV"
-          echo "ANDROID_SDK_ROOT=$ANDROID_HOME" >> "$GITHUB_ENV"
+          if gh release view "v$VERSION" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then echo "Release v$VERSION already exists"; exit 1; fi
+          # Ephemeral key: only for the emulator suite (app and instrumentation must share it).
+          echo "KEYSTORE=$RUNNER_TEMP/test-keys/development.jks" >> "$GITHUB_ENV"
       - name: Install SDK packages and host tools
         run: |
           sudo chmod 666 /dev/kvm
-          sdkmanager 'platforms;android-36' 'build-tools;35.0.0' 'platform-tools' 'emulator' 'system-images;android-35;google_apis;x86_64' >/dev/null
+          bash tools/ci-android-sdk.sh 'platforms;android-36' 'build-tools;35.0.0' 'platform-tools' 'emulator' 'system-images;android-35;google_apis;x86_64'
           sudo apt-get update
           sudo apt-get install -y dpkg binutils patchelf jq
           python3 -m pip install -r requirements-dev.txt
@@ -79,8 +85,7 @@ jobs:
           apk = next(Path(sys.argv[1]).glob('*.apk'))
           main = Path('app/src/main')
           with zipfile.ZipFile(apk) as z:
-              names = z.namelist()
-              for name in names:
+              for name in z.namelist():
                   if name.startswith('assets/docker/') and not name.endswith('/manifest.json') \
                           and not name.startswith('assets/docker/demo/'):
                       target = main / name
@@ -108,18 +113,19 @@ jobs:
             python3 tools/prepare-terminal.py
           fi
           python3 tools/check-terminal-assets.py
-          jq '{bootstrap_release, recipes_commit, x86_64: (.abis.x86_64.packages | {bash: .bash.version, python: .python.version, node: .["nodejs-lts"].version, git: .git.version, proot: .proot.version})}' terminal/runtime-lock.json
+          jq '{bootstrap_release, recipes_commit, x86_64: (.abis.x86_64.packages | {bash: .bash.version, python: .python.version, node: .["nodejs-lts"].version, git: .git.version, proot: .proot.version})}' terminal/runtime-lock.json | tee "$RUNNER_TEMP/runtime-summary.json"
       - name: Host checks
         run: |
           python3 tools/check-docs.py
           python3 -m unittest discover -s tests -p 'test_*.py'
-      - name: Build the signed release APK
+      - name: Build the APK
         run: |
           ./tools/build-local.sh
-          APK="artifacts/androidagent-$VERSION.apk"
-          "$ANDROID_SDK_ROOT/build-tools/35.0.0/apksigner" verify --print-certs "$APK" | tee "artifacts/signature.txt"
-          ( cd artifacts && sha256sum "androidagent-$VERSION.apk" > SHA256SUMS.txt && cat SHA256SUMS.txt )
-          echo "APK=$APK" >> "$GITHUB_ENV"
+          mkdir -p release-out
+          cp build/aligned.apk "release-out/androidagent-$VERSION-unsigned.apk"
+          cp "artifacts/androidagent-$VERSION.apk" "$RUNNER_TEMP/androidagent-$VERSION-test-signed.apk"
+          cp terminal/runtime-lock.json "$RUNNER_TEMP/runtime-summary.json" release-out/
+          ( cd release-out && sha256sum *.apk | tee SHA256SUMS-build.txt )
       - name: Start an Android 15 emulator
         run: |
           echo no | avdmanager create avd --force --name release --package 'system-images;android-35;google_apis;x86_64' --device pixel_3a
@@ -132,13 +138,12 @@ jobs:
           adb shell input keyevent 82
       - name: Clean install, embedded runtime and official clients without login
         env:
-          ANDROIDAGENT_EVIDENCE_DIR: artifacts/${{ inputs.version }}/release
-          ANDROIDAGENT_EMBEDDED_EVIDENCE_DIR: artifacts/${{ inputs.version }}/release/embedded-runtime
+          ANDROIDAGENT_EVIDENCE_DIR: release-out/evidence
+          ANDROIDAGENT_EMBEDDED_EVIDENCE_DIR: release-out/evidence/embedded-runtime
           ANDROIDAGENT_EMBEDDED_APK_COMMIT: ${{ github.sha }}
           ANDROIDAGENT_EMBEDDED_INSTRUMENTATION_COMMIT: ${{ github.sha }}
-        run: ./tools/test-embedded-runtime.sh --clean "$APK"
-      - name: Commit the refreshed runtime lock to a release branch
-        if: inputs.publish
+        run: ./tools/test-embedded-runtime.sh --clean "$RUNNER_TEMP/androidagent-$VERSION-test-signed.apk"
+      - name: Push the refreshed runtime lock to a release branch
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
@@ -148,39 +153,68 @@ jobs:
             git commit -m "Refresh the pinned Termux runtime for $VERSION" \
               -m "Generated by the release workflow (tools/prepare-terminal.py --update-lock) and verified by the clean embedded-runtime suite on an Android 15 emulator."
           fi
-          git push origin "release/v$VERSION"
-          echo "RELEASE_SHA=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
-      - name: Publish the GitHub release
-        if: inputs.publish
+          git push --force origin "release/v$VERSION"
+          git rev-parse HEAD | tee release-out/release-commit.txt
+      - name: Device logs
+        if: always()
         run: |
-          awk -v v="$VERSION" '$0 ~ "^## " v { found = 1; next } found && /^## / { exit } found' CHANGELOG.md > "$RUNNER_TEMP/notes.md"
+          mkdir -p release-out/evidence
+          adb logcat -d > release-out/evidence/logcat.txt 2>/dev/null || true
+          cp "$RUNNER_TEMP/emulator.log" release-out/evidence/emulator.log 2>/dev/null || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: androidagent-${{ inputs.version }}-unsigned
+          retention-days: 14
+          compression-level: 0
+          path: release-out/
+
+  publish:
+    if: inputs.stage == 'publish'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      VERSION: ${{ inputs.version }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.transfer_ref }}
+      - name: Reassemble and verify the signed APK
+        env:
+          EXPECTED_SHA: ${{ inputs.apk_sha256 }}
+          EXPECTED_CERT: ${{ inputs.certificate_sha256 }}
+        run: |
+          bash tools/ci-android-sdk.sh 'build-tools;35.0.0'
+          mkdir -p out
+          APK="out/androidagent-$VERSION.apk"
+          cat release-upload/androidagent-$VERSION.apk.part-* > "$APK"
+          ACTUAL=$(sha256sum "$APK" | cut -d' ' -f1)
+          echo "APK SHA256 $ACTUAL"
+          [ -n "$EXPECTED_SHA" ] && [ "$ACTUAL" = "$EXPECTED_SHA" ] || { echo "SHA256 mismatch (expected $EXPECTED_SHA)"; exit 1; }
+          "$ANDROID_SDK_ROOT/build-tools/35.0.0/apksigner" verify --print-certs "$APK" | tee out/signature.txt
+          CERT=$(sed -n 's/.*certificate SHA-256 digest: //p' out/signature.txt | head -1)
+          [ "$CERT" = "$EXPECTED_CERT" ] || { echo "Signing certificate $CERT is not $EXPECTED_CERT"; exit 1; }
+          ( cd out && sha256sum "androidagent-$VERSION.apk" > SHA256SUMS.txt )
+          echo "APK=$APK" >> "$GITHUB_ENV"
+      - name: Publish the GitHub release
+        run: |
+          git fetch origin "release/v$VERSION"
+          TARGET=$(git rev-parse "origin/release/v$VERSION")
+          git show "origin/release/v$VERSION:CHANGELOG.md" > "$RUNNER_TEMP/CHANGELOG.md"
+          awk -v v="$VERSION" '$0 ~ "^## " v { found = 1; next } found && /^## / { exit } found' "$RUNNER_TEMP/CHANGELOG.md" > "$RUNNER_TEMP/notes.md"
           {
             echo
             echo '### Verification'
             echo
             echo '```text'
-            cat artifacts/SHA256SUMS.txt
-            grep -E 'certificate SHA-256 digest' artifacts/signature.txt || true
+            cat out/SHA256SUMS.txt
+            echo "APK bytes: $(stat -c %s "$APK")"
+            grep -E 'certificate SHA-256 digest' out/signature.txt || true
             echo '```'
+            echo
+            echo 'Built and emulator-tested by the Release workflow (stage build); signed offline with the release key.'
           } >> "$RUNNER_TEMP/notes.md"
-          gh release create "v$VERSION" "$APK" artifacts/SHA256SUMS.txt \
-            --repo "$GITHUB_REPOSITORY" --target "$RELEASE_SHA" \
+          gh release create "v$VERSION" "$APK" out/SHA256SUMS.txt \
+            --repo "$GITHUB_REPOSITORY" --target "$TARGET" \
             --title "androidagent $VERSION" --notes-file "$RUNNER_TEMP/notes.md" --latest
-      - name: Device logs
-        if: always()
-        run: |
-          mkdir -p "artifacts/$VERSION/release"
-          adb logcat -d > "artifacts/$VERSION/release/logcat.txt" 2>/dev/null || true
-          cp "$RUNNER_TEMP/emulator.log" "artifacts/$VERSION/release/emulator.log" 2>/dev/null || true
-          rm -rf "$RUNNER_TEMP/release-keys"
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: androidagent-${{ inputs.version }}-release
-          retention-days: 14
-          path: |
-            artifacts/androidagent-${{ inputs.version }}.apk
-            artifacts/SHA256SUMS.txt
-            artifacts/signature.txt
-            artifacts/${{ inputs.version }}/
-            terminal/runtime-lock.json
