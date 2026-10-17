@@ -148,13 +148,16 @@ final class UiRegressionChecks {
         final Throwable[] failure = {null};
         onMain(instrumentation, () -> {
             try {
-                TextView before = (TextView) description(screen.getWindow().getDecorView(), "Odpowiedź na żywo");
-                require(before != null && before.length() > 0, "Missing streaming fixture");
-                expected[0] = before.getText().toString();
+                // The live reply is rendered as Markdown; its raw source is the streamed text.
+                View before = description(screen.getWindow().getDecorView(), "Odpowiedź na żywo");
+                require(before instanceof Markdown.Content && ((Markdown.Content) before).source().length() > 0,
+                        "Missing streaming fixture");
+                expected[0] = ((Markdown.Content) before).source();
                 instrumentation.callActivityOnPause(screen);
                 instrumentation.callActivityOnResume(screen);
-                TextView after = (TextView) description(screen.getWindow().getDecorView(), "Odpowiedź na żywo");
-                require(after != null && expected[0].contentEquals(after.getText()), "Live reply detached after resume");
+                View after = description(screen.getWindow().getDecorView(), "Odpowiedź na żywo");
+                require(after instanceof Markdown.Content && expected[0].equals(((Markdown.Content) after).source())
+                        && ((Markdown.Content) after).getChildCount() > 0, "Live reply detached after resume");
             } catch (Throwable e) { failure[0] = e; }
         });
         rethrow(failure[0]);
