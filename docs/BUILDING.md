@@ -37,7 +37,7 @@ python3 tools/check-docker-assets.py
 bash tools/build-local.sh
 ```
 
-Output: `artifacts/androidagent-0.4.4.apk`. The version is read from [BuildInfo.java](../app/src/main/java/dev/mateuszsury/androidagent/BuildInfo.java). Both supported ABIs ship in the release.
+Output: `artifacts/androidagent-0.5.0.apk`. The version is read from [BuildInfo.java](../app/src/main/java/dev/mateuszsury/androidagent/BuildInfo.java). Both supported ABIs ship in the release.
 
 Terminal and QEMU packages are pinned in their lock files. Do not use `--update-lock` for a normal build. Review changed recipes, hashes, dependency closure and notices when deliberately updating a lock. Alpine package repositories can change even when the base OCI digest is pinned: rebuilding the VM is not a promise of byte-identical output. Generated asset manifests identify the actual bytes packaged.
 
@@ -47,11 +47,13 @@ For a runtime-only update with existing compatible Docker assets, `python3 tools
 
 The local builder creates a development key under `~/.androidagent-keys` if none is supplied. Set `KEYSTORE` to use an existing key; the script reads the password from the sibling `password` file and uses the `buddy` alias. Keep both outside Git. Instrumentation must use the same certificate as the installed app.
 
-An APK signed with a different key cannot update an existing release installation. Maintainer release keys are not distributed. The published 0.4.4 certificate SHA256 is:
+An APK signed with a different key cannot update an existing release installation. Maintainer release keys are not distributed. The published 0.5.0 certificate SHA256 is:
 
 ```text
-b0fe60ab6fb41c33051f1fe9c16b2d24e476fdf66be225870db831cd7e2fb66b
+67857a20ad476b9d66e947e0501b9f1f787ba44c6289b5d0645e2994742e8fab
 ```
+
+Releases up to 0.4.4 used certificate `b0fe60ab6fb41c33051f1fe9c16b2d24e476fdf66be225870db831cd7e2fb66b`, so 0.5.0 cannot update them in place.
 
 Verify your own output with `apksigner verify --print-certs`. Checksums for published APKs are in [GitHub Releases](https://github.com/mateuszsury/androidagent/releases).
 
@@ -64,7 +66,7 @@ python3 tools/check-docs.py
 python3 -m unittest discover -s tests -p 'test_*.py' -v
 export KEYSTORE="$HOME/.androidagent-keys/development.jks"
 export ANDROID_SERIAL=emulator-5554
-adb install -r artifacts/androidagent-0.4.4.apk
+adb install -r artifacts/androidagent-0.5.0.apk
 bash tools/test-android.sh
 bash tools/test-usb.sh
 bash tools/test-webview.sh
