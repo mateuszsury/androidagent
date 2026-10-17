@@ -56,6 +56,7 @@ jobs:
       transfer_ref: ${{ steps.p.outputs.transfer_ref }}
       apk_sha256: ${{ steps.p.outputs.apk_sha256 }}
       certificate_sha256: ${{ steps.p.outputs.certificate_sha256 }}
+      test_note: ${{ steps.p.outputs.test_note }}
     steps:
       - uses: actions/checkout@v4
       - id: p
@@ -69,7 +70,8 @@ jobs:
           r = json.load(open(sys.argv[1]))
           d = {'stage': 'build', 'version': '', 'base_release': 'v0.4.4', 'update_terminal_lock': 'true',
                'transfer_ref': os.environ.get('GITHUB_REF_NAME', ''), 'apk_sha256': '',
-               'certificate_sha256': '67857a20ad476b9d66e947e0501b9f1f787ba44c6289b5d0645e2994742e8fab'}
+               'certificate_sha256': '67857a20ad476b9d66e947e0501b9f1f787ba44c6289b5d0645e2994742e8fab',
+               'test_note': 'Built and emulator-tested by the Release workflow (stage build); signed offline with the release key.'}
           for k in d:
               v = r.get(k)
               if v not in (None, ''):
@@ -187,6 +189,10 @@ jobs:
       - name: Start an Android 15 emulator
         timeout-minutes: 20
         run: |
+          # Hosted runners have KVM, but /dev/kvm is not open to the runner user by default.
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
           ls -la /dev/kvm
           "$ANDROID_SDK_ROOT/emulator/emulator" -accel-check || true
           echo no | avdmanager create avd --force --name release --package 'system-images;android-35;google_apis;x86_64' --device pixel_3a
@@ -210,7 +216,7 @@ jobs:
         if: always()
         run: |
           mkdir -p evidence
-          adb logcat -d > evidence/logcat.txt 2>/dev/null || true
+          timeout 60 adb logcat -d > evidence/logcat.txt 2>/dev/null || true
           cp "$RUNNER_TEMP/emulator.log" evidence/emulator.log 2>/dev/null || true
       - uses: actions/upload-artifact@v4
         if: always()
@@ -226,6 +232,7 @@ jobs:
     timeout-minutes: 30
     env:
       VERSION: ${{ needs.plan.outputs.version }}
+      TEST_NOTE: ${{ needs.plan.outputs.test_note }}
       GH_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@v4
@@ -264,7 +271,7 @@ jobs:
             grep -E 'certificate SHA-256 digest' out/signature.txt || true
             echo '```'
             echo
-            echo 'Built and emulator-tested by the Release workflow (stage build); signed offline with the release key.'
+            echo "$TEST_NOTE"
           } >> "$RUNNER_TEMP/notes.md"
           gh release create "v$VERSION" "$APK" out/SHA256SUMS.txt \
             --repo "$GITHUB_REPOSITORY" --target "$TARGET" \
