@@ -13,12 +13,17 @@ The Permissions screen reads the current state and opens Android's own consent d
 | Battery optimization exception | Long conversations/builds and background VM | Optional system confirmation for this app |
 | USB | One selected OTG device | Android USB permission dialog for that device |
 | External files/folders | Attachments, chosen storage and USB media | SAF picker grants for selected URIs |
-| Install unknown apps | Installing an exported APK | Optional install-source setting plus Android's package installer |
+| Install unknown apps | Installing an exported APK or one built by an agent (`install_apk`) | Optional install-source setting plus Android's package installer; the owner taps Install |
 | Set alarm (`SET_ALARM`) | MCP `set_alarm` / `set_timer` hand requests to the clock app | Normal manifest permission; no runtime dialog |
 | Modify system settings (`WRITE_SETTINGS`) | MCP `set_brightness` only | Optional special access the owner grants in system settings; the tool returns an error until then |
 | Package visibility (`<queries>`) | Naming the app that handles a link, dialer, SMS composer, share sheet, calendar editor or clock | Declared in the manifest; no `QUERY_ALL_PACKAGES` |
+| Notification access | `notifications_list` / `notification_action` read and act on other apps' notifications | Enable androidagent under Android's Notification access |
+| Location (approximate/precise) | `get_location` while the app is visible | Optional runtime consent from the Permissions screen |
+| Photos (`READ_MEDIA_IMAGES`; `READ_EXTERNAL_STORAGE` up to Android 12) | `recent_photos` / `import_photo` | Optional runtime consent from the Permissions screen |
 
 Denying `POST_NOTIFICATIONS` does not prevent a foreground service. Android still requires its notification and may display it only in the system active-apps panel. Android 16's promoted-notification permission affects presentation, not whether commands or conversations can run.
+
+The guide lists the app's own consents first (notifications, microphone, screen control, battery) and the agent-tool consents after them (notification access, location, photos, installing apps, modifying system settings). Each card shows the live state and opens only androidagent's own entry in Android. Tools never show permission dialogs; when access is off they return an error that points the owner to this screen. `take_photo` needs no permission because the camera app takes the picture. Details are in [Phone access](PHONE-ACCESS.md).
 
 ## Screen control
 

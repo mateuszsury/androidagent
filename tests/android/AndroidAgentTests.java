@@ -627,6 +627,8 @@ public class AndroidAgentTests extends Instrumentation {
     test("permissions: real state and native consent routes", () -> PermissionRegressionChecks.readOnlyStateAndNativeRoutes(app));
     test("permissions: FlowMesh is never mistaken for our service", () -> PermissionRegressionChecks.accessibilityRecognitionIsScoped(app));
     test("permissions: screen refresh preserves existing consent", () -> {launch(PermissionsActivity.class);PermissionRegressionChecks.screenRefreshAndNativeAccessibilityRoute(this,current);});
+    test("phone access: agent-tool permission rows", () -> {launch(PermissionsActivity.class);PhoneAccessChecks.permissionRowsForAgentTools(this,current);});
+    test("phone access: workspace boundary and provider", () -> PhoneAccessChecks.workspaceBoundaryAndProvider(app));
     test("commands: native approval works without Accessibility", () -> {launch(new Intent(app,ChatActivity.class).putExtra("id",ChatHub.get(app).sessions.current.id));ApprovedCommandsChecks.inlineApprovalShowsAndExecutesExactCommand(this,current);});
     test("commands: native denial never executes the command", () -> ApprovedCommandsChecks.inlineDenialDoesNotExecuteCommand(this,current));
     test("commands: stale consent cannot approve a replacement", () -> ApprovedCommandsChecks.staleButtonCannotApproveReplacement(this,current));
