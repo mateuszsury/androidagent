@@ -17,6 +17,33 @@
     <!-- Lets the setup screen ask Android to stop battery optimization for Buddy -->
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
 
+    <!-- Phone tools without Accessibility (PhoneTools / IntentTools / DeviceTools):
+         set_alarm / set_timer hand requests to the clock app (normal permission, no dialog);
+         set_brightness needs the owner-granted "Modify system settings" special access. -->
+    <uses-permission android:name="com.android.alarm.permission.SET_ALARM" />
+    <uses-permission android:name="android.permission.WRITE_SETTINGS" />
+
+    <!-- Agent files, notifications, location and photos (FileTools, NotificationTools, LocationTools,
+         MediaTools). Runtime permissions are requested only from the Permissions screen. -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
+    <queries>
+        <!-- open_file / share_file look for a viewer or share target; take_photo for a camera app. -->
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:mimeType="*/*" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.SEND" />
+            <data android:mimeType="*/*" />
+        </intent>
+        <intent>
+            <action android:name="android.media.action.IMAGE_CAPTURE" />
+        </intent>
+    </queries>
+
     <!-- Needed on Android 11+ to see launchable apps for open_app / list_apps -->
     <queries>
         <intent>
@@ -28,6 +55,37 @@
         </intent>
         <intent>
             <action android:name="android.intent.action.TTS_SERVICE" />
+        </intent>
+        <!-- Phone tools (IntentTools): report which app handles a link, the dialer, SMS composer,
+             share sheet, calendar editor and clock. Starting them needs no visibility. -->
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="https" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="geo" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.DIAL" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.SENDTO" />
+            <data android:scheme="smsto" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.SEND" />
+            <data android:mimeType="text/plain" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.INSERT" />
+            <data android:mimeType="vnd.android.cursor.dir/event" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.SET_ALARM" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.SET_TIMER" />
         </intent>
     </queries>
 
@@ -65,6 +123,12 @@
         <service android:name=".AgentService" android:exported="false" android:foregroundServiceType="specialUse">
             <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE" android:value="User-started local agent tool host and callbacks, independent of screen control" />
         </service>
+        <activity android:name=".ServicesActivity" android:exported="false" />
+        <service android:name=".ServicesService" android:exported="false" android:foregroundServiceType="specialUse">
+            <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE" android:value="Owner-approved long-running local servers and bots in the embedded terminal, with their own stop control" />
+        </service>
+        <!-- Process-start hook: restores autostart background services (no data is exposed) -->
+        <provider android:name=".ServicesBoot" android:authorities="dev.mateuszsury.androidagent.services" android:exported="false" />
         <activity android:name=".DockerActivity" android:exported="false" />
         <activity android:name=".DockerTaskActivity" android:exported="false" />
         <activity android:name=".DockerPreviewActivity" android:exported="false" />
@@ -102,6 +166,23 @@
         <receiver
             android:name=".HiddenNotice"
             android:exported="false" />
+
+        <!-- Agent files, notifications and photos: notification access (granted by the user in
+             Android settings) and the invisible camera trampoline for take_photo. -->
+        <service
+            android:name=".NotifListener"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
+            <intent-filter>
+                <action android:name="android.service.notification.NotificationListenerService" />
+            </intent-filter>
+        </service>
+        <activity
+            android:name=".CaptureActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
 
         <service
             android:name=".BuddyService"

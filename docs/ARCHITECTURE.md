@@ -18,6 +18,7 @@ flowchart TD
   HELPER --> EVENTS[Authenticated event callbacks]
   EVENTS --> HUB
   MCP --> STATE[Device status and approved commands]
+  MCP --> PHONE[Phone tools: approvals, apps, intents, device controls]
   MCP --> ACCESS[Optional Accessibility: screen and gestures]
   MCP --> USB[USB sessions: owner and revocable grants]
   USB --> DIRECT[UART, ESP, second-device ADB]
@@ -29,6 +30,8 @@ flowchart TD
   VM --> LINUX[Separate Linux kernel and Docker Engine]
   LINUX --> TASK[Container and its project directory]
   TASK --> EXPORT[Preserved Android exports]
+  MCP --> SERVICES[ServiceManager: approved long-running services]
+  SERVICES --> RUNTIME
 ```
 
 The current integration does not call an external Termux `RUN_COMMAND` service. Termux packages are extracted into versioned app-private storage; trusted native PRoot and loader entry points preserve their canonical prefix. The persistent home is separate from replaceable runtime files. Provider clients are downloaded from official pinned packages on the device. Account authentication is an explicit owner action.
@@ -43,6 +46,7 @@ The current integration does not call an external Termux `RUN_COMMAND` service. 
 | MCP | One listener on `127.0.0.1:8766`; installation or revocable per-run credentials |
 | Screen control | Own Accessibility service enabled by the owner; existing services are preserved |
 | Commands | MCP `run_command` requires developer mode and exact per-request approval; interactive terminal input is owner initiated |
+| Background services | `service_start` requires developer mode and approval of the exact definition; each service is its own PRoot tree outside agent Stop, with its own stop control ([details](SERVICES.md)) |
 | Developer mode | Coding clients can access the app UID's whole private environment; PRoot is compatibility, not a security sandbox |
 | USB and SAF | Device/tree permission plus assignment to an active conversation run; revocation does not revive old handles |
 | Docker | Separate VM kernel, task-owned project mount, no privileged container or agent-visible Docker socket |
@@ -57,6 +61,6 @@ Native USB modules provide UART/ESP, ADB to another Android device and SAF stora
 
 ## Direction
 
-Current opportunities include Codex app-server integration, broader localization, optional Shizuku UserService, richer project/Git views and more physical-device coverage. These are not implemented features. The embedded setup, project browser, signing and distribution already exist; earlier planning notes are retained only in the [historical snapshot](https://github.com/mateuszsury/androidagent/tree/6f5b3f566a4a85e0e10a5946de3afa55a8079c05/docs).
+Current opportunities include Codex app-server integration, broader localization, optional Shizuku UserService, richer project/Git views and more physical-device coverage. These are not implemented features. Background services, Accessibility-free phone tools and per-task Docker ports are now implemented ([services](SERVICES.md), [phone tools](PERMISSIONS.md#phone-tools-without-accessibility) and [Docker ports](DOCKER.md#published-ports-and-wi-fi-access)). The embedded setup, project browser, signing and distribution already exist; earlier planning notes are retained only in the [historical snapshot](https://github.com/mateuszsury/androidagent/tree/6f5b3f566a4a85e0e10a5946de3afa55a8079c05/docs).
 
 [Testing](TESTING.md) separates physical Codex/Docker acceptance from unverified Claude account responses and USB hardware. [NOTICE](../NOTICE) and [third-party notices](../THIRD_PARTY_NOTICES.md) record upstream attribution.

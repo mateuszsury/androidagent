@@ -1,6 +1,18 @@
 # Screenshots
 
-These are unedited captures of androidagent 0.4.4, not mockups. The current UI includes Polish labels. Screenshots contain test data only; login codes and account credentials are not included.
+These are unedited captures, not mockups. Screenshots contain test data only; login codes and account credentials are not included.
+
+## Unreleased redesign, Android 11 emulator
+
+| Home | Conversation | Background services | Terminal |
+| --- | --- | --- | --- |
+| <img src="images/redesign-home.png" width="200" alt="Home in the Claude Code style" /> | <img src="images/redesign-chat.png" width="200" alt="Transcript with tool calls and results" /> | <img src="images/redesign-services.png" width="200" alt="Running background web server" /> | <img src="images/redesign-terminal.png" width="200" alt="Embedded terminal with Python and Node.js" /> |
+
+Source: a debuggable development build of the unreleased branch with the published 0.4.4 terminal runtime, on an Android 11 x86_64 software emulator, downscaled. The conversation is seeded demo data (no model account). The services screen shows a real `python3 -m http.server` started through the MCP `service_start` tool after owner approval in the chat; the terminal output is a real Python and Node.js run in the embedded environment.
+
+## androidagent 0.4.4
+
+The captures below show the 0.4.4 interface.
 
 ## Android 16 emulator
 

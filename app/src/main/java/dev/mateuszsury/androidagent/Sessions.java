@@ -19,6 +19,20 @@ final class Sessions {
         final String text;
         /** Attachment ids (see Attachments); empty for most messages. */
         final List<String> files;
+        /**
+         * Optional structured details, persisted under "m". For STEP messages (tool calls):
+         * {"tool": raw tool name, "args": short argument summary, "id": tool_use id,
+         *  "state": "running"|"ok"|"error", "result": first lines of output, "lines": total lines}.
+         * "result"/"lines" appear once the tool finished. Older records have none; renderers
+         * must fall back to {@link #text}. Changed in place on the main thread only; see
+         * {@link Sessions#persist} and ChatHub.Listener#onMessageUpdated.
+         */
+        org.json.JSONObject meta;
+
+        /** Tool-call state from {@link #meta}, or "" for messages without one. */
+        String state() {
+            return meta == null ? "" : meta.optString("state");
+        }
 
         Msg(Bubble.Kind kind, String text) {
             this(kind, text, null);
@@ -33,7 +47,7 @@ final class Sessions {
         /** Text for places that can't show attachments (bubble panel, previews). */
         String label() {
             if (files.isEmpty()) return text;
-            String n = files.size() == 1 ? "📎 " + Attachments.name(files.get(0)) : "📎 " + files.size() + " attachments";
+            String n = files.size() == 1 ? "📎 " + Attachments.name(files.get(0)) : "📎 " + files.size() + " " + plural(files.size(), "załącznik", "załączniki", "załączników");
             return text.isEmpty() ? n : n + "\n" + text;
         }
     }
@@ -48,6 +62,8 @@ final class Sessions {
         final List<Msg> messages = new ArrayList<>();
         // runtime only
         boolean running, gotText, unread, runAcknowledged;
+        /** The agent reported the end of its turn ("result") during the current run. */
+        boolean resultSeen;
         String status = "";
         String lastReply = "";
         String lastError = "";
@@ -73,7 +89,7 @@ final class Sessions {
         }
 
         String label() {
-            return title.isEmpty() ? "New " + brainName() + " chat" : title;
+            return title.isEmpty() ? "Nowa rozmowa" : title;
         }
     }
 
@@ -147,11 +163,22 @@ final class Sessions {
     }
 
     void add(Session s, Bubble.Kind kind, String text) {
-        add(s, kind, text, null);
+        add(s, kind, text, null, null);
     }
 
-    void add(Session s, Bubble.Kind kind, String text, List<String> files) {
-        s.messages.add(new Msg(kind, text, files));
+    Msg add(Session s, Bubble.Kind kind, String text, List<String> files) {
+        return add(s, kind, text, files, null);
+    }
+
+    /** Adds a message carrying structured details (e.g. a tool call's {@link Msg#meta}). */
+    Msg add(Session s, Bubble.Kind kind, String text, JSONObject meta) {
+        return add(s, kind, text, null, meta);
+    }
+
+    Msg add(Session s, Bubble.Kind kind, String text, List<String> files, JSONObject meta) {
+        Msg msg = new Msg(kind, text, files);
+        msg.meta = meta;
+        s.messages.add(msg);
         while (s.messages.size() > MAX_MESSAGES) s.messages.remove(0);
         s.updated = System.currentTimeMillis();
         if (kind == Bubble.Kind.USER && s.title.isEmpty()) {
@@ -162,6 +189,20 @@ final class Sessions {
         all.remove(s);
         all.add(0, s);
         save(s);
+        return msg;
+    }
+
+    /** Persists an in-place change to one conversation's messages (e.g. a tool call's result)
+     *  without reordering the chat list or rewriting other conversations. */
+    void persist(Session s) {
+        if (all.contains(s)) save(s);
+    }
+
+    /** Polish plural: 1 plik, 2–4 pliki, 5+ plików (12–14 always take the last form). */
+    static String plural(int n, String one, String few, String many) {
+        if (n == 1) return one;
+        int tens = n % 100, units = n % 10;
+        return units >= 2 && units <= 4 && (tens < 12 || tens > 14) ? few : many;
     }
 
     /** Serialize only the changed conversation; selecting a chat updates just the index.
@@ -190,6 +231,7 @@ final class Sessions {
         for (Msg m : s.messages) {
             JSONObject mo = new JSONObject().put("k", m.kind.name()).put("t", m.text);
             if (!m.files.isEmpty()) mo.put("f", new JSONArray(m.files));
+            if (m.meta != null && m.meta.length() > 0) mo.put("m", m.meta);
             msgs.put(mo);
         }
         return new JSONObject().put("id", s.id).put("backend", s.backend).put("title", s.title).put("model", s.model)
@@ -213,7 +255,11 @@ final class Sessions {
                         List<String> files = new ArrayList<>();
                         JSONArray f = m.optJSONArray("f");
                         if (f != null) for (int k = 0; k < f.length(); k++) files.add(f.getString(k));
-                        s.messages.add(new Msg(Bubble.Kind.valueOf(m.getString("k")), m.getString("t"), files));
+                        Msg msg = new Msg(Bubble.Kind.valueOf(m.getString("k")), m.getString("t"), files);
+                        msg.meta = m.optJSONObject("m");
+                        // Runs never outlive the app process: a step saved mid-run was interrupted.
+                        if (msg.meta != null && "running".equals(msg.meta.optString("state"))) msg.meta.put("state", "error");
+                        s.messages.add(msg);
                     }
                     all.add(s);
                 } catch (Exception invalidRecord) {

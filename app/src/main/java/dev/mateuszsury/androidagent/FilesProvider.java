@@ -13,7 +13,9 @@ import java.io.FileNotFoundException;
 
 /**
  * Shares single files with other apps by URI permission: the camera writes the new photo to
- * content://…/capture, and attachments open in a viewer via content://…/a/&lt;id&gt;.
+ * content://…/capture (or a pending agent photo to content://…/capture/&lt;token&gt;), attachments open
+ * in a viewer via content://…/a/&lt;id&gt;, and agent workspace files are served read-only from
+ * content://…/home/.buddy/work/… (nothing else below the runtime home; see {@link FileTools}).
  */
 public class FilesProvider extends ContentProvider {
     static final String AUTHORITY = "dev.mateuszsury.androidagent.files";
@@ -34,8 +36,15 @@ public class FilesProvider extends ContentProvider {
         return new File(c.getCacheDir(), "capture.jpg");
     }
 
+    /** A camera target for an agent photo; writable only while that capture is pending. */
+    static Uri captureUri(String token) {
+        return Uri.parse("content://" + AUTHORITY + "/capture/" + token);
+    }
+
     private File fileFor(Uri uri) {
         java.util.List<String> p = uri.getPathSegments();
+        if (p.size() >= 2 && "home".equals(p.get(0))) return FileTools.providerFile(getContext(), p.subList(1, p.size()));
+        if (p.size() == 2 && "capture".equals(p.get(0))) return MediaTools.captureTarget(p.get(1));
         if (p.size() == 1 && "capture".equals(p.get(0))) return captureFile(getContext());
         if (p.size() == 2 && "a".equals(p.get(0))) return Attachments.file(getContext(), p.get(1));
         if (p.size() == 2 && "docker".equals(p.get(0))) return DockerVm.exportedFile(getContext(), p.get(1));
@@ -52,7 +61,13 @@ public class FilesProvider extends ContentProvider {
     public ParcelFileDescriptor openFile(Uri uri, String mode) throws FileNotFoundException {
         File f = fileFor(uri);
         if (f == null) throw new FileNotFoundException(uri.toString());
-        boolean capture = f.equals(captureFile(getContext()));
+        String kind = uri.getPathSegments().get(0);
+        if ("home".equals(kind)) {
+            if (!"r".equals(mode)) throw new FileNotFoundException("read-only");
+            try { return FileTools.openChecked(getContext(), f); }
+            catch (java.io.IOException e) { throw new FileNotFoundException(e.getMessage()); }
+        }
+        boolean capture = "capture".equals(kind);
         if (!capture && !"r".equals(mode)) throw new FileNotFoundException("read-only");
         return ParcelFileDescriptor.open(f, ParcelFileDescriptor.parseMode(capture ? mode : "r"));
     }
@@ -61,6 +76,7 @@ public class FilesProvider extends ContentProvider {
     public String getType(Uri uri) {
         File f = fileFor(uri);
         if (f == null) return null;
+        if ("home".equals(uri.getPathSegments().get(0))) return FileTools.mime(f.getName());
         String n = f.getName().toLowerCase(java.util.Locale.ROOT);
         if (n.endsWith(".jpg") || n.endsWith(".jpeg")) return "image/jpeg";
         if (n.endsWith(".png")) return "image/png";
@@ -79,7 +95,9 @@ public class FilesProvider extends ContentProvider {
         if (f == null) return null;
         String[] columns=projection==null?new String[]{OpenableColumns.DISPLAY_NAME,OpenableColumns.SIZE}:projection;
         MatrixCursor c = new MatrixCursor(columns);
-        String name = f.getParentFile() != null && "attachments".equals(f.getParentFile().getName())
+        String kind = uri.getPathSegments().get(0);
+        String name = "home".equals(kind) || uri.getPathSegments().size() == 2 && "capture".equals(kind) ? f.getName()
+                : f.getParentFile() != null && "attachments".equals(f.getParentFile().getName())
                 ? Attachments.name(f.getName()) : "photo.jpg";
         if (uri.getPathSegments().size() == 2 && "docker".equals(uri.getPathSegments().get(0))) {
             try (java.io.InputStream in = new java.io.FileInputStream(new File(f.getPath() + ".json"))) {

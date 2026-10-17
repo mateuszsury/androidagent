@@ -98,7 +98,7 @@ final class Prefs {
 
     /** Appearance: "system", "light" or "dark". */
     static String themeMode(Context c) {
-        return sp(c).getString("theme_mode", "system");
+        return sp(c).getString("theme_mode", "dark");
     }
 
     static void setThemeMode(Context c, String m) {
@@ -107,7 +107,7 @@ final class Prefs {
 
     /** Accent colour (opaque ARGB). */
     static int accent(Context c) {
-        return sp(c).getInt("accent", 0xFF202123);
+        return sp(c).getInt("accent", 0xFFD97757);
     }
 
     static void setAccent(Context c, int color) {
@@ -116,7 +116,7 @@ final class Prefs {
 
     /** Surface style: "warm", "neutral" or "black" (black applies in dark mode only). */
     static String surface(Context c) {
-        return sp(c).getString("surface", "neutral");
+        return sp(c).getString("surface", "warm");
     }
 
     static void setSurface(Context c, String s) {
