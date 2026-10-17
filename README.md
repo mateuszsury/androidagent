@@ -13,7 +13,7 @@
   <img src="docs/images/runtime.png" width="245" alt="Embedded environment with Codex and Claude Code installed" />
 </p>
 
-An independent community fork of [Buddy](https://github.com/ghorbelhamdi/buddy-android). It is not an official OpenAI or Anthropic application. The application UI currently contains Polish and upstream English labels; project documentation is in English. See the [screenshot gallery](docs/SCREENSHOTS.md).
+An independent community fork of [Buddy](https://github.com/ghorbelhamdi/buddy-android). It is not an official OpenAI or Anthropic application. The application UI is in Polish; project documentation is in English. See the [screenshot gallery](docs/SCREENSHOTS.md).
 
 ## Install
 
@@ -24,7 +24,7 @@ Requires **Android 11 or later**, **arm64-v8a or x86_64**. The APK is approximat
 1. Install the APK. Updating an existing installation with the same signing certificate preserves conversations, settings and files.
 2. Open **Environment and accounts** (`Środowisko i konta`). The embedded shell, Python, Node.js, Git and tool bridge initialize automatically. Select Codex, Claude Code or both, then choose **Prepare selected agents** (`Przygotuj wybranych agentów`). The app downloads the official pinned clients, verifies their hashes and launches them to check installation.
 3. Use **Log in to Codex** or **Log in to Claude Code**. Complete the official account flow shown in the embedded terminal. Environment setup and account login are separate steps.
-4. Start a conversation. Phone status and `/status` work without a model account. Open **Permissions** for optional screen control, microphone, notifications and background settings.
+4. Start a conversation. Phone status and `/status` work without a model account. Open **Permissions** (`Uprawnienia`) for optional screen control, microphone, notifications and background settings. Long-running servers and bots can run as **Background services** (`Usługi w tle`) that keep going after the agent's turn ends.
 
 No separate Termux installation, manual `pkg`/`npm` setup, root or computer is required for normal use. Docker is optional. Shizuku integration is not implemented.
 
@@ -32,18 +32,19 @@ No separate Termux installation, manual `pkg`/`npm` setup, root or computer is r
 
 | Feature | Available functionality |
 | --- | --- |
-| Chat | Native conversation history, drafts, attachments, model selection, light/dark themes and selectable code |
-| Agents | Official Codex CLI **0.162.1** and Claude Code **2.1.296**, separate sessions, resume, tool progress, official login and error handling |
-| Phone tools | Device status, owner approvals and notifications, apps/links/intents, settings panels, dialer/SMS composer/calendar/alarms (the owner sends), volume, media, torch, clipboard, speech and brightness; screen reading and gestures through optional Accessibility ([details](docs/PERMISSIONS.md#phone-tools-without-accessibility)) |
-| Terminal and files | Embedded interactive shell and PTY, Python/Node/Git, project files, command output, cancellation and exit status |
-| Docker | Local Linux VM, image builds, containers, exec/logs, interactive WebView previews, exports, cancellation and task cleanup |
+| Chat | Native conversation history, drafts, attachments, model selection, light and dark themes (dark by default), a Claude Code-style transcript with approval cards and TodoWrite checklists, and Markdown replies with highlighted code and a copy button |
+| Agents | Official Codex CLI **0.162.1** and Claude Code **2.1.296**, separate sessions, resume, live tool progress, stored tool results, official login, error handling, and at most six chats running at once |
+| Phone tools | Device status with LAN addresses, owner approvals and notifications, apps/links/intents, settings panels, dialer/SMS composer/calendar/alarms (the owner sends), volume, media, torch, clipboard, speech, brightness, notification access, location and photos with consent; screen reading and gestures through optional Accessibility ([details](docs/PERMISSIONS.md#phone-tools-without-accessibility)) |
+| Background services | Long-running servers and bots that continue after the agent's turn and **Stop**, managed on the **Background services** screen (`Usługi w tle`): logs, restart policy, autostart, a foreground service with wake and Wi-Fi locks, and URLs for 127.0.0.1 and the Wi-Fi address ([details](docs/SERVICES.md)) |
+| Terminal and files | Embedded interactive shell and PTY with ANSI colours, Python/Node/Git, project files, the **Files** screen (`Pliki środowiska`) to open, share, install and save files, command output, cancellation and exit status |
+| Docker | Local Linux VM, image builds, containers, exec/logs, interactive WebView previews with their own port and URL per task, exports, optional Wi-Fi access (off by default), cancellation and task cleanup |
 | USB | Direct UART, ESP flashing, ADB to a second Android device, SAF storage, raw USB passthrough and UART bridges to Docker |
 
 ## Access and control
 
-The terminal and agents run as **androidagent's Android UID**. They do not gain root or access to other apps' private storage. Accessibility requires the owner's system approval. USB devices and SAF folders require explicit grants and conversation assignment.
+The terminal and agents run as **androidagent's Android UID**. They do not gain root or access to other apps' private storage. Screen reading, taps, typing, scrolling, swipes, `press` and screenshots need the optional Accessibility service, which the owner enables in Android's settings; other phone tools work without it. Notification access, location and photos need consent on the **Permissions** (`Uprawnienia`) screen. USB devices and SAF folders require explicit grants and conversation assignment.
 
-Normal mode restricts the agents' shell and file tools. Developer mode enables coding operations across the application's private environment; it is not a project sandbox. The MCP `run_command` tool additionally requires approval of the exact command. **Stop** revokes the active run's tool access and cancels its commands. Docker uses a separate Linux kernel and task directories, without exposing the Docker socket to agents.
+Normal mode restricts the agents' shell and file tools. Developer mode enables coding operations across the application's private environment; it is not a project sandbox. The MCP `run_command` tool additionally requires approval of the exact command, and `service_start` requires approval of the exact service definition. **Stop** (`Zatrzymaj`) revokes the active run's tool access and cancels its commands; background services keep running and have their own **Stop** controls, or **Stop all services** (`Zatrzymaj wszystkie usługi`) on the same screen. Docker uses a separate Linux kernel and task directories, without exposing the Docker socket to agents; its previews bind to the phone's loopback unless the owner turns on Wi-Fi access, which is off by default.
 
 Models are remote services: this app runs their clients locally, not model weights. Provider access, subscriptions and available models depend on your account. See [permissions](docs/PERMISSIONS.md), [agent access](docs/CLAUDE.md) and [architecture](docs/ARCHITECTURE.md).
 

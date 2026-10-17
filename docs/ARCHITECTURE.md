@@ -61,6 +61,6 @@ Native USB modules provide UART/ESP, ADB to another Android device and SAF stora
 
 ## Direction
 
-Current opportunities include Codex app-server integration, broader localization, optional Shizuku UserService, richer project/Git views and more physical-device coverage. These are not implemented features. The embedded setup, project browser, signing and distribution already exist; earlier planning notes are retained only in the [historical snapshot](https://github.com/mateuszsury/androidagent/tree/6f5b3f566a4a85e0e10a5946de3afa55a8079c05/docs).
+Current opportunities include Codex app-server integration, broader localization, optional Shizuku UserService, richer project/Git views and more physical-device coverage. These are not implemented features. Background services, Accessibility-free phone tools and per-task Docker ports are now implemented ([services](SERVICES.md), [phone tools](PERMISSIONS.md#phone-tools-without-accessibility) and [Docker ports](DOCKER.md#published-ports-and-wi-fi-access)). The embedded setup, project browser, signing and distribution already exist; earlier planning notes are retained only in the [historical snapshot](https://github.com/mateuszsury/androidagent/tree/6f5b3f566a4a85e0e10a5946de3afa55a8079c05/docs).
 
 [Testing](TESTING.md) separates physical Codex/Docker acceptance from unverified Claude account responses and USB hardware. [NOTICE](../NOTICE) and [third-party notices](../THIRD_PARTY_NOTICES.md) record upstream attribution.
