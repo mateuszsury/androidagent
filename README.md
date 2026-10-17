@@ -8,9 +8,10 @@
 [![Android](https://img.shields.io/badge/Android-11%2B-green)](docs/BUILDING.md)
 
 <p align="center">
-  <img src="docs/images/home.png" width="245" alt="androidagent home screen with chat, phone tools and Docker" />
-  <img src="docs/images/docker.png" width="245" alt="Docker screen in dark mode with memory and CPU controls" />
-  <img src="docs/images/runtime.png" width="245" alt="Embedded environment with Codex and Claude Code installed" />
+  <img src="docs/images/redesign-home.png" width="190" alt="Home screen in the Claude Code style with the welcome box and shortcuts" />
+  <img src="docs/images/redesign-chat.png" width="190" alt="Conversation transcript with tool calls, results and Markdown reply" />
+  <img src="docs/images/redesign-services.png" width="190" alt="Background services screen with a running Python web server" />
+  <img src="docs/images/redesign-terminal.png" width="190" alt="Embedded terminal running Python and Node.js with ANSI colours" />
 </p>
 
 An independent community fork of [Buddy](https://github.com/ghorbelhamdi/buddy-android). It is not an official OpenAI or Anthropic application. The application UI is in Polish; project documentation is in English. See the [screenshot gallery](docs/SCREENSHOTS.md).
