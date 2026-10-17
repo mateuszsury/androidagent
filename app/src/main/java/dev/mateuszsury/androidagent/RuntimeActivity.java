@@ -150,7 +150,7 @@ public final class RuntimeActivity extends Screen {
         LinearLayout tools = ToolUi.group(this);
         terminal = new ToolUi.Row(this, R.drawable.ms_terminal, "Otwórz terminal", "bash · pełna sesja z klawiaturą", true)
                 .onClick(v -> TerminalActivity.openShell(this));
-        files = new ToolUi.Row(this, R.drawable.ms_description, "Pliki i projekty", "~/ · katalog domowy środowiska", true)
+        files = new ToolUi.Row(this, R.drawable.ms_folder, "Pliki środowiska", "~/ · projekty i katalog domowy", true)
                 .onClick(v -> startActivity(new Intent(this, RuntimeFilesActivity.class)));
         ToolUi.Row permissions = new ToolUi.Row(this, R.drawable.ms_shield_person, "Uprawnienia telefonu", "zgody Androida dla agentów", true)
                 .onClick(v -> PermissionGuide.open(this));
