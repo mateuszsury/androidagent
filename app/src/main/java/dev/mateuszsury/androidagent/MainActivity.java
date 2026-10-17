@@ -154,6 +154,13 @@ public class MainActivity extends Screen implements ChatHub.Listener {
         rowParams());
     cards.addView(
         suggestion(
+            R.drawable.ms_refresh,
+            "Usługi w tle",
+            "Serwery WWW i procesy działające po rozmowie",
+            () -> startActivity(new Intent(this, ServicesActivity.class))),
+        rowParams());
+    cards.addView(
+        suggestion(
             R.drawable.ms_chat_bubble,
             "Zleć zadanie agentowi",
             "Czytaj ekran, działaj w aplikacjach",

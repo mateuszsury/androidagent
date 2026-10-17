@@ -45,6 +45,7 @@ public class MonitorActivity extends Screen implements ChatHub.MonitorListener {
         @Override
         public void run() {
             if (!visible) return;
+            updateServices();
             if (!EmbeddedRuntime.get(MonitorActivity.this).ready()) {
                 showEnvironmentState();
                 running.postDelayed(this, REFRESH_MS);
@@ -102,10 +103,52 @@ public class MonitorActivity extends Screen implements ChatHub.MonitorListener {
         list.addView(running, full());
         running.addView(inlineNote("Sprawdzanie…", FAINT, true));
 
+        list.addView(sectionLabel(this, "Usługi w tle"));
+        services = servicesRow();
+        LinearLayout.LayoutParams sp = full();
+        sp.leftMargin = sp.rightMargin = dp(this, 16);
+        list.addView(services, sp);
+
         list.addView(sectionLabel(this, "Ostatnie"));
         recent = column(this);
         list.addView(recent, full());
         recent.addView(inlineNote("Wczytywanie…", FAINT, false));
+    }
+
+    private LinearLayout services;
+    private Ui.Dot servicesDot;
+    private TextView servicesDetail;
+
+    /** One row that opens the background services screen and shows how many are running. */
+    private LinearLayout servicesRow() {
+        LinearLayout r = row(this);
+        r.setPadding(dp(this, 14), dp(this, 12), dp(this, 10), dp(this, 12));
+        r.setBackground(outlined(this, CARD, 12, LINE, 1));
+        r.setForeground(getDrawable(ripple(this, false)));
+        r.setClipToOutline(true);
+        servicesDot = toolDot(this, FAINT);
+        r.addView(servicesDot);
+        LinearLayout t = column(this);
+        t.setPadding(dp(this, 10), 0, dp(this, 8), 0);
+        t.addView(single(title(this, "Serwery i procesy", 15)));
+        servicesDetail = single(monoText(this, "", 12, MUTED));
+        servicesDetail.setPadding(0, dp(this, 2), 0, 0);
+        t.addView(servicesDetail);
+        r.addView(t, weight1());
+        r.addView(icon(this, R.drawable.ms_chevron_right, FAINT, 18));
+        r.setOnClickListener(v -> startActivity(new android.content.Intent(this, ServicesActivity.class)));
+        Motion.press(r);
+        updateServices();
+        return r;
+    }
+
+    private void updateServices() {
+        if (servicesDetail == null) return;
+        int total = ServiceManager.get(this).list().size(), active = ServiceManager.get(this).activeCount();
+        String detail = total == 0 ? "brak · agent może uruchomić np. serwer WWW"
+                : active + " działa · " + total + " " + (total == 1 ? "usługa" : total < 5 ? "usługi" : "usług");
+        if (!detail.contentEquals(servicesDetail.getText())) servicesDetail.setText(detail);
+        servicesDot.setColor(active > 0 ? OK : FAINT);
     }
 
     private void setNav(int count) {
