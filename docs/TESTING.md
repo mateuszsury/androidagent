@@ -73,6 +73,18 @@ The first API 30 instrumentation attempt had an input-dispatch ANR after 45 pass
 
 Raw logs, reports, earlier reviews and transfer journals were removed from the current source tree during public-repository cleanup. They remain byte-for-byte in the [versioned 0.4.4 evidence snapshot](https://github.com/mateuszsury/androidagent/tree/6f5b3f566a4a85e0e10a5946de3afa55a8079c05/artifacts), its [test documentation](https://github.com/mateuszsury/androidagent/blob/6f5b3f566a4a85e0e10a5946de3afa55a8079c05/docs/TESTING.md), and release assets. The original Lenovo0.4.3 log is 32044 bytes with SHA256 `4920d8d3acbb43990be42d13ac41ff0d162fd9ff3811fead4d25245bd4d7d9c6`.
 
+## Unreleased changes: emulator checks
+
+The redesign, background services and new phone tools were checked on an **Android 11 x86_64 software (TCG) emulator** with a debuggable development build that packages the published 0.4.4 terminal runtime. This is development evidence, not a signed release:
+
+- Host suite: `python3 -m unittest discover -s tests -p 'test_*.py'` and `tools/check-docs.py` pass; `tests/android` compiles against the app.
+- The embedded environment initialized from a clean install in about 15 minutes of emulated time. In the terminal and in services, Python 3.14.6, Node.js v24.18.0 and Git 2.56.0 ran as the app UID without root, and ANSI colours rendered.
+- Over MCP with the installation token, `tools/list` returned 92 tools; `device_status` reported LAN/IP fields; `notify`, `set_volume`/`get_volume`, `list_apps` and `docker_status` returned expected results; `torch` reported that the emulator has no flashlight.
+- `service_start` showed the approval card in the chat; after tapping **Approve** (`Zatwierdź`) a `python3 -m http.server` service reported its open port and served a page through `adb forward`. It kept serving after leaving the app and after the global **Stop**, which also closed agent tool access.
+- Every redesigned screen was captured in the dark theme; selected screens also in the light theme and with large fonts.
+
+Not verified for the unreleased changes: the instrumentation suites (`tools/test-android.sh` and others), a physical device, logged-in Codex or Claude conversations, booting the Docker VM, the new Docker port forwards on Android's QEMU, and the notification access, location, photo, camera, APK install and file share tools on a device.
+
 ## Run checks yourself
 
 Use [Building](BUILDING.md) for the host and instrumentation toolchain. Destructive suites belong on a dedicated emulator. Reports must match the current UUID, API, exact app bytes and instrumentation identity; stale exports are not new passes. Do not label `/status`, a mock protocol stream or `--version` as an authenticated model task.

@@ -28,7 +28,10 @@ final class EmbeddedRuntime {
     private final File root, userHome;
     private final ExecutorService setup=Executors.newSingleThreadExecutor();
     private final Object initializationLock=new Object();
-    private final ExecutorService helpers=Executors.newFixedThreadPool(6);
+    // One slot per chat ChatHub lets work at once, plus headroom for runs still tearing down after Stop.
+    private final ExecutorService helpers=Executors.newFixedThreadPool(ChatHub.MAX_RUNNING+2);
+    /** "ask" requests by callback run id: true while queued or running, false once finished. */
+    private final Map<String,Boolean> askRuns=new LinkedHashMap<>();
     private final ExecutorService controls=Executors.newFixedThreadPool(2);
     private final Set<Process> helperProcesses=Collections.synchronizedSet(new HashSet<>());
     private long helperEpoch;
@@ -72,9 +75,19 @@ final class EmbeddedRuntime {
         if("helper".equals(action))synchronized(helperProcesses){i.putExtra("helper_epoch",helperEpoch);}
         app.startForegroundService(i);
     }
+    /** Liveness of one chat request's helper process (ChatHub's stall watchdog): TRUE queued or
+     *  running, FALSE finished, null unknown (not dispatched here, or long forgotten). */
+    Boolean askAlive(String run){if(run==null||run.isEmpty())return null;synchronized(askRuns){return askRuns.get(run);}}
+    private void trackAsk(String run,boolean alive){
+        if(run==null||run.isEmpty())return;
+        synchronized(askRuns){askRuns.put(run,alive);Iterator<Map.Entry<String,Boolean>> old=askRuns.entrySet().iterator();while(askRuns.size()>64&&old.hasNext())if(!old.next().getValue())old.remove();}
+    }
     void enqueue(Intent intent,Runnable idle){
         String action=intent.getAction();
         synchronized(this){if(!"helper".equals(action)&&busy)return;jobs++;if(!"helper".equals(action)){busy=true;cancelled=false;error="";}}
+        String[] askArgs="helper".equals(action)?intent.getStringArrayExtra("args"):null;
+        String askRun=askArgs!=null&&askArgs.length>8&&"ask".equals(askArgs[0])?askArgs[8]:null;
+        trackAsk(askRun,true);
         Runnable work=()->{
             try{
                 if("helper".equals(action))executeHelper(intent.getStringArrayExtra("args"),intent.getLongExtra("helper_epoch",-1));
@@ -91,7 +104,7 @@ final class EmbeddedRuntime {
                 }
             }catch(Exception e){
                 if(!"helper".equals(action)){error=cancelled?"Konfiguracja anulowana. Możesz ją ponowić.":friendly(e);status="Przygotowanie nie zakończyło się";appendLog(error);}
-            }finally{synchronized(this){jobs--;if(!"helper".equals(action))busy=false;}new Handler(Looper.getMainLooper()).post(idle);}
+            }finally{trackAsk(askRun,false);synchronized(this){jobs--;if(!"helper".equals(action))busy=false;}new Handler(Looper.getMainLooper()).post(idle);}
         };
         String[] helperArgs=intent.getStringArrayExtra("args");
         ("helper".equals(action)?(helperArgs!=null&&helperArgs.length>0&&"ask".equals(helperArgs[0])?helpers:controls):setup).execute(work);
@@ -218,6 +231,12 @@ final class EmbeddedRuntime {
     private synchronized void refreshDns(File file)throws IOException{
         StringBuilder dns=new StringBuilder();try{ConnectivityManager cm=app.getSystemService(ConnectivityManager.class);LinkProperties p=cm.getLinkProperties(cm.getActiveNetwork());if(p!=null)for(InetAddress address:p.getDnsServers())dns.append("nameserver ").append(address.getHostAddress()).append('\n');}catch(Exception ignored){}
         if(dns.length()==0){File original=new File(prefix(),"etc/resolv.conf");dns.append(original.isFile()?read(original,8192):"nameserver 1.1.1.1\nnameserver 8.8.8.8\n");}dns.append("options timeout:3 attempts:2\n");File temporary=new File(file.getPath()+".new");write(temporary,dns.toString(),false);if(!temporary.renameTo(file))throw new IOException("Nie można zaktualizować DNS środowiska");
+    }
+    /** Owner-approved background service (ServiceManager): its own PRoot tree, never in helperProcesses, so neither a run's Stop nor emergencyStop ends it. */
+    ProcessBuilder serviceCommand(String script,String...args)throws Exception{
+        if(!ready())throw new IllegalStateException("Środowisko nie jest przygotowane");
+        List<String> full=new ArrayList<>();Collections.addAll(full,PREFIX+"/bin/bash","--noprofile","--norc","-c",script,"androidagent-service");Collections.addAll(full,args);
+        return command(full.toArray(new String[0]));
     }
     ProcessBuilder interactiveCommand(String...args)throws Exception{
         StringBuilder shell=new StringBuilder("exec");for(String arg:args)shell.append(" '").append(arg.replace("'","'\\''")).append("'");

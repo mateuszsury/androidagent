@@ -12,28 +12,29 @@ import android.os.Looper;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityWindowInfo;
 
-import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * Accessibility service: draws the Buddy bubble, hosts the local MCP server,
- * and performs the screen actions the agent (Claude Code or Codex) asks for.
+ * Accessibility service: draws the Buddy bubble, keeps the shared MCP host ({@link McpHost}) alive while
+ * connected, and performs the screen actions the agent (Claude Code or Codex) asks for.
  */
-public class BuddyService extends AccessibilityService implements McpServer.Handler {
+public class BuddyService extends AccessibilityService {
     private static volatile BuddyService instance;
+    /** Tools that don't operate the phone: no "using your phone" indicator for them. */
+    private static final Set<String> PASSIVE_TOOLS = new HashSet<>(Arrays.asList(
+            "confirm", "notify", "wait", "list_apps", "wait_for_install", "get_volume", "clipboard_get",
+            "clipboard_set", "speak", "vibrate"));
 
     private final Handler main = new Handler(Looper.getMainLooper());
     private Bubble bubble;
     private ControlIndicator control;
-    /** After the user taps Stop on the control indicator, phone actions are refused until then (elapsedRealtime). */
-    private volatile long revokedUntil;
     private Tools tools;
-    private McpServer server;
 
     static BuddyService get() {
         return instance;
@@ -100,9 +101,11 @@ public class BuddyService extends AccessibilityService implements McpServer.Hand
         }
         if (tools != null) {
             Tools oldTools = tools;
-            new Thread(()->{oldTools.cancelLocalCommands();oldTools.clearNodes();}, "androidagent-service-stop").start();
+            new Thread(oldTools::clearNodes, "androidagent-service-stop").start();
         }
         McpHost.get(this).release(this);
+        // A pending approval stays in the chat card; the bubble going away must not deny it.
+        ApprovedCommands.get(this).detachBubble(bubble);
         if (bubble != null) bubble.remove();
         if (control != null) control.end();
         instance = null;
@@ -173,25 +176,15 @@ public class BuddyService extends AccessibilityService implements McpServer.Hand
         return bubble;
     }
 
-    // ------------------------------------------------------- MCP handler
+    // ------------------------------------------------- MCP (via McpHost)
 
-    @Override
-    public JSONArray listTools() throws JSONException {
-        return tools.list();
-    }
-
-    @Override
-    public JSONObject callTool(String name, JSONObject args) throws Exception {
+    /** A screen-control tool call routed here by {@link McpHost}. */
+    JSONObject callTool(String name, JSONObject args) throws Exception {
         return tools.call(name, args);
     }
 
-    @Override
-    public java.io.File attachment(String id) {
-        return Attachments.file(this, id);
-    }
-
-    @Override
-    public void onEvent(final JSONObject event) {
+    /** Helper events routed here by {@link McpHost} while the service is connected. */
+    void onEvent(final JSONObject event) {
         if ("buddy_pong".equals(event.optString("type"))) {
             Prefs.setHelperStatus(this, event.optString("text"));
             Prefs.setHelperVersion(this, event.optInt("helper", 1));
@@ -218,8 +211,8 @@ public class BuddyService extends AccessibilityService implements McpServer.Hand
         main.post(() -> {
             if(instance!=this)return;
             bubble.onToolActivity(tool);
-            // asking for approval or posting a note isn't operating the phone
-            if (!"confirm".equals(tool) && !"notify".equals(tool)) control.onActivity();
+            // asking for approval, posting a note or reading state isn't operating the phone
+            if (!PASSIVE_TOOLS.contains(tool)) control.onActivity();
         });
     }
 
@@ -237,23 +230,13 @@ public class BuddyService extends AccessibilityService implements McpServer.Hand
     void takeBackControl() {
         main.post(() -> {
             McpHost.get(this).emergencyStop();
-            android.widget.Toast.makeText(this, "Stopped. Your phone is yours again.", android.widget.Toast.LENGTH_SHORT).show();
+            android.widget.Toast.makeText(this, "Zatrzymano. Telefon znów jest Twój.", android.widget.Toast.LENGTH_SHORT).show();
         });
     }
 
-    void cancelLocalCommands() { if(tools!=null)tools.cancelLocalCommands(); }
     void onControlStopped() {
         if(bubble!=null)bubble.cancelConfirm();
         if(control!=null)control.end();
-    }
-
-    /** Short vibration to get the user's attention (e.g. "tap Update"). */
-    void nudge() {
-        try {
-            android.os.Vibrator v = getSystemService(android.os.Vibrator.class);
-            if (v != null) v.vibrate(android.os.VibrationEffect.createWaveform(new long[]{0, 60, 80, 60}, -1));
-        } catch (Exception ignored) {
-        }
     }
 
     void showStatus(final String text) {
@@ -270,25 +253,5 @@ public class BuddyService extends AccessibilityService implements McpServer.Hand
             if (on) Thread.sleep(120);
         } catch (InterruptedException ignored) {
         }
-    }
-
-    /** Blocks the calling (tool) thread until the user answers in the bubble. */
-    String askConfirm(final String summary) throws InterruptedException {
-        final CountDownLatch done = new CountDownLatch(1);
-        final AtomicReference<Boolean> answer = new AtomicReference<>();
-        final Bubble.ConfirmCallback callback = approved -> {
-            answer.set(approved);
-            done.countDown();
-        };
-        main.post(() -> {if(instance!=this||bubble==null||controlRevoked()!=null)callback.onAnswer(false);else bubble.askConfirm(summary,callback);});
-        try {
-            if (!done.await(5, TimeUnit.MINUTES))
-                return "DENIED: the user did not answer within 5 minutes. Do not do it.";
-        } finally {
-            main.post(() -> {if(bubble!=null)bubble.cancelConfirm(callback);});
-        }
-        return Boolean.TRUE.equals(answer.get())
-                ? "APPROVED by the user. Go ahead."
-                : "DENIED by the user. Do not do it; ask what they want instead.";
     }
 }
