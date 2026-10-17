@@ -63,6 +63,9 @@ jobs:
         env:
           INPUTS: ${{ toJSON(inputs) }}
         run: |
+          if [ "$GITHUB_EVENT_NAME" = push ] && [ ! -f release/request.json ]; then
+            echo 'The push removed the release request; nothing to run.'; echo 'stage=none' >> "$GITHUB_OUTPUT"; exit 0
+          fi
           if [ "$GITHUB_EVENT_NAME" = push ]; then cp release/request.json "$RUNNER_TEMP/req.json"
           else printf '%s' "$INPUTS" > "$RUNNER_TEMP/req.json"; fi
           python3 - "$RUNNER_TEMP/req.json" <<'PY'
