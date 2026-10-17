@@ -2,7 +2,7 @@
   "version": 1,
   "prefix": "/data/data/com.termux/files/usr",
   "bootstrap_release": "bootstrap-2026.10.11-r1+apt.android-7",
-  "recipes_commit": "09d5cc280858c40b21dd0f3acf21b31ed308bda0",
+  "recipes_commit": "ae877f2c6a2b2318abeb43699d6ec5f619c216a6",
   "requested_packages": [
     "bash",
     "coreutils",
@@ -87,9 +87,9 @@
           ]
         },
         "curl": {
-          "version": "8.22.0",
-          "filename": "pool/main/c/curl/curl_8.22.0_aarch64.deb",
-          "sha256": "19d2aedca5456cecfd3202d48dee7bd2f44584ffc036aa9fde4174c31d0b4af6",
+          "version": "8.23.0",
+          "filename": "pool/main/c/curl/curl_8.23.0_aarch64.deb",
+          "sha256": "e57a9975a828eb48790bec0da950795af165aa714f6a33d266c45a4e2898aa85",
           "depends": [
             "libcurl"
           ]
@@ -265,9 +265,9 @@
           ]
         },
         "libcurl": {
-          "version": "8.22.0",
-          "filename": "pool/main/libc/libcurl/libcurl_8.22.0_aarch64.deb",
-          "sha256": "e780d925d977c32a3cfe6a2c7d340f0726618786deee98b0cb8b601efb93a8c9",
+          "version": "8.23.0",
+          "filename": "pool/main/libc/libcurl/libcurl_8.23.0_aarch64.deb",
+          "sha256": "2011bb9709261bb3d5ecaa6672faa333be14cf48ad4af37031e3e365309557ac",
           "depends": [
             "libnghttp2",
             "libnghttp3",
@@ -327,9 +327,9 @@
           ]
         },
         "libmpfr": {
-          "version": "4.2.1-1",
-          "filename": "pool/main/libm/libmpfr/libmpfr_4.2.1-1_aarch64.deb",
-          "sha256": "5edf5a36e6f4773dc827d37ea515db27c242d3631f3030188a3324be2e00e4c6",
+          "version": "4.2.2",
+          "filename": "pool/main/libm/libmpfr/libmpfr_4.2.2_aarch64.deb",
+          "sha256": "bd2a18f433321d7be49a4e86248696c0551a8df273b2a7c34ce729abe48ce15d",
           "depends": [
             "libgmp"
           ]
@@ -363,9 +363,9 @@
           ]
         },
         "libsqlite": {
-          "version": "3.54.0",
-          "filename": "pool/main/libs/libsqlite/libsqlite_3.54.0_aarch64.deb",
-          "sha256": "9adf91e118fcf4d449f0fb9668485d895916c4f76c2407da17ba114406f43a58",
+          "version": "3.54.1",
+          "filename": "pool/main/libs/libsqlite/libsqlite_3.54.1_aarch64.deb",
+          "sha256": "0856cac8cc87f6e112f2eef4fcac6ad5cb08209ecb7cc260f997874fc186a3c0",
           "depends": [
             "zlib"
           ]
@@ -413,9 +413,9 @@
           ]
         },
         "npm": {
-          "version": "11.20.0",
-          "filename": "pool/main/n/npm/npm_11.20.0_all.deb",
-          "sha256": "a2775653a0626749138ccd6e37a7b63239f36a9e3c62a9e6740818ca4b2d088b",
+          "version": "11.21.1",
+          "filename": "pool/main/n/npm/npm_11.21.1_all.deb",
+          "sha256": "f2b5a5d88ec39bbaf2572b4febd032fbec1b78aa7b4382ffaf6b4afa7b1a4ddd",
           "depends": [
             "nodejs-lts"
           ]
@@ -638,7 +638,7 @@
           ]
         }
       },
-      "package_index_sha256": "88e18ba2f06fe1f851b7117258726109e10b5b2bb34570f120ca5efbb486cbfb",
+      "package_index_sha256": "53b4074477a5e652be9ed4b0056da599eed45e5796a78eb178053409e1cad54f",
       "musl": {
         "musl": {
           "version": "1.2.5-r23",
@@ -729,9 +729,9 @@
           ]
         },
         "curl": {
-          "version": "8.22.0",
-          "filename": "pool/main/c/curl/curl_8.22.0_x86_64.deb",
-          "sha256": "5a469424bf2181773671e63cf37c18bbb45ec2431e5002d8f9f0db8ffd9d3ff2",
+          "version": "8.23.0",
+          "filename": "pool/main/c/curl/curl_8.23.0_x86_64.deb",
+          "sha256": "03a68c5393759f6802a2b256891c2bca93d633d4915cdcb50e6d643c12f84fff",
           "depends": [
             "libcurl"
           ]
@@ -907,9 +907,9 @@
           ]
         },
         "libcurl": {
-          "version": "8.22.0",
-          "filename": "pool/main/libc/libcurl/libcurl_8.22.0_x86_64.deb",
-          "sha256": "b442ccf9eea4a4695bdc71b1bc577990e3d56024d245886f9b4bf2efa3e009aa",
+          "version": "8.23.0",
+          "filename": "pool/main/libc/libcurl/libcurl_8.23.0_x86_64.deb",
+          "sha256": "fa71ce8eca3d0aa48a748fc60e4519351fc9c4d51b20cac5722190cb002cfd1c",
           "depends": [
             "libnghttp2",
             "libnghttp3",
@@ -969,9 +969,9 @@
           ]
         },
         "libmpfr": {
-          "version": "4.2.1-1",
-          "filename": "pool/main/libm/libmpfr/libmpfr_4.2.1-1_x86_64.deb",
-          "sha256": "e960d1f016257264c9d66213a8ba1ad8c3d8b888d0b387537425c6f688a5fb8a",
+          "version": "4.2.2",
+          "filename": "pool/main/libm/libmpfr/libmpfr_4.2.2_x86_64.deb",
+          "sha256": "3f9864d04c1167599c0b1c0f7f64daad1bd1d2f59af1ca9d6b961a79181c86b0",
           "depends": [
             "libgmp"
           ]
@@ -1005,9 +1005,9 @@
           ]
         },
         "libsqlite": {
-          "version": "3.54.0",
-          "filename": "pool/main/libs/libsqlite/libsqlite_3.54.0_x86_64.deb",
-          "sha256": "8c15e92cef3cb7dc387644c438aa35abab408e3211fcc9c0da6f35cfa0213202",
+          "version": "3.54.1",
+          "filename": "pool/main/libs/libsqlite/libsqlite_3.54.1_x86_64.deb",
+          "sha256": "b064739a8f4f1a67c55b3edc444688f9973a6c9ba5a1d2d4cc277e5eed08e375",
           "depends": [
             "zlib"
           ]
@@ -1055,9 +1055,9 @@
           ]
         },
         "npm": {
-          "version": "11.20.0",
-          "filename": "pool/main/n/npm/npm_11.20.0_all.deb",
-          "sha256": "a2775653a0626749138ccd6e37a7b63239f36a9e3c62a9e6740818ca4b2d088b",
+          "version": "11.21.1",
+          "filename": "pool/main/n/npm/npm_11.21.1_all.deb",
+          "sha256": "f2b5a5d88ec39bbaf2572b4febd032fbec1b78aa7b4382ffaf6b4afa7b1a4ddd",
           "depends": [
             "nodejs-lts"
           ]
@@ -1280,7 +1280,7 @@
           ]
         }
       },
-      "package_index_sha256": "fb50a45281624afd6c8f69eef5b24b626e47a7c067c1ef568657e59da9a12164",
+      "package_index_sha256": "1dc8745605d5b488aae66a85e0383df764d0f5f2ea8f9e531d0d0a65c65026a9",
       "musl": {
         "musl": {
           "version": "1.2.5-r23",
