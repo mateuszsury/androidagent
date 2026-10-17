@@ -4,7 +4,7 @@ Claude Code is a separate conversation backend alongside Codex. New conversation
 
 ## Setup and login
 
-1. Install androidagent 0.4.4. A separate Termux app, `RUN_COMMAND` permission and copied install commands are unnecessary.
+1. Install androidagent 0.5.0. A separate Termux app, `RUN_COMMAND` permission and copied install commands are unnecessary.
 2. In **Environment and accounts** (`Środowisko i konta`), select Claude Code or both agents and choose **Prepare selected agents**. The app downloads the pinned official `@anthropic-ai/claude-code-linux-{arm64,x64}-musl` package, verifies SHA256, installs it inside app-private storage and checks the actual executable.
 3. Choose **Log in to Claude Code**. Complete the official `claude auth login` flow shown in the embedded terminal and browser. Never paste passwords or account tokens into a chat or issue.
 4. Return to chat. The integration reads `claude auth status` and passes status, not credentials, to the UI. `/status` works without account login.

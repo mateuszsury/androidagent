@@ -18,11 +18,11 @@ An independent community fork of [Buddy](https://github.com/ghorbelhamdi/buddy-a
 
 ## Install
 
-**[Download androidagent 0.4.4](https://github.com/mateuszsury/androidagent/releases/download/v0.4.4/androidagent-0.4.4.apk)** · [Release notes and checksums](https://github.com/mateuszsury/androidagent/releases/tag/v0.4.4)
+**[Download androidagent 0.5.0](https://github.com/mateuszsury/androidagent/releases/download/v0.5.0/androidagent-0.5.0.apk)** · [Release notes and checksums](https://github.com/mateuszsury/androidagent/releases/tag/v0.5.0)
 
 Requires **Android 11 or later**, **arm64-v8a or x86_64**. The APK is approximately 623 MiB because it includes both terminal runtimes and Linux VM images. Allow at least 1 GB of additional free space for terminal setup and more for Docker projects.
 
-1. Install the APK. Updating an existing installation with the same signing certificate preserves conversations, settings and files.
+1. Install the APK. Updating an existing installation with the same signing certificate preserves conversations, settings and files. **0.5.0 is signed with a new certificate:** uninstall 0.4.4 or older first (this removes its conversations, settings and Docker disk); later releases update 0.5.0 in place.
 2. Open **Environment and accounts** (`Środowisko i konta`). The embedded shell, Python, Node.js, Git and tool bridge initialize automatically. Select Codex, Claude Code or both, then choose **Prepare selected agents** (`Przygotuj wybranych agentów`). The app downloads the official pinned clients, verifies their hashes and launches them to check installation.
 3. Use **Log in to Codex** or **Log in to Claude Code**. Complete the official account flow shown in the embedded terminal. Environment setup and account login are separate steps.
 4. Start a conversation. Phone status and `/status` work without a model account. Open **Permissions** (`Uprawnienia`) for optional screen control, microphone, notifications and background settings. Long-running servers and bots can run as **Background services** (`Usługi w tle`) that keep going after the agent's turn ends.
@@ -51,7 +51,7 @@ Models are remote services: this app runs their clients locally, not model weigh
 
 ## Validation
 
-Version 0.4.4 has passed Android 11/16 emulator suites and a physical **Lenovo TB336FU, Android 16 ARM64** update with a real Docker build/run/exec/WebView/export/restart/cleanup cycle. A later owner-authenticated Codex test completed three real conversation turns and observed `device_status` and `docker_status` calls.
+Version 0.5.0 was built and signed by the [release workflow](.github/workflows/release.yml), which runs the clean embedded-runtime suite on an Android emulator before publishing; its redesign and new tools were also checked on an Android 11 emulator (see [Testing](docs/TESTING.md#050-development-checks)). Version 0.4.4 has passed Android 11/16 emulator suites and a physical **Lenovo TB336FU, Android 16 ARM64** update with a real Docker build/run/exec/WebView/export/restart/cleanup cycle. A later owner-authenticated Codex test completed three real conversation turns and observed `device_status` and `docker_status` calls.
 
 Claude account-backed responses and physical USB OTG accessories remain unverified. Emulator UART/ESP/storage fixtures are not hardware certification. Exact results, earlier failures, timings and evidence links are in [Testing](docs/TESTING.md).
 

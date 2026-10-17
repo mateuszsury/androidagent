@@ -1,0 +1,186 @@
+name: Release
+# Maintainer-triggered signed release. Reuses the previous release's Docker guest base
+# (disk/kernel), QEMU and USB JNI so existing VM disks keep working, optionally refreshes the
+# pinned Termux runtime, builds and signs the APK, runs the clean embedded-runtime suite on an
+# emulator and only then publishes the GitHub release and the refreshed lock branch.
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (must equal BuildInfo.VERSION)'
+        required: true
+        default: '0.5.0'
+      base_release:
+        description: 'Earlier release whose Docker guest, QEMU and USB binaries are reused'
+        required: true
+        default: 'v0.4.4'
+      update_terminal_lock:
+        description: 'Refresh the pinned Termux runtime (packages.termux.dev drops old versions)'
+        type: boolean
+        default: true
+      publish:
+        description: 'Create the GitHub release after the tests pass'
+        type: boolean
+        default: true
+permissions:
+  contents: write
+concurrency:
+  group: release-${{ inputs.version }}
+  cancel-in-progress: false
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    env:
+      ANDROID_SERIAL: emulator-5554
+      VERSION: ${{ inputs.version }}
+      BASE_RELEASE: ${{ inputs.base_release }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check version and signing secrets
+        env:
+          KEYSTORE_B64: ${{ secrets.ANDROIDAGENT_KEYSTORE_B64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROIDAGENT_KEYSTORE_PASSWORD }}
+        run: |
+          CODE_VERSION=$(sed -n 's/.*VERSION = "\(.*\)";/\1/p' app/src/main/java/dev/mateuszsury/androidagent/BuildInfo.java)
+          [ "$CODE_VERSION" = "$VERSION" ] || { echo "BuildInfo.VERSION is $CODE_VERSION, not $VERSION"; exit 1; }
+          if gh release view "v$VERSION" >/dev/null 2>&1; then echo "Release v$VERSION already exists"; exit 1; fi
+          [ -n "$KEYSTORE_B64" ] && [ -n "$KEYSTORE_PASSWORD" ] || { echo "Add the ANDROIDAGENT_KEYSTORE_B64 and ANDROIDAGENT_KEYSTORE_PASSWORD secrets"; exit 1; }
+          KEYS="$RUNNER_TEMP/release-keys"
+          mkdir -p "$KEYS" && chmod 700 "$KEYS"
+          printf '%s' "$KEYSTORE_B64" | base64 -d > "$KEYS/release.jks"
+          printf '%s' "$KEYSTORE_PASSWORD" > "$KEYS/password"
+          chmod 600 "$KEYS/release.jks" "$KEYS/password"
+          echo "KEYSTORE=$KEYS/release.jks" >> "$GITHUB_ENV"
+          echo "ANDROID_SDK_ROOT=$ANDROID_HOME" >> "$GITHUB_ENV"
+      - name: Install SDK packages and host tools
+        run: |
+          sudo chmod 666 /dev/kvm
+          sdkmanager 'platforms;android-36' 'build-tools;35.0.0' 'platform-tools' 'emulator' 'system-images;android-35;google_apis;x86_64' >/dev/null
+          sudo apt-get update
+          sudo apt-get install -y dpkg binutils patchelf jq
+          python3 -m pip install -r requirements-dev.txt
+      - name: Reuse the Docker guest base, QEMU and USB JNI of the base release
+        run: |
+          gh release download "$BASE_RELEASE" --repo "$GITHUB_REPOSITORY" --pattern '*.apk' --dir "$RUNNER_TEMP/base"
+          python3 - "$RUNNER_TEMP/base" <<'PY'
+          import json, sys, zipfile
+          from pathlib import Path
+          apk = next(Path(sys.argv[1]).glob('*.apk'))
+          main = Path('app/src/main')
+          with zipfile.ZipFile(apk) as z:
+              names = z.namelist()
+              for name in names:
+                  if name.startswith('assets/docker/') and not name.endswith('/manifest.json') \
+                          and not name.startswith('assets/docker/demo/'):
+                      target = main / name
+                      target.parent.mkdir(parents=True, exist_ok=True)
+                      target.write_bytes(z.read(name))
+              for abi in ('arm64-v8a', 'x86_64'):
+                  wanted = set(json.loads(Path(f'docker/qemu-libraries-{abi}.json').read_text())) | {'libaausb.so'}
+                  out = main / 'jniLibs' / abi
+                  out.mkdir(parents=True, exist_ok=True)
+                  for lib in wanted:
+                      (out / lib).write_bytes(z.read(f'lib/{abi}/{lib}'))
+          print('Reused guest base, QEMU and USB JNI from', apk.name)
+          PY
+          python3 tools/prepare-docker-runtime.py
+          python3 tools/check-docker-assets.py
+          python3 tools/check-usb-assets.py
+      - name: Prepare the embedded terminal runtime
+        run: |
+          if [ "${{ inputs.update_terminal_lock }}" = true ]; then
+            python3 tools/prepare-terminal.py --update-lock
+            COMMIT=$(jq -r .recipes_commit terminal/runtime-lock.json)
+            sed -i -E "s#(termux-packages/tree/)[0-9a-f]{40}(/scripts/bootstrap)#\1$COMMIT\2#" terminal/SOURCES.md
+            cp terminal/SOURCES.md app/src/main/assets/terminal/SOURCES.txt
+          else
+            python3 tools/prepare-terminal.py
+          fi
+          python3 tools/check-terminal-assets.py
+          jq '{bootstrap_release, recipes_commit, x86_64: (.abis.x86_64.packages | {bash: .bash.version, python: .python.version, node: .["nodejs-lts"].version, git: .git.version, proot: .proot.version})}' terminal/runtime-lock.json
+      - name: Host checks
+        run: |
+          python3 tools/check-docs.py
+          python3 -m unittest discover -s tests -p 'test_*.py'
+      - name: Build the signed release APK
+        run: |
+          ./tools/build-local.sh
+          APK="artifacts/androidagent-$VERSION.apk"
+          "$ANDROID_SDK_ROOT/build-tools/35.0.0/apksigner" verify --print-certs "$APK" | tee "artifacts/signature.txt"
+          ( cd artifacts && sha256sum "androidagent-$VERSION.apk" > SHA256SUMS.txt && cat SHA256SUMS.txt )
+          echo "APK=$APK" >> "$GITHUB_ENV"
+      - name: Start an Android 15 emulator
+        run: |
+          echo no | avdmanager create avd --force --name release --package 'system-images;android-35;google_apis;x86_64' --device pixel_3a
+          "$ANDROID_SDK_ROOT/emulator/emulator" -avd release -port 5554 -no-window -no-audio -no-boot-anim -no-snapshot -gpu swiftshader_indirect -memory 4096 > "$RUNNER_TEMP/emulator.log" 2>&1 &
+          adb wait-for-device
+          timeout 300 bash -c 'until [ "$(adb shell getprop sys.boot_completed | tr -d "\r")" = 1 ]; do sleep 3; done'
+          adb shell settings put global window_animation_scale 0
+          adb shell settings put global transition_animation_scale 0
+          adb shell settings put global animator_duration_scale 0
+          adb shell input keyevent 82
+      - name: Clean install, embedded runtime and official clients without login
+        env:
+          ANDROIDAGENT_EVIDENCE_DIR: artifacts/${{ inputs.version }}/release
+          ANDROIDAGENT_EMBEDDED_EVIDENCE_DIR: artifacts/${{ inputs.version }}/release/embedded-runtime
+          ANDROIDAGENT_EMBEDDED_APK_COMMIT: ${{ github.sha }}
+          ANDROIDAGENT_EMBEDDED_INSTRUMENTATION_COMMIT: ${{ github.sha }}
+        run: ./tools/test-embedded-runtime.sh --clean "$APK"
+      - name: Commit the refreshed runtime lock to a release branch
+        if: inputs.publish
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git checkout -b "release/v$VERSION"
+          git add -A terminal app/src/main/assets/terminal app/src/main/assets/docker/*/manifest.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Refresh the pinned Termux runtime for $VERSION" \
+              -m "Generated by the release workflow (tools/prepare-terminal.py --update-lock) and verified by the clean embedded-runtime suite on an Android 15 emulator."
+          fi
+          git push origin "release/v$VERSION"
+          echo "RELEASE_SHA=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
+      - name: Publish the GitHub release
+        if: inputs.publish
+        run: |
+          awk -v v="$VERSION" '$0 ~ "^## " v { found = 1; next } found && /^## / { exit } found' CHANGELOG.md > "$RUNNER_TEMP/notes.md"
+          {
+            echo
+            echo '### Verification'
+            echo
+            echo '```text'
+            cat artifacts/SHA256SUMS.txt
+            grep -E 'certificate SHA-256 digest' artifacts/signature.txt || true
+            echo '```'
+          } >> "$RUNNER_TEMP/notes.md"
+          gh release create "v$VERSION" "$APK" artifacts/SHA256SUMS.txt \
+            --repo "$GITHUB_REPOSITORY" --target "$RELEASE_SHA" \
+            --title "androidagent $VERSION" --notes-file "$RUNNER_TEMP/notes.md" --latest
+      - name: Device logs
+        if: always()
+        run: |
+          mkdir -p "artifacts/$VERSION/release"
+          adb logcat -d > "artifacts/$VERSION/release/logcat.txt" 2>/dev/null || true
+          cp "$RUNNER_TEMP/emulator.log" "artifacts/$VERSION/release/emulator.log" 2>/dev/null || true
+          rm -rf "$RUNNER_TEMP/release-keys"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: androidagent-${{ inputs.version }}-release
+          retention-days: 14
+          path: |
+            artifacts/androidagent-${{ inputs.version }}.apk
+            artifacts/SHA256SUMS.txt
+            artifacts/signature.txt
+            artifacts/${{ inputs.version }}/
+            terminal/runtime-lock.json

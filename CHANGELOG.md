@@ -2,7 +2,11 @@
 
 Public APKs and their immutable checksums are in [GitHub Releases](https://github.com/mateuszsury/androidagent/releases). This file summarizes user-facing changes; detailed validation has its own [evidence page](docs/TESTING.md).
 
-## Unreleased
+## 0.5.0 — 2026-10-17
+
+- **New signing certificate** (`67857a20…8fab`): uninstall 0.4.4 or older before installing; that removes their conversations, settings and Docker disk. Later releases update 0.5.0 in place.
+- Embedded Termux runtime refreshed to the current official bootstrap and packages; exact pins are in `terminal/runtime-lock.json` and the release's `release/v0.5.0` branch.
+- Signed releases are now built, tested on an emulator and published by the release workflow.
 
 - English documentation, real screenshots and contributor/support/security guidance.
 - Current embedded-runtime instructions and physical 0.4.4 results replace older setup guidance.

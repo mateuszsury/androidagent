@@ -30,7 +30,7 @@ Enable **Private vulnerability reporting** in repository Settings → Security, 
 
 ## Releases and tags
 
-Use semantic-version tags `vMAJOR.MINOR.PATCH` matching `BuildInfo.VERSION` and an increasing versionCode. Existing `v0.4.2`, `v0.4.3`, `v0.4.4` match codes402/403/404. Keep published tag targets and APK bytes unchanged. A docs-only change does not need a new APK tag.
+Use semantic-version tags `vMAJOR.MINOR.PATCH` matching `BuildInfo.VERSION` and an increasing versionCode. Existing `v0.4.2`, `v0.4.3`, `v0.4.4`, `v0.5.0` match codes402/403/404/500. From 0.5.0 the [release workflow](../.github/workflows/release.yml) builds the signed APK in GitHub Actions: it reuses the previous release's Docker guest base, QEMU and USB JNI, can refresh the Termux lock, runs the clean embedded-runtime suite on an emulator and only then publishes the release and a `release/vX.Y.Z` branch with the refreshed lock. Signing uses the `ANDROIDAGENT_KEYSTORE_B64` and `ANDROIDAGENT_KEYSTORE_PASSWORD` repository secrets (alias `buddy`). Keep published tag targets and APK bytes unchanged. A docs-only change does not need a new APK tag.
 
 Releases contain the actual signed APK, byte length, SHA256, upgrade certificate and validation evidence. CI development-signing artifacts are not production releases. Keep English release notes honest about device/model/hardware scope; old failures remain part of the record.
 

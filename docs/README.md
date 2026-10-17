@@ -1,6 +1,6 @@
 # Documentation
 
-These guides describe androidagent 0.4.4 and the unreleased changes listed in the [changelog](../CHANGELOG.md). The UI is in Polish; the guides use English descriptions and quote the actual label where useful.
+These guides describe androidagent 0.5.0 (see the [changelog](../CHANGELOG.md)). The UI is in Polish; the guides use English descriptions and quote the actual label where useful.
 
 | Guide | Purpose |
 | --- | --- |
