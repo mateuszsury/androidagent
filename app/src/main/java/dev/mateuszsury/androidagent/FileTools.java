@@ -59,9 +59,13 @@ final class FileTools implements ToolProviders.Provider {
     static final String WORK = ".buddy/work";
     static final String APK_MIME = "application/vnd.android.package-archive";
     private static final String ACTION_INSTALL_STATUS = "dev.mateuszsury.androidagent.INSTALL_STATUS";
+    /** Per-session secret in the installer's status PendingIntent. The receiver is exported before
+     *  Android 13 (no RECEIVER_NOT_EXPORTED), so a broadcast without it is another app's forgery. */
+    private static final String EXTRA_INSTALL_SECRET = "dev.mateuszsury.androidagent.extra.INSTALL_SECRET";
     private static final String CHANNEL = "agent-actions";
     private static final long HASH_LIMIT = 64L * 1024 * 1024;
-    private static final AtomicInteger NOTICE = new AtomicInteger(7300);
+    /** Tap-to-open notices; 7300-7302 are the notify status, the approval notice and PhoneTools' offer. */
+    private static final AtomicInteger NOTICE = new AtomicInteger(7400);
 
     private static final String[] NAMES = {"files_list", "file_info", "open_file", "share_file", "install_apk",
             "install_status", "save_to_downloads"};
@@ -252,7 +256,7 @@ final class FileTools implements ToolProviders.Provider {
                     + "screen, and its notifications are off. Ask the user to open androidagent, then call the tool again.");
         nm.createNotificationChannel(new NotificationChannel(CHANNEL, "Działania agenta", NotificationManager.IMPORTANCE_HIGH));
         int id = NOTICE.getAndIncrement();
-        if (id > 7399) NOTICE.set(7300);
+        if (id > 7499) NOTICE.set(7400);
         PendingIntent open = PendingIntent.getActivity(app, id, intent,
                 PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
         nm.notify(id, new Notification.Builder(app, CHANNEL).setSmallIcon(R.drawable.ic_launcher_monochrome)
@@ -423,6 +427,7 @@ final class FileTools implements ToolProviders.Provider {
         final int session;
         final String pkg;
         final long version;
+        final String secret = java.util.UUID.randomUUID().toString();
         volatile String state = "committed", message = "", how = "";
         final CountDownLatch prompted = new CountDownLatch(1), finished = new CountDownLatch(1);
 
@@ -515,7 +520,8 @@ final class FileTools implements ToolProviders.Provider {
                 while ((n = in.read(b)) != -1) write.write(b, 0, n);
                 session.fsync(write);
             }
-            Intent status = new Intent(ACTION_INSTALL_STATUS).setPackage(app.getPackageName());
+            Intent status = new Intent(ACTION_INSTALL_STATUS).setPackage(app.getPackageName())
+                    .putExtra(EXTRA_INSTALL_SECRET, record.secret);
             PendingIntent callback = PendingIntent.getBroadcast(app, id, status,
                     PendingIntent.FLAG_MUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
             SESSIONS.put(id, record);
@@ -595,7 +601,9 @@ final class FileTools implements ToolProviders.Provider {
 
     private static void onInstallStatus(Context app, Intent intent) {
         Install r = SESSIONS.get(intent.getIntExtra(PackageInstaller.EXTRA_SESSION_ID, -1));
-        if (r == null) return;
+        // Only Android's installer holds our PendingIntent (and so the secret). A forged broadcast could
+        // otherwise make androidagent start any EXTRA_INTENT, e.g. with URI grants to its own provider.
+        if (r == null || !r.secret.equals(intent.getStringExtra(EXTRA_INSTALL_SECRET))) return;
         int status = intent.getIntExtra(PackageInstaller.EXTRA_STATUS, PackageInstaller.STATUS_FAILURE);
         String message = intent.getStringExtra(PackageInstaller.EXTRA_STATUS_MESSAGE);
         if (status == PackageInstaller.STATUS_PENDING_USER_ACTION) {

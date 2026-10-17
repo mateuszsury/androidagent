@@ -146,7 +146,9 @@ final class ServiceTools implements ToolProviders.Provider {
         }
         runtime(services);
         if (existing == null || !existing.def.sameAs(d)) {
-            if (!ApprovedCommands.get(app).approve(caller, d.approvalText(existing != null)))
+            String question = d.approvalText(existing != null);
+            // The command is the verbatim tail; only androidagent's own description above it is dimmed.
+            if (!ApprovedCommands.get(app).approve(caller, question, question.length() - d.command.length()))
                 return ToolProviders.text("DENIED. The owner did not approve this service; nothing was started.");
             services.define(d, caller);
         }
