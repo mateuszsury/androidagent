@@ -12,6 +12,7 @@ These guides describe androidagent 0.4.4. UI labels may still be Polish; the gui
 | [Background services](SERVICES.md) | Long-running servers and bots, URLs, logs, autostart and Stop |
 | [USB](USB.md) | UART/ESP, second-device ADB, storage and Docker passthrough |
 | [Permissions](PERMISSIONS.md) | System consent and background behavior |
+| [Phone access](PHONE-ACCESS.md) | Agent workspace files, APK install, notifications, location and photos |
 | [Terminal sources](TERMINAL-SOURCES.md) | Android execution, pinned clients and licensing |
 | [Testing](TESTING.md) | Emulator, ARM guest and physical device evidence |
 | [WebView](WEBVIEW.md) | Preview tests and software-emulator troubleshooting |
