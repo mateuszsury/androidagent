@@ -58,7 +58,7 @@ jobs:
       certificate_sha256: ${{ steps.p.outputs.certificate_sha256 }}
       test_note: ${{ steps.p.outputs.test_note }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - id: p
         env:
           INPUTS: ${{ toJSON(inputs) }}
@@ -96,14 +96,14 @@ jobs:
       BASE_RELEASE: ${{ needs.plan.outputs.base_release }}
       GH_TOKEN: ${{ github.token }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: '21'
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.12'
       - name: Check version
@@ -183,7 +183,7 @@ jobs:
           fi
           git push --force origin "release/v$VERSION"
           git rev-parse HEAD | tee release-out/release-commit.txt
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: androidagent-${{ needs.plan.outputs.version }}-unsigned
           retention-days: 14
@@ -221,7 +221,7 @@ jobs:
           mkdir -p evidence
           timeout 60 adb logcat -d > evidence/logcat.txt 2>/dev/null || true
           cp "$RUNNER_TEMP/emulator.log" evidence/emulator.log 2>/dev/null || true
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: androidagent-${{ needs.plan.outputs.version }}-evidence
@@ -238,7 +238,7 @@ jobs:
       TEST_NOTE: ${{ needs.plan.outputs.test_note }}
       GH_TOKEN: ${{ github.token }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: ${{ needs.plan.outputs.transfer_ref }}
       - name: Reassemble and verify the signed APK
