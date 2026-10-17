@@ -558,6 +558,10 @@ final class Markdown {
         TextView t = text(c, "", sp, color);
         t.setText(s);
         t.setLineSpacing(dp(c, 2), 1.18f);
+        // Fill lines greedily like a terminal; the default high-quality strategy leaves
+        // short first lines in narrow chat columns.
+        t.setBreakStrategy(Layout.BREAK_STRATEGY_SIMPLE);
+        t.setHyphenationFrequency(Layout.HYPHENATION_FREQUENCY_NONE);
         t.setTextIsSelectable(true);
         if (s instanceof Spanned && ((Spanned) s).getSpans(0, s.length(), ClickableSpan.class).length > 0) {
             t.setMovementMethod(LinkMovementMethod.getInstance());
