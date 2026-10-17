@@ -777,11 +777,16 @@ public class ChatActivity extends Screen implements ChatHub.Listener {
         shownApproval = approvalKey;
         approval.removeAllViews();
         if (ask == null) return;
-        showApproval(ask, command != null, command == null ? null : command.id);
+        showApproval(ask, command != null && command.devOnly, command == null ? 0 : command.framing,
+                command == null ? null : command.id);
     }
 
-    /** Claude Code's permission prompt: what the agent wants, the question, and the two answers. */
-    private void showApproval(String ask, boolean isCommand, final String commandId) {
+    /**
+     * Claude Code's permission prompt: what the agent wants, the question, and the two answers. Only the
+     * first {@code framing} characters (androidagent's own wording) are dimmed: a command containing a blank
+     * line must not be able to grey out its own first part.
+     */
+    private void showApproval(String ask, boolean isCommand, int framing, final String commandId) {
         LinearLayout card = terminalBox(this, "Wymaga zgody", WARN);
         LinearLayout hr = row(this);
         hr.addView(icon(this, R.drawable.ms_shield_person, WARN, 18));
@@ -791,8 +796,8 @@ public class ChatActivity extends Screen implements ChatHub.Listener {
         card.addView(hr);
         TextView well = monoText(this, "", 12, CODE_TEXT);
         SpannableStringBuilder summary = new SpannableStringBuilder(ask);
-        int cut = ask.lastIndexOf("\n\n");
-        if (isCommand && cut > 0)
+        int cut = Math.min(framing, ask.length());
+        if (cut > 0)
             summary.setSpan(new ForegroundColorSpan(CODE_MUTED), 0, cut, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         well.setText(summary);
         well.setLineSpacing(dp(this, 2), 1.06f);

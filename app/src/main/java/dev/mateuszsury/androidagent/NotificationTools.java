@@ -120,7 +120,7 @@ final class NotificationTools implements ToolProviders.Provider {
                 .setPendingIntentBackgroundActivityStartMode(ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOWED).toBundle();
     }
 
-    static JSONObject act(Context app, String key, String action) throws Exception {
+    static JSONObject act(Context app, String caller, String key, String action) throws Exception {
         NotifListener l = listener(app);
         StatusBarNotification[] found = l.getActiveNotifications(new String[]{key});
         if (found == null || found.length == 0 || found[0] == null)
@@ -156,6 +156,12 @@ final class NotificationTools implements ToolProviders.Provider {
             target = button.actionIntent;
             what = "pressed \"" + text(button.title) + "\"";
             if (target == null) throw new IllegalArgumentException("This button has no action.");
+            // A button acts inside another app without the owner's own tap (Call back, Answer, Approve
+            // sign-in, Delete...), so the owner approves this exact press; the snapshot's PendingIntent
+            // is what gets sent, even if the notification changes meanwhile.
+            if (!"panel".equals(caller) && !ApprovedCommands.get(app).consent(caller, pressSummary(app, sbn, button)))
+                return out.put("done", "nothing").put("message", "The owner did not approve pressing \""
+                        + text(button.title) + "\"; nothing was pressed. Ask them what they want instead.");
         }
         try {
             target.send(app, 0, null, null, null, null, allowBackgroundStart());
@@ -170,6 +176,16 @@ final class NotificationTools implements ToolProviders.Provider {
         return out;
     }
 
+    /** The owner's approval text for pressing a notification button: app, button and what the notification says. */
+    private static String pressSummary(Context app, StatusBarNotification sbn, Notification.Action button) {
+        Bundle x = sbn.getNotification().extras == null ? new Bundle() : sbn.getNotification().extras;
+        String title = text(x.getCharSequence(Notification.EXTRA_TITLE)), body = text(x.getCharSequence(Notification.EXTRA_TEXT));
+        StringBuilder s = new StringBuilder("Nacisnąć przycisk „").append(text(button.title)).append("” w powiadomieniu aplikacji ")
+                .append(label(app.getPackageManager(), sbn.getPackageName())).append(" (").append(sbn.getPackageName()).append(")?");
+        if (!title.isEmpty() || !body.isEmpty()) s.append("\n\n").append(title).append(title.isEmpty() || body.isEmpty() ? "" : "\n").append(body);
+        return s.toString();
+    }
+
     @Override public JSONArray list(Context app) throws JSONException {
         JSONArray t = new JSONArray();
         t.put(ToolProviders.tool("notifications_list", "Read the phone's current notifications as text (app, title, text, time, "
@@ -179,8 +195,8 @@ final class NotificationTools implements ToolProviders.Provider {
                         .put("limit", ToolProviders.prop("integer", "Maximum notifications, 1-100, default 30"))));
         t.put(ToolProviders.tool("notification_action", "Act on one notification from notifications_list: \"open\" (tap it), "
                         + "\"dismiss\" (swipe it away) or a button index (e.g. \"0\"). Buttons act inside other apps "
-                        + "(Archive, Delete, Mark as read...): call confirm first for anything outward-facing or destructive. "
-                        + "Reply buttons that need typed text are refused.",
+                        + "(Archive, Delete, Mark as read...), so each button press waits for the owner's approval in the "
+                        + "chat (up to 5 minutes). Reply buttons that need typed text are refused.",
                 new JSONObject().put("key", ToolProviders.prop("string", "The notification key from notifications_list"))
                         .put("action", ToolProviders.prop("string", "open, dismiss, or a button index such as 0")),
                 "key", "action"));
@@ -194,6 +210,6 @@ final class NotificationTools implements ToolProviders.Provider {
     @Override public JSONObject call(Context app, String caller, String name, JSONObject a) throws Exception {
         if ("notifications_list".equals(name))
             return ToolProviders.result(list(app, a.optString("package", "").trim(), Math.max(1, Math.min(100, a.optInt("limit", 30)))));
-        return ToolProviders.result(act(app, a.getString("key"), String.valueOf(a.get("action"))));
+        return ToolProviders.result(act(app, caller, a.getString("key"), String.valueOf(a.get("action"))));
     }
 }
