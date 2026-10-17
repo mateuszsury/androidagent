@@ -5,7 +5,7 @@ description: Create, build, install and update a small Android app (APK) directl
 
 # Building Android apps on this phone
 
-Everything runs in Termux on the phone. There is no Gradle and no Android Studio. Use plain Java and the Android framework only (no AndroidX, no Kotlin, no external libraries).
+Everything runs in androidagent's embedded terminal on the phone (no separate Termux app). There is no Gradle and no Android Studio. Use plain Java and the Android framework only (no AndroidX, no Kotlin, no external libraries).
 
 The scripts live next to this file. `SKILL_DIR` below means this skill's folder:
 `$HOME/.buddy/work/.claude/skills/android-app`.
@@ -42,17 +42,24 @@ If compilation fails, read the error, fix the Java, and build again. Each update
 
 Android's installer and Play Protect dialogs ignore taps from accessibility apps, so you can open
 the installer but **the user has to tap Install/Update and confirm (often with a fingerprint)**.
+Everything below uses androidagent's own phone tools; no separate Termux app or `termux-open` is involved.
 
-1. `open_app` → `com.termux` (Android only shows the installer if Termux is in front).
-2. Run: `termux-open --view --content-type application/vnd.android.package-archive <path>/build/app.apk`
-3. `read_screen`. If an "Open with" chooser appears, tap **Package installer** by its name (the order changes).
-4. Call `wait_for_install` with the package name (and `min_version_code` for an update). It tells the user
-   "Tap Install/Update, then confirm", vibrates, and returns as soon as the app is installed. Do not tap
-   Install yourself, never claim you did, and never write your own shell loop to wait (Termux has no
-   `dumpsys`, and loops can't see whether the installer is still on screen).
-5. If it says the installer is no longer on screen, repeat steps 1–3 once and call it again. If it times out,
-   ask the user whether they want to install it.
-6. If Android says Termux isn't allowed to install apps, tell the user: Settings → Apps → Special app access →
-   Install unknown apps → Termux. Don't change that setting yourself.
-7. Open the new app with `open_app` and `read_screen` to check it works, then report what you built,
-   including that the user confirmed the install.
+1. Call `install_apk` with the APK path, e.g. `{"path": "<appname>/build/app.apk"}` (relative to
+   `~/.buddy/work`). It checks the APK (package, versionCode, signature against the installed app) and
+   hands it to Android's package installer, which shows its own confirmation screen.
+2. If it returns `status: needs_permission`, androidagent may not install apps yet. The tool already opened
+   Android's "Install unknown apps" setting for androidagent: tell the user to turn on **Allow from this
+   source** (also reachable in androidagent → Uprawnienia → Instalowanie aplikacji), then call `install_apk`
+   again. Never change that setting yourself.
+3. If it returns `status: waiting_for_user`, tell the user to tap Install/Update and confirm. Then call
+   `install_status` with the package name and `wait_s: 45` (it works without screen control and reports
+   `installed`, `cancelled` or `failed` with Android's reason). When screen control is enabled you may use
+   `wait_for_install` (package and `min_version_code` for an update) instead. Do not tap Install yourself,
+   never claim you did, and never write your own shell loop to wait.
+4. A `warning` about a downgrade means: bump `versionCode` and rebuild. A different signing key means the user
+   must uninstall the old app first; ask them, don't do it yourself. If the result says a notification was
+   posted (androidagent was in the background), ask the user to tap it.
+5. If the user cancelled or the installer timed out, ask whether they want to try again instead of waiting longer.
+6. Open the new app with `open_app` and `read_screen` to check it works (needs screen control), then report what
+   you built, including that the user confirmed the install. To hand the APK to the user instead, use
+   `save_to_downloads` or `share_file`.
