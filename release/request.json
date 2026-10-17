@@ -1,7 +1,6 @@
 {
-  "stage": "build",
+  "stage": "publish",
   "version": "0.5.0",
-  "base_release": "v0.4.4",
-  "update_terminal_lock": true,
-  "attempt": 2
+  "apk_sha256": "6582371368ed7c0212ea1939827cf4e7eab30734445c46bb7910622de50cfa5d",
+  "test_note": "Built and lock-refreshed by the Release workflow (stage build); signed offline with the release key. The signed APK passed the clean embedded-runtime suite (28 checks, official Codex and Claude clients without login) on an Android 11 x86_64 emulator."
 }
