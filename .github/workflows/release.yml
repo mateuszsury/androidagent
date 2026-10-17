@@ -36,20 +36,59 @@ on:
       certificate_sha256:
         description: 'publish: expected signing certificate SHA-256 (hex)'
         default: '67857a20ad476b9d66e947e0501b9f1f787ba44c6289b5d0645e2994742e8fab'
+  # Pushing release/request.json (see docs/MAINTAINING.md) runs a stage without dispatch rights.
+  push:
+    paths:
+      - 'release/request.json'
 permissions:
   contents: write
 concurrency:
-  group: release-${{ inputs.version }}
+  group: release-${{ github.ref }}
   cancel-in-progress: false
 jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      stage: ${{ steps.p.outputs.stage }}
+      version: ${{ steps.p.outputs.version }}
+      base_release: ${{ steps.p.outputs.base_release }}
+      update_terminal_lock: ${{ steps.p.outputs.update_terminal_lock }}
+      transfer_ref: ${{ steps.p.outputs.transfer_ref }}
+      apk_sha256: ${{ steps.p.outputs.apk_sha256 }}
+      certificate_sha256: ${{ steps.p.outputs.certificate_sha256 }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: p
+        env:
+          INPUTS: ${{ toJSON(inputs) }}
+        run: |
+          if [ "$GITHUB_EVENT_NAME" = push ]; then cp release/request.json "$RUNNER_TEMP/req.json"
+          else printf '%s' "$INPUTS" > "$RUNNER_TEMP/req.json"; fi
+          python3 - "$RUNNER_TEMP/req.json" <<'PY'
+          import json, os, sys
+          r = json.load(open(sys.argv[1]))
+          d = {'stage': 'build', 'version': '', 'base_release': 'v0.4.4', 'update_terminal_lock': 'true',
+               'transfer_ref': os.environ.get('GITHUB_REF_NAME', ''), 'apk_sha256': '',
+               'certificate_sha256': '67857a20ad476b9d66e947e0501b9f1f787ba44c6289b5d0645e2994742e8fab'}
+          for k in d:
+              v = r.get(k)
+              if v not in (None, ''):
+                  d[k] = str(v).lower() if isinstance(v, bool) else str(v)
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as out:
+              for k, v in d.items():
+                  out.write(f'{k}={v}\n')
+          print(json.dumps(d, indent=2))
+          PY
+
   build:
-    if: inputs.stage == 'build'
+    needs: plan
+    if: needs.plan.outputs.stage == 'build'
     runs-on: ubuntu-latest
     timeout-minutes: 180
     env:
       ANDROID_SERIAL: emulator-5554
-      VERSION: ${{ inputs.version }}
-      BASE_RELEASE: ${{ inputs.base_release }}
+      VERSION: ${{ needs.plan.outputs.version }}
+      BASE_RELEASE: ${{ needs.plan.outputs.base_release }}
       GH_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@v4
@@ -104,7 +143,7 @@ jobs:
           python3 tools/check-usb-assets.py
       - name: Prepare the embedded terminal runtime
         run: |
-          if [ "${{ inputs.update_terminal_lock }}" = true ]; then
+          if [ "${{ needs.plan.outputs.update_terminal_lock }}" = true ]; then
             python3 tools/prepare-terminal.py --update-lock
             COMMIT=$(jq -r .recipes_commit terminal/runtime-lock.json)
             sed -i -E "s#(termux-packages/tree/)[0-9a-f]{40}(/scripts/bootstrap)#\1$COMMIT\2#" terminal/SOURCES.md
@@ -148,6 +187,7 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git checkout -b "release/v$VERSION"
+          git rm -r -q --ignore-unmatch release release-upload
           git add -A terminal app/src/main/assets/terminal app/src/main/assets/docker/*/manifest.json
           if ! git diff --cached --quiet; then
             git commit -m "Refresh the pinned Termux runtime for $VERSION" \
@@ -164,26 +204,27 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: androidagent-${{ inputs.version }}-unsigned
+          name: androidagent-${{ needs.plan.outputs.version }}-unsigned
           retention-days: 14
           compression-level: 0
           path: release-out/
 
   publish:
-    if: inputs.stage == 'publish'
+    needs: plan
+    if: needs.plan.outputs.stage == 'publish'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
-      VERSION: ${{ inputs.version }}
+      VERSION: ${{ needs.plan.outputs.version }}
       GH_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.transfer_ref }}
+          ref: ${{ needs.plan.outputs.transfer_ref }}
       - name: Reassemble and verify the signed APK
         env:
-          EXPECTED_SHA: ${{ inputs.apk_sha256 }}
-          EXPECTED_CERT: ${{ inputs.certificate_sha256 }}
+          EXPECTED_SHA: ${{ needs.plan.outputs.apk_sha256 }}
+          EXPECTED_CERT: ${{ needs.plan.outputs.certificate_sha256 }}
         run: |
           bash tools/ci-android-sdk.sh 'build-tools;35.0.0'
           mkdir -p out
