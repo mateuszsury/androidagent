@@ -1252,10 +1252,22 @@ public class AndroidAgentTests extends Instrumentation {
           int before = claude[0].messages.size();
           delta(claude[0], "TEST STREAMU: Zażółć ");
           delta(claude[0], "gęślą");
-          TextView live = (TextView) find("Odpowiedź na żywo");
-          check(
-              live != null && "TEST STREAMU: Zażółć gęślą".contentEquals(live.getText()),
-              "No live text in native UI");
+          // The live reply renders Markdown and coalesces deltas into ~50 ms frames.
+          final String[] live = {null};
+          long liveUntil = SystemClock.elapsedRealtime() + 3000;
+          do {
+            main(
+                () -> {
+                  View v = find("Odpowiedź na żywo");
+                  live[0] =
+                      v instanceof Markdown.Content && ((Markdown.Content) v).getChildCount() > 0
+                          ? ((Markdown.Content) v).source()
+                          : null;
+                });
+            if ("TEST STREAMU: Zażółć gęślą".equals(live[0])) break;
+            SystemClock.sleep(50);
+          } while (SystemClock.elapsedRealtime() < liveUntil);
+          check("TEST STREAMU: Zażółć gęślą".equals(live[0]), "No live text in native UI");
           check(
               claude[0].messages.size() == before, "Partial tokens persisted as separate messages");
           shot("12-claude-stream-fixture");
