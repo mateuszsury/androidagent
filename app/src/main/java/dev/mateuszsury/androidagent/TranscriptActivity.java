@@ -156,6 +156,7 @@ public class TranscriptActivity extends Screen implements ChatHub.MonitorListene
                 av.setBackground(oval(ACCENT_SOFT));
                 ImageView face = new ImageView(this);
                 face.setImageResource(R.drawable.bubble_face);
+                face.setImageTintList(android.content.res.ColorStateList.valueOf(ACCENT_TEXT)); // the face is monochrome line art
                 av.addView(face, new FrameLayout.LayoutParams(dp(this, 20), dp(this, 20), Gravity.CENTER));
                 LinearLayout.LayoutParams avp = new LinearLayout.LayoutParams(dp(this, 24), dp(this, 24));
                 avp.rightMargin = dp(this, 8);
