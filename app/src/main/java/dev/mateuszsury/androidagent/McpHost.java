@@ -36,6 +36,7 @@ final class McpHost implements McpServer.Handler {
         String owner="chat:"+chat;boolean close;
         synchronized(this){runs.values().removeIf(owner::equals);if(startingOwners.contains(owner))cancelledStarts.add(owner);release(owner);close=!stopping&&closingOwners.add(owner);}
         ApprovedCommands.get(app).cancelOwner(owner);
+        PhoneTools.clearStatus(app,owner);
         if(close)new Thread(()->{
             try{synchronized(this){while(startingOwners.contains(owner))try{wait();}catch(InterruptedException e){Thread.currentThread().interrupt();return;}}UsbSessions.get(app).closeOwner(owner);}
             finally{synchronized(this){closingOwners.remove(owner);notifyAll();}}
@@ -67,9 +68,9 @@ final class McpHost implements McpServer.Handler {
             try{
                 try{chatsStopped.await();}catch(InterruptedException e){Thread.currentThread().interrupt();}
                 synchronized(this){while(!startingOwners.isEmpty())try{wait();}catch(InterruptedException e){Thread.currentThread().interrupt();break;}}
-                cleanup(()->{BuddyService svc=BuddyService.get();if(svc!=null)svc.cancelLocalCommands();});
                 cleanup(()->EmbeddedRuntime.get(app).emergencyStop());
                 cleanup(()->ApprovedCommands.get(app).cancelAll());
+                cleanup(()->PhoneTools.clearAllStatus(app));
                 cleanup(()->UsbJobs.get(app).cancelAll());
                 cleanup(()->UsbSessions.get(app).closeAll());
                 cleanup(()->UsbStorage.get(app).revokeAll());
@@ -78,8 +79,14 @@ final class McpHost implements McpServer.Handler {
         },"androidagent-stop").start();
     }
     private static void cleanup(Runnable action){try{action.run();}catch(RuntimeException e){android.util.Log.w("androidagentStop","Resource cleanup failed",e);}}
+    /** Lists only what can run now: screen-control tools appear only while Accessibility is connected. */
     @Override public JSONArray listTools()throws JSONException{
-        JSONArray all=new Tools(BuddyService.get()).list();JSONArray usb=UsbTools.list();for(int i=0;i<usb.length();i++)all.put(usb.get(i));ToolProviders.listInto(app,all);return all;
+        JSONArray all=DockerTools.list();
+        all.put(ToolProviders.tool("device_status","Read live Android version, battery, RAM, storage, connectivity and granted capabilities (accessibility_connected tells whether screen tools are available).",new JSONObject()));
+        all.put(ToolProviders.tool("run_command","Run an Android shell command under the androidagent app UID (not root). Requires developer mode and explicit approval of this exact command in its chat. Works without Accessibility. Timeout 10 seconds; output 32 KB. Working directory is the app workspace.",new JSONObject().put("command",ToolProviders.prop("string","Exact shell command")),"command"));
+        if(BuddyService.get()!=null){JSONArray screen=Tools.list();for(int i=0;i<screen.length();i++)all.put(screen.get(i));}
+        JSONArray usb=UsbTools.list();for(int i=0;i<usb.length();i++)all.put(usb.get(i));
+        ToolProviders.listInto(app,all);return all;
     }
     @Override public JSONObject callTool(String name,JSONObject a)throws Exception{
         if(controlRevoked()!=null&&!"notify".equals(name))throw new IllegalStateException(controlRevoked());
@@ -90,9 +97,11 @@ final class McpHost implements McpServer.Handler {
         if("device_status".equals(name))return UsbTools.result(DeviceState.read(app));
         if("run_command".equals(name))return ApprovedCommands.get(app).run(caller,a.getString("command"));
         ToolProviders.Provider provider=ToolProviders.find(name);
-        if(provider!=null){requireCaller(caller);return provider.call(app,caller,name,a);}
+        // notify stays usable after Stop so the agent can still tell the user what happened.
+        if(provider!=null){if(!"notify".equals(name))requireCaller(caller);return provider.call(app,caller,name,a);}
+        if(!Tools.handles(name))throw new IllegalArgumentException("Unknown tool "+name);
         BuddyService svc=BuddyService.get();
-        if(svc==null)throw new IllegalStateException("This screen-control tool needs Accessibility. USB and Docker work without it.");
+        if(svc==null)throw new IllegalStateException("Screen control (Accessibility) is off, so "+name+" is unavailable. Ask the user to enable androidagent's screen control in Android's Accessibility settings (open_settings panel 'accessibility'). Apps, links, intents, device controls, USB and Docker work without it.");
         return svc.callTool(name,a);
     }
     @Override public File attachment(String id){return Attachments.file(app,id);}

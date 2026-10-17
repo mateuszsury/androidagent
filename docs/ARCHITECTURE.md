@@ -18,6 +18,7 @@ flowchart TD
   HELPER --> EVENTS[Authenticated event callbacks]
   EVENTS --> HUB
   MCP --> STATE[Device status and approved commands]
+  MCP --> PHONE[Phone tools: approvals, apps, intents, device controls]
   MCP --> ACCESS[Optional Accessibility: screen and gestures]
   MCP --> USB[USB sessions: owner and revocable grants]
   USB --> DIRECT[UART, ESP, second-device ADB]
