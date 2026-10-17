@@ -265,6 +265,12 @@ final class PhoneTools implements ToolProviders.Provider {
         String scheme = uri.getScheme().toLowerCase(Locale.ROOT);
         if (scheme.equals("file") || scheme.equals("javascript"))
             throw new IllegalArgumentException(scheme + ": URLs cannot be opened; use an https:// link or a deep link.");
+        // The same number rules as dial/compose_sms: no service codes typed into the dialer.
+        if (scheme.equals("tel") || scheme.equals("sms") || scheme.equals("smsto") || scheme.equals("mms") || scheme.equals("mmsto")) {
+            String number = uri.getSchemeSpecificPart();
+            int query = number == null ? -1 : number.indexOf('?');
+            IntentTools.checkNumber(query >= 0 ? number.substring(0, query) : number);
+        }
         launch(app, new Intent(Intent.ACTION_VIEW, uri), url);
         Thread.sleep(1500);
         return "Opened " + url + "." + seeResult();
