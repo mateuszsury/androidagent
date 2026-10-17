@@ -48,14 +48,14 @@ jobs:
       matrix:
         api: [30, 35, 36]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: '21'
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.12'
       - name: Prepare SDK and KVM
@@ -118,7 +118,7 @@ jobs:
           mkdir -p "$EVIDENCE_DIR"
           adb logcat -d > "$EVIDENCE_DIR/logcat.txt" || true
           cp "$RUNNER_TEMP/emulator.log" "$EVIDENCE_DIR/emulator.log" 2>/dev/null || true
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: androidagent-${{ env.APP_VERSION }}-api${{ matrix.api }}
