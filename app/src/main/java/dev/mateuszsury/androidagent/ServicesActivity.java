@@ -355,7 +355,9 @@ public final class ServicesActivity extends Screen implements ServiceManager.Lis
         if (action != null) {
             TextView a = barAction(this, action);
             a.setGravity(Gravity.START | Gravity.CENTER_VERTICAL);
-            a.setPadding(dp(this, 22), dp(this, 10), dp(this, 12), 0);
+            a.setMinHeight(dp(this, 36));
+            a.setMinimumHeight(dp(this, 36));
+            a.setPadding(dp(this, 22), dp(this, 8), dp(this, 12), 0);
             a.setOnClickListener(v -> onAction.run());
             box.addView(a, wrap());
         }
