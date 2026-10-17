@@ -24,7 +24,8 @@ import java.util.concurrent.Executors;
 
 /**
  * Minimal MCP server (Streamable HTTP, JSON responses only) bound to 127.0.0.1.
- * Also accepts POST /event from the Termux helper to stream Claude Code output to the bubble.
+ * Also accepts POST /event from the Termux helper to stream Claude Code output to the bubble;
+ * events are answered by the request readers and never wait for a tool call to finish.
  * Every request must carry "Authorization: Bearer <token>".
  */
 final class McpServer {
@@ -52,9 +53,12 @@ final class McpServer {
     private final Handler handler;
     private final int port;
     private final java.util.Set<Socket> clients = java.util.concurrent.ConcurrentHashMap.newKeySet();
-    private final ExecutorService pool = new java.util.concurrent.ThreadPoolExecutor(
-            4, 8, 30, java.util.concurrent.TimeUnit.SECONDS,
-            new java.util.concurrent.ArrayBlockingQueue<>(32));
+    /** Reads every request and answers the fast endpoints (/event, /health) itself. It never runs
+     *  tools, so helper callbacks (curl -m 5) cannot queue behind tools that wait minutes for the
+     *  user (confirm, run_command approval, wait_for_install). */
+    private final ExecutorService pool = executor(6, 64);
+    /** MCP calls and attachment downloads, which may block for minutes. */
+    private final ExecutorService work = executor(16, 64);
     private volatile ServerSocket socket;
     private volatile boolean running;
 
@@ -87,6 +91,16 @@ final class McpServer {
         // will never run after shutdownNow, so their sockets also need closing.
         for (Socket client : clients) closeClient(client);
         pool.shutdownNow();
+        work.shutdownNow();
+    }
+
+    /** Fixed-size pool whose idle threads exit; the queue is bounded (extra sockets are closed). */
+    private static ExecutorService executor(int threads, int queue) {
+        java.util.concurrent.ThreadPoolExecutor executor = new java.util.concurrent.ThreadPoolExecutor(
+                threads, threads, 30, java.util.concurrent.TimeUnit.SECONDS,
+                new java.util.concurrent.ArrayBlockingQueue<>(queue));
+        executor.allowCoreThreadTimeOut(true);
+        return executor;
     }
 
     private void acceptLoop() {
@@ -115,6 +129,7 @@ final class McpServer {
     }
 
     private void handle(Socket s) {
+        boolean handedOff = false;
         try {
             s.setSoTimeout(30000);
             InputStream in = new BufferedInputStream(s.getInputStream());
@@ -147,13 +162,12 @@ final class McpServer {
                 return;
             }
             if(!principal.equals("external")&&!path.equals("/mcp")){send(out,401,"application/json","{\"error\":\"session credential is for MCP only\"}");return;}
-            CALLER.set(principal);
-            CREDENTIAL.set(auth.substring(7));
+            final String credential = auth.substring(7);
 
-            byte[] body = readBody(in, headers);
+            final byte[] body = readBody(in, headers);
             // A run can end while a client is sending its body. Reusing the
             // chat id in a later run must not revive this request's credential.
-            if(!"external".equals(principal)&&!principal.equals(handler.principal(CREDENTIAL.get()))){send(out,401,"application/json","{\"error\":\"session credential revoked\"}");return;}
+            if(!"external".equals(principal)&&!principal.equals(handler.principal(credential))){send(out,401,"application/json","{\"error\":\"session credential revoked\"}");return;}
 
             if ("/event".equals(path) && "POST".equals(method)) {
                 try {
@@ -162,36 +176,59 @@ final class McpServer {
                     Log.w(TAG, "bad event", e);
                 }
                 send(out, 204, null, null);
-            } else if ("/mcp".equals(path) && "POST".equals(method)) {
-                String text = new String(body, StandardCharsets.UTF_8).trim();
-                if (text.startsWith("[")) {
-                    JSONArray batch = new JSONArray(text);
-                    JSONArray replies = new JSONArray();
-                    for (int i = 0; i < batch.length(); i++) {
-                        JSONObject r = rpc(batch.getJSONObject(i));
-                        if (r != null) replies.put(r);
-                    }
-                    if (replies.length() == 0) send(out, 202, null, null);
-                    else send(out, 200, "application/json", replies.toString());
-                } else {
-                    JSONObject r = rpc(new JSONObject(text));
-                    if (r == null) send(out, 202, null, null);
-                    else send(out, 200, "application/json", r.toString());
+            } else if (("/mcp".equals(path) && "POST".equals(method)) || (path.startsWith("/file/") && "GET".equals(method))) {
+                final String target = path;
+                try {
+                    work.execute(() -> respond(s, out, target, principal, credential, body));
+                    handedOff = true;
+                } catch (java.util.concurrent.RejectedExecutionException busy) {
+                    send(out, 503, "application/json", "{\"error\":\"server busy\"}");
                 }
             } else if ("/mcp".equals(path) && "DELETE".equals(method)) {
                 send(out, 200, null, null);
             } else if ("/mcp".equals(path)) {
                 // No server-initiated SSE stream.
                 send(out, 405, null, null);
-            } else if (path.startsWith("/file/") && "GET".equals(method)) {
-                // an attachment, fetched by the Termux helper before the agent runs
-                java.io.File f = handler.attachment(path.substring(6));
-                if (f == null || !f.isFile()) send(out, 404, null, null);
-                else sendFile(out, f);
             } else if ("/health".equals(path)) {
                 send(out, 200, "application/json", "{\"ok\":true}");
             } else {
                 send(out, 404, null, null);
+            }
+        } catch (Exception e) {
+            Log.w(TAG, "request failed", e);
+        } finally {
+            if (!handedOff) closeClient(s);
+        }
+    }
+
+    /** Runs on {@link #work}: an MCP request (POST /mcp) or an attachment download (GET /file/…). */
+    private void respond(Socket s, OutputStream out, String path, String principal, String credential, byte[] body) {
+        try {
+            CALLER.set(principal);
+            CREDENTIAL.set(credential);
+            // The run may have ended while this request waited for a worker.
+            if(!"external".equals(principal)&&!principal.equals(handler.principal(credential))){send(out,401,"application/json","{\"error\":\"session credential revoked\"}");return;}
+            if (path.startsWith("/file/")) {
+                // an attachment, fetched by the Termux helper before the agent runs
+                java.io.File f = handler.attachment(path.substring(6));
+                if (f == null || !f.isFile()) send(out, 404, null, null);
+                else sendFile(out, f);
+                return;
+            }
+            String text = new String(body, StandardCharsets.UTF_8).trim();
+            if (text.startsWith("[")) {
+                JSONArray batch = new JSONArray(text);
+                JSONArray replies = new JSONArray();
+                for (int i = 0; i < batch.length(); i++) {
+                    JSONObject r = rpc(batch.getJSONObject(i));
+                    if (r != null) replies.put(r);
+                }
+                if (replies.length() == 0) send(out, 202, null, null);
+                else send(out, 200, "application/json", replies.toString());
+            } else {
+                JSONObject r = rpc(new JSONObject(text));
+                if (r == null) send(out, 202, null, null);
+                else send(out, 200, "application/json", r.toString());
             }
         } catch (Exception e) {
             Log.w(TAG, "request failed", e);
@@ -286,6 +323,7 @@ final class McpServer {
             case 401: return "Unauthorized";
             case 404: return "Not Found";
             case 405: return "Method Not Allowed";
+            case 503: return "Service Unavailable";
             default: return "Status";
         }
     }

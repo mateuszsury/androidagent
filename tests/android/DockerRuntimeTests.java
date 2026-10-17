@@ -156,7 +156,7 @@ public class DockerRuntimeTests extends Instrumentation {
             ProcessBuilder p=new ProcessBuilder(lib+"/libqemu.so","--version").redirectErrorStream(true);p.environment().put("LD_LIBRARY_PATH",lib);
             java.lang.Process q=p.start();String version=read(q.getInputStream());check(q.waitFor()==0&&version.contains("QEMU emulator version"),version);
             check(android.os.Process.myUid()!=0,"App is running as root");
-            check(DockerTools.list().length()==13,"Docker MCP tools including durable diagnostics missing");
+            check(DockerTools.list().length()==15,"Docker MCP tools including durable diagnostics and VM lifecycle missing");
             JSONObject diagnostics=DockerTools.call(app,"docker_diagnostics",args("offset",0,"limit",128)).getJSONObject("structuredContent");
             check(diagnostics.has("content")&&diagnostics.has("next_offset")&&diagnostics.has("total_bytes"),"Diagnostics tool did not return a bounded local page");
             check(DockerVm.get(app).status().has("diagnostics"),"Local Docker status omitted durable diagnostics");

@@ -627,6 +627,8 @@ public class AndroidAgentTests extends Instrumentation {
     test("permissions: real state and native consent routes", () -> PermissionRegressionChecks.readOnlyStateAndNativeRoutes(app));
     test("permissions: FlowMesh is never mistaken for our service", () -> PermissionRegressionChecks.accessibilityRecognitionIsScoped(app));
     test("permissions: screen refresh preserves existing consent", () -> {launch(PermissionsActivity.class);PermissionRegressionChecks.screenRefreshAndNativeAccessibilityRoute(this,current);});
+    test("phone access: agent-tool permission rows", () -> {launch(PermissionsActivity.class);PhoneAccessChecks.permissionRowsForAgentTools(this,current);});
+    test("phone access: workspace boundary and provider", () -> PhoneAccessChecks.workspaceBoundaryAndProvider(app));
     test("commands: native approval works without Accessibility", () -> {launch(new Intent(app,ChatActivity.class).putExtra("id",ChatHub.get(app).sessions.current.id));ApprovedCommandsChecks.inlineApprovalShowsAndExecutesExactCommand(this,current);});
     test("commands: native denial never executes the command", () -> ApprovedCommandsChecks.inlineDenialDoesNotExecuteCommand(this,current));
     test("commands: stale consent cannot approve a replacement", () -> ApprovedCommandsChecks.staleButtonCannotApproveReplacement(this,current));
@@ -884,6 +886,7 @@ public class AndroidAgentTests extends Instrumentation {
         });
     test("MCP: Stop closes active and queued client sockets", RuntimeRegressionChecks::mcpShutdown);
     test("MCP: complete chunk framing and bounded headers", RuntimeRegressionChecks::mcpFraming);
+    test("MCP: helper events bypass tool calls waiting for the user", AgentRegressionChecks::eventsBypassBlockedTools);
     test("MCP: a new run cannot revive an old credential or queued request",
         () -> RuntimeRegressionChecks.mcpRunGeneration(app));
     test("attachments: bounded panorama decode and file provider projection",
@@ -1251,10 +1254,22 @@ public class AndroidAgentTests extends Instrumentation {
           int before = claude[0].messages.size();
           delta(claude[0], "TEST STREAMU: Zażółć ");
           delta(claude[0], "gęślą");
-          TextView live = (TextView) find("Odpowiedź na żywo");
-          check(
-              live != null && "TEST STREAMU: Zażółć gęślą".contentEquals(live.getText()),
-              "No live text in native UI");
+          // The live reply renders Markdown and coalesces deltas into ~50 ms frames.
+          final String[] live = {null};
+          long liveUntil = SystemClock.elapsedRealtime() + 3000;
+          do {
+            main(
+                () -> {
+                  View v = find("Odpowiedź na żywo");
+                  live[0] =
+                      v instanceof Markdown.Content && ((Markdown.Content) v).getChildCount() > 0
+                          ? ((Markdown.Content) v).source()
+                          : null;
+                });
+            if ("TEST STREAMU: Zażółć gęślą".equals(live[0])) break;
+            SystemClock.sleep(50);
+          } while (SystemClock.elapsedRealtime() < liveUntil);
+          check("TEST STREAMU: Zażółć gęślą".equals(live[0]), "No live text in native UI");
           check(
               claude[0].messages.size() == before, "Partial tokens persisted as separate messages");
           shot("12-claude-stream-fixture");
@@ -1350,6 +1365,14 @@ public class AndroidAgentTests extends Instrumentation {
         () -> mainCheck(() -> AgentRegressionChecks.busyRequestRecoversSurvivingHelper(app)));
     test("agents: rejected dispatch preserves draft and revokes run access",
         () -> mainCheck(() -> AgentRegressionChecks.failedDispatchDoesNotPersistUserMessage(app)));
+    test("agents: tool calls carry meta and receive their results in place",
+        () -> mainCheck(() -> AgentRegressionChecks.toolCallsCarryResults(app)));
+    test("agents: tool argument summaries stay short",
+        () -> mainCheck(AgentRegressionChecks::toolArgumentSummaries));
+    test("agents: stall watchdog ends dead helpers but never live ones",
+        () -> mainCheck(() -> AgentRegressionChecks.stallWatchdog(app)));
+    test("agents: running chats are limited to runtime request slots",
+        () -> mainCheck(() -> AgentRegressionChecks.runningLimit(app)));
     test("UI: long model name keeps selector chevron within its bounds",
         () -> UiRegressionChecks.longModelChipFits(this, current));
     final Sessions.Session[] uiChat = {null};
