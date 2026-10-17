@@ -75,15 +75,16 @@ Raw logs, reports, earlier reviews and transfer journals were removed from the c
 
 ## 0.5.0 development checks
 
-The redesign, background services and new phone tools were checked on an **Android 11 x86_64 software (TCG) emulator** with a debuggable development build that packages the published 0.4.4 terminal runtime. This is development evidence for the 0.5.0 changes, gathered before the release build; the signed 0.5.0 APK itself, with its refreshed Termux runtime, passed the clean embedded-runtime suite on an Android 15 emulator in the [release workflow](../.github/workflows/release.yml) before publication:
+The redesign, background services and new phone tools were checked on an **Android 11 x86_64 software (TCG) emulator** with a debuggable development build that packages the published 0.4.4 terminal runtime. This is development evidence for the 0.5.0 changes, gathered before the release build:
 
 - Host suite: `python3 -m unittest discover -s tests -p 'test_*.py'` and `tools/check-docs.py` pass; `tests/android` compiles against the app.
 - The embedded environment initialized from a clean install in about 15 minutes of emulated time. In the terminal and in services, Python 3.14.6, Node.js v24.18.0 and Git 2.56.0 ran as the app UID without root, and ANSI colours rendered.
 - Over MCP with the installation token, `tools/list` returned 92 tools; `device_status` reported LAN/IP fields; `notify`, `set_volume`/`get_volume`, `list_apps` and `docker_status` returned expected results; `torch` reported that the emulator has no flashlight.
 - `service_start` showed the approval card in the chat; after tapping **Approve** (`Zatwierdź`) a `python3 -m http.server` service reported its open port and served a page through `adb forward`. It kept serving after leaving the app and after the global **Stop**, which also closed agent tool access.
 - Every redesigned screen was captured in the dark theme; selected screens also in the light theme and with large fonts.
+- Release gate: the signed 0.5.0 APK itself (SHA256 `6582371368ed7c0212ea1939827cf4e7eab30734445c46bb7910622de50cfa5d`), built by the [release workflow](../.github/workflows/release.yml) with the refreshed Termux runtime, passed `tools/test-embedded-runtime.sh --clean` with 28 checks and 0 failures on the same Android 11 x86_64 emulator before publication, including the official Codex and Claude clients without login. The workflow's Android 15 emulator did not boot for this release because the runner user could not open `/dev/kvm`; the workflow now grants that access.
 
-Not verified for 0.5.0: the instrumentation suites (`tools/test-android.sh` and others), a physical device, logged-in Codex or Claude conversations, booting the Docker VM, the new Docker port forwards on Android's QEMU, and the notification access, location, photo, camera, APK install and file share tools on a device.
+Not verified for 0.5.0: the other instrumentation suites (`tools/test-android.sh` and others), a physical device, logged-in Codex or Claude conversations, booting the Docker VM, the new Docker port forwards on Android's QEMU, and the notification access, location, photo, camera, APK install and file share tools on a device.
 
 ## Run checks yourself
 
