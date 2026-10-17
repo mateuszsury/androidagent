@@ -29,7 +29,7 @@ page alignment. The loader itself is copied without modification.
 The bootstrap source and packaging are maintained at:
 
 - https://github.com/termux/termux-packages/tree/d8c12528580df83e04869bcd81a6d6f17455faf3
-- https://github.com/termux/termux-packages/tree/d8c12528580df83e04869bcd81a6d6f17455faf3/scripts/bootstrap
+- https://github.com/termux/termux-packages/tree/ae877f2c6a2b2318abeb43699d6ec5f619c216a6/scripts/bootstrap
 - https://github.com/termux/proot/tree/v5.1.107.96
 
 `recipes-metadata.json` records the pinned recipe paths, recipe SHA256, upstream
