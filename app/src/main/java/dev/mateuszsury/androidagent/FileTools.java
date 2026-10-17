@@ -379,7 +379,13 @@ final class FileTools implements ToolProviders.Provider {
         ContentResolver resolver = c.getContentResolver();
         ContentValues values = new ContentValues();
         values.put(MediaStore.MediaColumns.DISPLAY_NAME, target);
-        values.put(MediaStore.MediaColumns.MIME_TYPE, mime(target));
+        // MediaStore appends the extension of a MIME type that does not match the name ("a.md" as
+        // text/plain becomes "a.md.txt"), so use Android's own mapping or the neutral binary type.
+        int dot = target.lastIndexOf('.');
+        String known = dot < 0 ? null : MimeTypeMap.getSingleton()
+                .getMimeTypeFromExtension(target.substring(dot + 1).toLowerCase(Locale.ROOT));
+        values.put(MediaStore.MediaColumns.MIME_TYPE, known != null ? known
+                : isApk(new File(target)) ? APK_MIME : "application/octet-stream");
         values.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS + "/androidagent");
         values.put(MediaStore.MediaColumns.IS_PENDING, 1);
         Uri uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values);
