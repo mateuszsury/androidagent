@@ -65,7 +65,14 @@ sys.exit(0 if os.environ.get('ANDROIDAGENT_TEST_CODEX_SIGNED') == '1' else 1)
         executable.parent.mkdir(parents=True, exist_ok=True)
         # A real host ELF permits checking /proc process identity and SIGKILL;
         # its contents are a sleep fixture, not an official or authenticated CLI.
-        shutil.copyfile(shutil.which("sleep"), executable)
+        compiler = shutil.which("cc")
+        if not compiler:
+            self.skipTest("Native process fixtures require a C compiler")
+        # Multicall coreutils dispatch by argv[0] and cannot reliably be copied
+        # under the name claude. Build a genuine standalone fixture instead.
+        subprocess.run([compiler, "-x", "c", "-", "-o", str(executable)],
+                       input="#include <unistd.h>\nint main(void) { sleep(60); return 0; }\n",
+                       text=True, check=True, capture_output=True)
         executable.chmod(0o700)
         return executable
 
