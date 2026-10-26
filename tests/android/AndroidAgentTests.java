@@ -443,7 +443,7 @@ public class AndroidAgentTests extends Instrumentation {
           }
         });
     waitForIdleSync();
-    if (error.get() != null) throw new AssertionError("UI action failed", error.get());
+    if (error.get() != null) throw new AssertionError("UI action failed: " + error.get(), error.get());
   }
 
   private void mainCheck(Check action) {
@@ -1017,12 +1017,23 @@ public class AndroidAgentTests extends Instrumentation {
         () -> {
           launch(DeviceActivity.class);
           main(() -> scroll(current.getWindow().getDecorView()).scrollTo(0, 0));
+          long readyUntil = SystemClock.elapsedRealtime() + 5000;
+          String screen;
+          do {
+            screen = toolText(tool("read_screen", new JSONObject()));
+            if (screen.contains("Twój telefon")) break;
+            SystemClock.sleep(100);
+          } while (SystemClock.elapsedRealtime() < readyUntil);
+          check(screen.contains("Twój telefon"), "Device screen is not active: " + screen);
           tool("scroll", new JSONObject().put("direction", "down"));
-          main(
-              () ->
-                  check(
-                      scroll(current.getWindow().getDecorView()).getScrollY() > 0,
-                      "Gesture did not scroll"));
+          final int[] offset = {0};
+          long scrollUntil = SystemClock.elapsedRealtime() + 5000;
+          do {
+            main(() -> offset[0] = scroll(current.getWindow().getDecorView()).getScrollY());
+            if (offset[0] > 0) break;
+            SystemClock.sleep(100);
+          } while (SystemClock.elapsedRealtime() < scrollUntil);
+          check(offset[0] > 0, "Gesture did not scroll native content");
         });
     test(
         "MCP: installed apps",
