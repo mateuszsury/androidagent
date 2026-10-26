@@ -41,7 +41,7 @@
   },
   "libcurl.so": {
     "source": "lib/libcurl.so",
-    "sha256": "ddcb2284d4375e57aa3f147b2fe90e5e11901a1bf6135f0ab323fbd7711cddde"
+    "sha256": "dc64dffb4decaa162c0dc1f82cecf7aafb4f926dc8cf4847c095316de529a29a"
   },
   "libdb-18.1.so": {
     "source": "lib/libdb-18.1.so",
@@ -52,12 +52,12 @@
     "sha256": "618bb6f16bf169454ad3e6343b5efd6854ffee473081e3b2d9d8b65b61d78133"
   },
   "libdw.so": {
-    "source": "lib/libdw-0.196.so",
-    "sha256": "3c68f6fad8e11ee1a05b77e4ab041ab0f6cab56ed287385293f78d0c03b541ff"
+    "source": "lib/libdw-0.197.so",
+    "sha256": "7ca6564749a5cd9ea8cb57857088bf49530280d6230e58f347b44adc84c8dc2d"
   },
   "libelf.so": {
-    "source": "lib/libelf-0.196.so",
-    "sha256": "cc4ff88cd7a531596fc063f2311f82df1ae67d72f7cf5998ddad32fcda06ee7c"
+    "source": "lib/libelf-0.197.so",
+    "sha256": "10e04c4907e2a9327c4ebeea853a4cace7f6df8cc4e71c1b53192e28ffdd97ae"
   },
   "libfdt.so": {
     "source": "lib/libfdt.so",
@@ -205,19 +205,19 @@
   },
   "libpulse.so": {
     "source": "lib/libpulse.so",
-    "sha256": "3bd5ae398886ddb58ba6ba96d2174db2dadf11d72c2ff171cab06bb26d990e12"
+    "sha256": "e5531633028d424f68241e055a7b84c6111896ec634c2c62727f7b44e6c179f6"
   },
   "libpulsecommon-17.0.so": {
     "source": "lib/pulseaudio/libpulsecommon-17.0.so",
-    "sha256": "e8f698459e33f0431b13c66de26dd1efe4312b7b0a58554c303861ba9c1b324d"
+    "sha256": "75a374818795f9c80d409428c027c928110ce3d11bb3df0e39ecaa5127aaa2ad"
   },
   "libqemu.so": {
     "source": "bin/qemu-system-aarch64",
-    "sha256": "6461f3ac894c5bfae007ebe8f820ab15672af0063b7d82a5a9f05a1bbed74760"
+    "sha256": "7642571665dca80ea917c1082770f7021431253511866b39ead1b0ebfece5529"
   },
   "libqemu_img.so": {
     "source": "bin/qemu-img",
-    "sha256": "b6496aa579541656f944ae978535ba93cdfeb3c9c5cbef1df8156c73007e8121"
+    "sha256": "46805f1c8baf968f8f136139377f0a40e22e36981115fab079fb5972d9d1f694"
   },
   "libsamplerate.so": {
     "source": "lib/libsamplerate.so",

@@ -1,11 +1,11 @@
 {
   "version": 1,
   "archive": "runtime.zip",
-  "sha256": "6bdeb77a01581f5e9db6af8cacb093b5b0e4f8ab60a57a81e0a25c0a280a8531",
-  "bytes": 95011030,
+  "sha256": "acd6bfb194a4632e64b74bb40d8155321f1225712d55cf658fdce35e8a02e26d",
+  "bytes": 95268377,
   "abi": "x86_64",
   "prefix": "/data/data/com.termux/files/usr",
-  "bootstrap_release": "bootstrap-2026.10.11-r1+apt.android-7",
+  "bootstrap_release": "bootstrap-2026.10.25-r1+apt.android-7",
   "symlinks": [
     {
       "path": "usr/bin/[",
@@ -1090,6 +1090,10 @@
     {
       "path": "usr/lib/pkgconfig/tinfo.pc",
       "target": "ncursesw.pc"
+    },
+    {
+      "path": "usr/lib/python3.14/site-packages/pip/_vendor/certifi/cacert.pem",
+      "target": "/data/data/com.termux/files/usr/etc/tls/cert.pem"
     },
     {
       "path": "usr/lib/terminfo",
@@ -6655,6 +6659,7 @@
     "usr/lib/python3.14/lib-dynload/xxsubtype.cpython-314-x86_64-linux-android.so",
     "usr/lib/python3.14/lib-dynload/zlib.cpython-314-x86_64-linux-android.so",
     "usr/lib/python3.14/site-packages/pip/_internal/__init__.py",
+    "usr/lib/python3.14/site-packages/pip/_vendor/certifi/tests/test_certify.py",
     "usr/libexec/awk/grcat",
     "usr/libexec/awk/pwcat",
     "usr/libexec/coreutils/cat",
@@ -6739,23 +6744,23 @@
     },
     "libaaterm_proot.so": {
       "source": "bin/proot",
-      "sha256": "0fd3abad10fbc392d1fef0845ed5d0fb0e2674807e6978d93405c9e7cfc9f3cb",
-      "source_sha256": "9a1303a51e69b89d78beaf40e4ec829c5c2ca98cbd5672411bdb15eebd871316",
-      "bytes": 272145
+      "sha256": "51e80c16e194771a77334773f6d9b10878f0c7777b8a410d8e8d64cf891912c6",
+      "source_sha256": "9561fec6cfb4dd2c07dc0b41dec880361897e626147b183fb1d1092fb95ad35e",
+      "bytes": 298289
     },
     "libaaterm_talloc.so": {
       "source": "lib/libtalloc.so.2.5.0",
-      "sha256": "08231a4ec6fae5e7053d051d89fc39b5eeb05920ebff16d1d2fb1261fc5b7aec",
+      "sha256": "272676cf5ae5dc0303d4a2420bad282c5a84f8204d4d0b54e7f6444ea543610c",
       "source_sha256": "7fa6722a4320495b1b85832fc7fd02de0cb367b45f116c1921b2830a6936da90",
-      "bytes": 34785
+      "bytes": 36385
     }
   },
   "packages": {
     "attr": "2.6.0",
     "bash": "5.3.20",
     "bzip2": "1.0.8-8",
-    "c-ares": "1.34.8",
-    "ca-certificates": "1:2026.09.25",
+    "c-ares": "1.34.9",
+    "ca-certificates": "1:2026.10.20-1",
     "coreutils": "9.12",
     "curl": "8.23.0",
     "dash": "0.5.13.5",
@@ -6798,16 +6803,16 @@
     "libtalloc": "2.5.0",
     "ncurses": "6.6.20260307+really6.5.20250830",
     "ncurses-ui-libs": "6.6.20260307+really6.5.20250830",
-    "nodejs-lts": "24.18.0-1",
+    "nodejs-lts": "24.22.1",
     "npm": "11.21.1",
     "oniguruma": "6.9.10-1",
     "openssl": "1:3.6.5",
     "pcre2": "10.49",
     "procps": "4.0.7-2",
-    "proot": "5.1.107.96",
+    "proot": "5.1.107.101",
     "psmisc": "23.7-1",
-    "python": "3.14.6-1",
-    "python-pip": "26.2.1",
+    "python": "3.14.8",
+    "python-pip": "26.2.2-2",
     "readline": "8.3.6",
     "resolv-conf": "1.3",
     "sed": "4.10",
@@ -6829,10 +6834,10 @@
     "attr": "2.6.0",
     "bash": "5.3.20",
     "bzip2": "1.0.8-8",
-    "ca-certificates": "1:2026.09.25",
-    "command-not-found": "3.5.0-14",
-    "coreutils": "9.11-1",
-    "curl": "8.22.0",
+    "ca-certificates": "1:2026.10.20-1",
+    "command-not-found": "3.5.0-16",
+    "coreutils": "9.12",
+    "curl": "8.23.0",
     "dash": "0.5.13.5",
     "debianutils": "5.24",
     "dialog": "1.3-20260721-0",
@@ -6856,7 +6861,7 @@
     "libbz2": "1.0.8-8",
     "libc++": "30",
     "libcap-ng": "2:0.9.6",
-    "libcurl": "8.22.0",
+    "libcurl": "8.23.0",
     "libevent": "2.1.13",
     "libffi": "3.8.0",
     "libgcrypt": "1.12.4",
@@ -6869,7 +6874,7 @@
     "liblzma": "5.8.4",
     "libmagic": "5.48-3",
     "libmd": "1.3.0",
-    "libmpfr": "4.2.1-1",
+    "libmpfr": "4.2.2",
     "libnettle": "4.0+really3.10.2",
     "libnghttp2": "1.70.0",
     "libnghttp3": "1.18.0",
@@ -6879,15 +6884,15 @@
     "libssh2": "1.11.1-2",
     "libtasn1": "4.21.0",
     "libtirpc": "1.3.8",
-    "libunbound": "1.26.1",
+    "libunbound": "1.26.2",
     "libunistring": "1.4.2",
     "lsof": "4.99.7",
-    "nano": "9.2-1",
+    "nano": "9.3",
     "ncurses": "6.6.20260307+really6.5.20250830",
     "net-tools": "2.10.0-1",
     "openssl": "1:3.6.5",
     "p11-kit": "0.26.5",
-    "patch": "2.8-1",
+    "patch": "2.8.1",
     "pcre2": "10.49",
     "procps": "4.0.7-2",
     "psmisc": "23.7-1",
@@ -6910,7 +6915,7 @@
     "zstd": "1.5.7-1"
   },
   "musl": {
-    "musl": "1.2.5-r23",
+    "musl": "1.2.5-r24",
     "libgcc": "15.2.0-r2",
     "libstdc++": "15.2.0-r2"
   },

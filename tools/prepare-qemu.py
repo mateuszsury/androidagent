@@ -25,8 +25,8 @@ LOCK = ROOT / "docker/qemu-lock.json"
 ABIS = {"x86_64": ("x86_64", "x86-64"), "arm64-v8a": ("aarch64", "aarch64")}
 
 
-def download(url, dest, digest=None):
-    if not dest.exists() or (digest and hashlib.sha256(dest.read_bytes()).hexdigest() != digest):
+def download(url, dest, digest=None, force=False):
+    if force or not dest.exists() or (digest and hashlib.sha256(dest.read_bytes()).hexdigest() != digest):
         dest.parent.mkdir(parents=True, exist_ok=True)
         with urllib.request.urlopen(url, timeout=120) as response:
             data = response.read()
@@ -38,7 +38,7 @@ def download(url, dest, digest=None):
 
 def freeze(abi):
     arch, target = ABIS[abi]
-    index = download(BASE + f"dists/stable/main/binary-{arch}/Packages.gz", CACHE / (arch + "-Packages.gz"))
+    index = download(BASE + f"dists/stable/main/binary-{arch}/Packages.gz", CACHE / (arch + "-Packages.gz"), force=True)
     packages = {}
     for block in gzip.decompress(index.read_bytes()).decode().split("\n\n"):
         fields = dict(line.split(": ", 1) for line in block.splitlines() if ": " in line and not line.startswith(" "))
