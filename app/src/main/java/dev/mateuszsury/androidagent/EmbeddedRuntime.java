@@ -156,7 +156,7 @@ final class EmbeddedRuntime {
             if(!secondStage.isFile())throw new IOException("Brak skryptu pierwszego uruchomienia Termux");
             runBlocking(command(PREFIX+"/bin/bash",secondStage.getPath().replace(prefix().getPath(),PREFIX)),900);
             // Every acceptance probe runs through the actual signed-app JNI tracer.
-            String proof=runBlocking(command(PREFIX+"/bin/bash","--noprofile","--norc","-c","set -e; printf 'ANDROIDAGENT_RUNTIME_OK\\n'; bash --version | head -1; node --version; python --version; jq --version; curl --version | head -1; git --version"),180);
+            String proof=runBlocking(command(PREFIX+"/bin/bash","--noprofile","--norc","-c","set -eo pipefail; printf 'ANDROIDAGENT_RUNTIME_OK\\n'; bash --version; node --version; python --version; jq --version; curl --version; git --version"),180);
             if(!proof.contains("ANDROIDAGENT_RUNTIME_OK"))throw new IOException("Narzędzia nie odpowiedziały poprawnie");
             appendLog(proof);
             write(new File(current,".ready"),revision+"\n",false);
@@ -221,7 +221,11 @@ final class EmbeddedRuntime {
         List<String> full=new ArrayList<>();full.add(new File(nativeDir,executables.getString("proot")).getPath());full.add("--kill-on-exit");
         Collections.addAll(full,"-b",prefix().getPath()+":"+PREFIX,"-b",home().getPath()+":"+HOME,"-b",new File(prefix(),"bin").getPath()+":/bin","-b",new File(prefix(),"bin").getPath()+":/usr/bin","-b",new File(prefix(),"opt/androidagent/musl/lib").getPath()+":/lib","-b",resolver.getPath()+":/etc/resolv.conf","-b",new File(prefix(),"etc/tls").getPath()+":/etc/ssl","-w",HOME);Collections.addAll(full,args);
         ProcessBuilder pb=new ProcessBuilder(full);pb.directory(home());pb.redirectErrorStream(true);
-        Map<String,String> env=pb.environment();env.remove("LD_PRELOAD");env.remove("BUN_OPTIONS");env.put("LD_LIBRARY_PATH",nativeDir);
+        Map<String,String> env=pb.environment();env.remove("LD_PRELOAD");env.remove("BUN_OPTIONS");
+        // Keep Termux's unmodified libraries ahead of QEMU's separately renamed
+        // JNI copies. The parent PRoot process still resolves its prefixed
+        // libaaterm_* dependencies in nativeDir before the PRoot binds exist.
+        env.put("LD_LIBRARY_PATH",PREFIX+"/lib:"+nativeDir);
         env.put("PROOT_LOADER",new File(nativeDir,executables.getString("loader")).getPath());env.put("PROOT_TMP_DIR",temp.getPath());
         env.put("HOME",HOME);env.put("PREFIX",PREFIX);env.put("PATH",HOME+"/bin:"+PREFIX+"/bin:/system/bin");env.put("TMPDIR",PREFIX+"/tmp");env.put("SHELL",PREFIX+"/bin/bash");env.put("TERM","xterm-256color");env.put("LANG","C.UTF-8");
         env.put("SSL_CERT_FILE",PREFIX+"/etc/tls/cert.pem");env.put("SSL_CERT_DIR",PREFIX+"/etc/tls/certs");env.put("DISABLE_AUTOUPDATER","1");env.put("ANDROIDAGENT_EMBEDDED","1");env.put("TERMUX_EXEC__SYSTEM_LINKER_EXEC__MODE","disable");
