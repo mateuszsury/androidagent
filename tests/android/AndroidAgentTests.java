@@ -1009,8 +1009,20 @@ public class AndroidAgentTests extends Instrumentation {
                   check(
                       value.contentEquals(edit(current.getWindow().getDecorView()).getText()),
                       "Text action did not change field"));
-          ui.performGlobalAction(
-              android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_BACK);
+          // This is fixture cleanup, not a navigation assertion. Global Back is
+          // asynchronous and can arrive after the next activity is launched.
+          main(() -> app.getSystemService(android.view.inputmethod.InputMethodManager.class)
+              .hideSoftInputFromWindow(current.getWindow().getDecorView().getWindowToken(), 0));
+          long hideUntil = SystemClock.elapsedRealtime() + 5000;
+          boolean[] hidden = {false};
+          do {
+            main(() -> {
+              WindowInsets insets = current.getWindow().getDecorView().getRootWindowInsets();
+              hidden[0] = insets != null && !insets.isVisible(WindowInsets.Type.ime());
+            });
+            if (!hidden[0]) SystemClock.sleep(50);
+          } while (!hidden[0] && SystemClock.elapsedRealtime() < hideUntil);
+          check(hidden[0], "Keyboard cleanup did not complete before the next fixture");
         });
     test(
         "MCP: scroll moves native content",
