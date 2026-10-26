@@ -104,12 +104,14 @@ jobs:
             df -h
             exit 1
           fi
+          adb shell wm dismiss-keyguard
+          bash tools/ci-wait-for-home.sh
           adb shell wm size 720x1480
           adb shell wm density 300
           adb shell settings put global window_animation_scale 0
           adb shell settings put global transition_animation_scale 0
           adb shell settings put global animator_duration_scale 0
-          adb shell input keyevent 82
+          bash tools/ci-wait-for-home.sh
       - name: Clean embedded runtime and official client tests without model login
         run: ./tools/test-embedded-runtime.sh --clean "artifacts/androidagent-$APP_VERSION.apk"
       - name: Device tests
