@@ -5,7 +5,7 @@ The verified build path is the Linux script toolchain: `aapt2 → javac → d8 �
 ## Requirements
 
 - Linux x86_64 with a working local Docker daemon and enough storage for two runtime images, caches and SDK tools.
-- JDK **21**, Python **3.12** (tested; 3.11+ for the full tools/test suite), `dpkg-deb`, `binutils`/`readelf`, `patchelf` and Python `pyelftools`.
+- JDK **21**, Python **3.12** (tested; 3.11+ for the full tools/test suite), `dpkg-deb`, `binutils`/`readelf`, and the pinned `patchelf`/`pyelftools` in `requirements-dev.txt`.
 - Android SDK: `platforms;android-36`, `build-tools;35.0.0`, `platform-tools`.
 - Android NDK **29.0.14206865** for ARM64/x86_64 USB JNI.
 - For emulator tests: Android Emulator and an x86_64 system image. KVM is preferred; [software TCG](WEBVIEW.md) is also supported with documented limitations.
@@ -94,3 +94,9 @@ source recipes before committing. Run the Android API matrix against the new
 runtimes. Published release manifests and checksums remain tied to their original
 artifacts; do not replace them with regenerated files. Retain the exact source
 archives and dependency packages when producing a long-lived release.
+
+The pinned patchelf 0.19.1 is intentional. Version 0.18 can relocate the pinned
+QEMU executable's `DT_STRTAB` beyond every file-backed load segment, causing
+Android's linker to crash while reading its runpath. Packaging validates this
+mapping for every generated native ELF; the host regressions also reject a
+compiled ELF with a deliberately unmapped string table.
