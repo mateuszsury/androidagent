@@ -77,3 +77,20 @@ Device suites change settings, create fixtures and may reset application or Dock
 GitHub Actions runs quick documentation/host checks and a separate application build/emulator workflow. CI-generated APKs use ephemeral development signing and are not maintainer releases.
 
 Source and license details: [terminal](../terminal/README.md), [Docker sources](../docker/SOURCES.md), [USB sources](../usb/README.md) and [third-party notices](../THIRD_PARTY_NOTICES.md).
+
+## Refreshing expired upstream packages
+
+Termux replaces packages in its rolling pool. If a pinned package returns HTTP
+404, normal builds must fail rather than silently select a newer version. A
+maintainer can refresh and review the locks explicitly:
+
+```sh
+python3 tools/prepare-qemu.py --update-lock
+python3 tools/prepare-terminal.py --update-lock
+```
+
+Review lock changes, generated ELF inventories, license notices and corresponding
+source recipes before committing. Run the Android API matrix against the new
+runtimes. Published release manifests and checksums remain tied to their original
+artifacts; do not replace them with regenerated files. Retain the exact source
+archives and dependency packages when producing a long-lived release.

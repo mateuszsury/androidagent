@@ -1,8 +1,8 @@
 {
   "version": 1,
   "prefix": "/data/data/com.termux/files/usr",
-  "bootstrap_release": "bootstrap-2026.10.11-r1+apt.android-7",
-  "recipes_commit": "ae877f2c6a2b2318abeb43699d6ec5f619c216a6",
+  "bootstrap_release": "bootstrap-2026.10.25-r1+apt.android-7",
+  "recipes_commit": "14ef1032809e1d885bf120b1ee03d751e3727325",
   "requested_packages": [
     "bash",
     "coreutils",
@@ -29,10 +29,10 @@
   "abis": {
     "arm64-v8a": {
       "bootstrap": {
-        "url": "https://github.com/termux/termux-packages/releases/download/bootstrap-2026.10.11-r1%2Bapt.android-7/bootstrap-aarch64.zip",
-        "sha256": "b7827bc99710293d0e871df8b96d9d3a8ab6b22ee4b4a6f3ac076754818990ab",
-        "bytes": 33044364,
-        "asset_id": 629358474
+        "url": "https://github.com/termux/termux-packages/releases/download/bootstrap-2026.10.25-r1%2Bapt.android-7/bootstrap-aarch64.zip",
+        "sha256": "964e0473a9fa881600927c0151b99896089fb595b81afdcd74b1a6743b8b5889",
+        "bytes": 33081376,
+        "asset_id": 673682721
       },
       "packages": {
         "attr": {
@@ -61,17 +61,17 @@
           ]
         },
         "c-ares": {
-          "version": "1.34.8",
-          "filename": "pool/main/c/c-ares/c-ares_1.34.8_aarch64.deb",
-          "sha256": "7681fc23e822d7988ba8b2adf3468f93ae68f724dda365cff1385096a9fa87e6",
+          "version": "1.34.9",
+          "filename": "pool/main/c/c-ares/c-ares_1.34.9_aarch64.deb",
+          "sha256": "623d84855e176f3f2a415d24c0e1d2f529356f4b5439bb3313e6d7ff0da4585c",
           "depends": [
             "resolv-conf"
           ]
         },
         "ca-certificates": {
-          "version": "1:2026.09.25",
-          "filename": "pool/main/c/ca-certificates/ca-certificates_1:2026.09.25_all.deb",
-          "sha256": "57fab24bf4561bfdd35afe71bc1929914e51c35458cfd1fca2b15e54bc8df7af",
+          "version": "1:2026.10.20-1",
+          "filename": "pool/main/c/ca-certificates/ca-certificates_1:2026.10.20-1_all.deb",
+          "sha256": "ab8a7fe63293b455c02399ee125eb8a0041e430ccfdf89a5be8317522fdf9107",
           "depends": []
         },
         "coreutils": {
@@ -400,9 +400,9 @@
           ]
         },
         "nodejs-lts": {
-          "version": "24.18.0-1",
-          "filename": "pool/main/n/nodejs-lts/nodejs-lts_24.18.0-1_aarch64.deb",
-          "sha256": "490f4d08c45b25a7ea7db6ee466ebb3ee61f07083260b85332704ed018f59a87",
+          "version": "24.22.1",
+          "filename": "pool/main/n/nodejs-lts/nodejs-lts_24.22.1_aarch64.deb",
+          "sha256": "c4aae57009e4398613807d77ff395026455fe03b6d9d8a29f929212b04f74719",
           "depends": [
             "libc++",
             "openssl",
@@ -452,9 +452,9 @@
           ]
         },
         "proot": {
-          "version": "5.1.107.96",
-          "filename": "pool/main/p/proot/proot_5.1.107.96_aarch64.deb",
-          "sha256": "8199dca06dccb693ec09fb1759e3e1ad08b4863f0c11c612f89c20bd9ecdc1a0",
+          "version": "5.1.107.101",
+          "filename": "pool/main/p/proot/proot_5.1.107.101_aarch64.deb",
+          "sha256": "a28355e9be257e1f87f4e9294b3118470d4fd7a5442fed8b278f4443c83407d7",
           "depends": [
             "libandroid-shmem",
             "libtalloc"
@@ -469,9 +469,9 @@
           ]
         },
         "python": {
-          "version": "3.14.6-1",
-          "filename": "pool/main/p/python/python_3.14.6-1_aarch64.deb",
-          "sha256": "3166e56c2b6c03fff41191fbb9d736302978e7c484702814d9f6dc99dd6006bd",
+          "version": "3.14.8",
+          "filename": "pool/main/p/python/python_3.14.8_aarch64.deb",
+          "sha256": "55fcd7c23a603ba0caeca3ef9e670ec88ff71c1a480101de4983629792563b5e",
           "depends": [
             "gdbm",
             "libandroid-posix-semaphore",
@@ -491,10 +491,11 @@
           ]
         },
         "python-pip": {
-          "version": "26.2.1",
-          "filename": "pool/main/p/python-pip/python-pip_26.2.1_all.deb",
-          "sha256": "92a9cb4b3c99dd20086f90fedc95c604eefc5bd0f88d1862690884474f82de44",
+          "version": "26.2.2-2",
+          "filename": "pool/main/p/python-pip/python-pip_26.2.2-2_all.deb",
+          "sha256": "23ed8ac9de43feaf0e2171451a3e6cc3cccedc32e90c01c894489babe078e6a2",
           "depends": [
+            "ca-certificates",
             "python"
           ]
         },
@@ -638,16 +639,16 @@
           ]
         }
       },
-      "package_index_sha256": "53b4074477a5e652be9ed4b0056da599eed45e5796a78eb178053409e1cad54f",
+      "package_index_sha256": "18d9ee9d2a8731f60ac35df74789cbc23a5bb69b75733a333f7a6fd1c934b359",
       "musl": {
         "musl": {
-          "version": "1.2.5-r23",
-          "url": "https://dl-cdn.alpinelinux.org/alpine/v3.23/main/aarch64/musl-1.2.5-r23.apk",
-          "sha256": "6a3edd924ead1fad88a69e28c5775809af3026b322f58428001cd02fedc5299e",
-          "bytes": 416104,
+          "version": "1.2.5-r24",
+          "url": "https://dl-cdn.alpinelinux.org/alpine/v3.23/main/aarch64/musl-1.2.5-r24.apk",
+          "sha256": "d7043c549029c98d438e9bc94213b006e5c88540eb58d1f5b0f0d1d56dbf9c98",
+          "bytes": 416083,
           "license": "MIT",
           "origin": "musl",
-          "aports_commit": "8aef0c37b0ad23dc4137f0e4755b97a59dc698b8"
+          "aports_commit": "fd05fc094264bce4fb76efc6c7f61ba4abfcb609"
         },
         "libgcc": {
           "version": "15.2.0-r2",
@@ -671,10 +672,10 @@
     },
     "x86_64": {
       "bootstrap": {
-        "url": "https://github.com/termux/termux-packages/releases/download/bootstrap-2026.10.11-r1%2Bapt.android-7/bootstrap-x86_64.zip",
-        "sha256": "fd3a23238566dfa6464c7d01744a1dc662088884141296ca08e45c97482953e9",
-        "bytes": 32954571,
-        "asset_id": 629358647
+        "url": "https://github.com/termux/termux-packages/releases/download/bootstrap-2026.10.25-r1%2Bapt.android-7/bootstrap-x86_64.zip",
+        "sha256": "cb0ffc9f35dbb13971aad9683c393e6652bc95a4ba0eac905ca35065687f7de4",
+        "bytes": 32992728,
+        "asset_id": 673683140
       },
       "packages": {
         "attr": {
@@ -703,17 +704,17 @@
           ]
         },
         "c-ares": {
-          "version": "1.34.8",
-          "filename": "pool/main/c/c-ares/c-ares_1.34.8_x86_64.deb",
-          "sha256": "c5d6194d69a04089040ca50dad96ed7df8773bd3c3d7c4be7d1dd5661ceae6b4",
+          "version": "1.34.9",
+          "filename": "pool/main/c/c-ares/c-ares_1.34.9_x86_64.deb",
+          "sha256": "ac96c37fcc9181d1a7095f60485457fe6c3d784a83b0e8e6e7af9b3bfceda237",
           "depends": [
             "resolv-conf"
           ]
         },
         "ca-certificates": {
-          "version": "1:2026.09.25",
-          "filename": "pool/main/c/ca-certificates/ca-certificates_1:2026.09.25_all.deb",
-          "sha256": "57fab24bf4561bfdd35afe71bc1929914e51c35458cfd1fca2b15e54bc8df7af",
+          "version": "1:2026.10.20-1",
+          "filename": "pool/main/c/ca-certificates/ca-certificates_1:2026.10.20-1_all.deb",
+          "sha256": "ab8a7fe63293b455c02399ee125eb8a0041e430ccfdf89a5be8317522fdf9107",
           "depends": []
         },
         "coreutils": {
@@ -1042,9 +1043,9 @@
           ]
         },
         "nodejs-lts": {
-          "version": "24.18.0-1",
-          "filename": "pool/main/n/nodejs-lts/nodejs-lts_24.18.0-1_x86_64.deb",
-          "sha256": "2a41c61c609993a7d897fed130adf4d6debb0b30713ab85bb47c2fc8373458ba",
+          "version": "24.22.1",
+          "filename": "pool/main/n/nodejs-lts/nodejs-lts_24.22.1_x86_64.deb",
+          "sha256": "0e485c9bb50bab5be692c6f8cbdec3934bb66795f089af2b67274c4583b85767",
           "depends": [
             "libc++",
             "openssl",
@@ -1094,9 +1095,9 @@
           ]
         },
         "proot": {
-          "version": "5.1.107.96",
-          "filename": "pool/main/p/proot/proot_5.1.107.96_x86_64.deb",
-          "sha256": "77ea45540071ca543adda2b51aca2bc3761c52904d013fd0890682288eff9455",
+          "version": "5.1.107.101",
+          "filename": "pool/main/p/proot/proot_5.1.107.101_x86_64.deb",
+          "sha256": "85adb8d0d2e1edc6c56e60c17136adf05e54ce75f69407ec7116a4c5997eaed5",
           "depends": [
             "libandroid-shmem",
             "libtalloc"
@@ -1111,9 +1112,9 @@
           ]
         },
         "python": {
-          "version": "3.14.6-1",
-          "filename": "pool/main/p/python/python_3.14.6-1_x86_64.deb",
-          "sha256": "7fa420e055367c5c14a4cc18158046451aae16f5d82ba4d4a95ef90592f7e15f",
+          "version": "3.14.8",
+          "filename": "pool/main/p/python/python_3.14.8_x86_64.deb",
+          "sha256": "84f11d933bd7ec2b26b2aeaf1f2163ebfd8a9d87d27a342d80f46fbee90f1bcd",
           "depends": [
             "gdbm",
             "libandroid-posix-semaphore",
@@ -1133,10 +1134,11 @@
           ]
         },
         "python-pip": {
-          "version": "26.2.1",
-          "filename": "pool/main/p/python-pip/python-pip_26.2.1_all.deb",
-          "sha256": "92a9cb4b3c99dd20086f90fedc95c604eefc5bd0f88d1862690884474f82de44",
+          "version": "26.2.2-2",
+          "filename": "pool/main/p/python-pip/python-pip_26.2.2-2_all.deb",
+          "sha256": "23ed8ac9de43feaf0e2171451a3e6cc3cccedc32e90c01c894489babe078e6a2",
           "depends": [
+            "ca-certificates",
             "python"
           ]
         },
@@ -1280,16 +1282,16 @@
           ]
         }
       },
-      "package_index_sha256": "1dc8745605d5b488aae66a85e0383df764d0f5f2ea8f9e531d0d0a65c65026a9",
+      "package_index_sha256": "bf265ef9b8cc23c6d698b47f4f0979d4b5571f1178fdd5afbe6cbd8d8455eb00",
       "musl": {
         "musl": {
-          "version": "1.2.5-r23",
-          "url": "https://dl-cdn.alpinelinux.org/alpine/v3.23/main/x86_64/musl-1.2.5-r23.apk",
-          "sha256": "4f3c4a7bf9f51d2c91007e333b17459362ffd881b4a343e8da07b6c50c4f4a0d",
-          "bytes": 414071,
+          "version": "1.2.5-r24",
+          "url": "https://dl-cdn.alpinelinux.org/alpine/v3.23/main/x86_64/musl-1.2.5-r24.apk",
+          "sha256": "d49d703392f1a6d2fe822db1b57e61735063077e1ad846d5f40d79fe507ec727",
+          "bytes": 414107,
           "license": "MIT",
           "origin": "musl",
-          "aports_commit": "8aef0c37b0ad23dc4137f0e4755b97a59dc698b8"
+          "aports_commit": "fd05fc094264bce4fb76efc6c7f61ba4abfcb609"
         },
         "libgcc": {
           "version": "15.2.0-r2",
