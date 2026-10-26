@@ -94,7 +94,10 @@ jobs:
       - name: Start Android emulator
         timeout-minutes: 12
         run: |
-          echo no | avdmanager create avd --force --name androidagent --package 'system-images;android-${{ matrix.api }};google_apis;x86_64' --device pixel_3a
+          export ANDROID_AVD_HOME="$RUNNER_TEMP/androidagent-avd"
+          mkdir -p "$ANDROID_AVD_HOME"
+          echo no | avdmanager --verbose create avd --force --name androidagent --path "$ANDROID_AVD_HOME/androidagent.avd" --package 'system-images;android-${{ matrix.api }};google_apis;x86_64' --device pixel_3a
+          test -f "$ANDROID_AVD_HOME/androidagent.ini"
           "$ANDROID_SDK_ROOT/emulator/emulator" -avd androidagent -port 5554 -no-window -no-audio -no-boot-anim -no-snapshot -no-metrics -gpu swiftshader_indirect -memory 4096 -accel on > "$RUNNER_TEMP/emulator.log" 2>&1 &
           if ! timeout 120 adb wait-for-device || ! timeout 300 bash -c 'until [ "$(adb shell getprop sys.boot_completed | tr -d "\r")" = 1 ]; do sleep 3; done'; then
             tail -100 "$RUNNER_TEMP/emulator.log"
