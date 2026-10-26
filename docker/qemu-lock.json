@@ -1,9 +1,9 @@
 {
   "x86_64": {
     "qemu-utils": {
-      "Version": "1:11.0.3",
-      "Filename": "pool/main/q/qemu-utils/qemu-utils_1:11.0.3_x86_64.deb",
-      "SHA256": "0e65843f78b5acf520851ef149eb9359568497db5d0ea904c931bdd4bcde7922"
+      "Version": "1:11.1.2",
+      "Filename": "pool/main/q/qemu-utils/qemu-utils_1:11.1.2_x86_64.deb",
+      "SHA256": "48c3798a7c2ab4271fe8a1e0b8c5c17acebc2e1f61d3c9e308e426098666fb0d"
     },
     "zstd": {
       "Version": "1.5.7-1",
@@ -31,9 +31,9 @@
       "SHA256": "540f144592d23d35672976e175ede1b5d8cf464f153f646df5d4e6dcd8491a15"
     },
     "ca-certificates": {
-      "Version": "1:2026.09.25",
-      "Filename": "pool/main/c/ca-certificates/ca-certificates_1:2026.09.25_all.deb",
-      "SHA256": "57fab24bf4561bfdd35afe71bc1929914e51c35458cfd1fca2b15e54bc8df7af"
+      "Version": "1:2026.10.20-1",
+      "Filename": "pool/main/c/ca-certificates/ca-certificates_1:2026.10.20-1_all.deb",
+      "SHA256": "ab8a7fe63293b455c02399ee125eb8a0041e430ccfdf89a5be8317522fdf9107"
     },
     "libpixman": {
       "Version": "0.46.4-1",
@@ -81,9 +81,9 @@
       "SHA256": "665900760c05959ec076082a0941f05bd452f301e5a70bdfa7383fd3404d44d5"
     },
     "libunbound": {
-      "Version": "1.26.1",
-      "Filename": "pool/main/libu/libunbound/libunbound_1.26.1_x86_64.deb",
-      "SHA256": "287e8db3440421530a3e1dcc73075a529ce66ccc2f97c30d342a81552eb424ac"
+      "Version": "1.26.2",
+      "Filename": "pool/main/libu/libunbound/libunbound_1.26.2_x86_64.deb",
+      "SHA256": "7b1f9155b69184e051d73ad68d82ae146a643fda5be084641b3edb17aedbffa7"
     },
     "resolv-conf": {
       "Version": "1.3",
@@ -126,9 +126,9 @@
       "SHA256": "c9bcd9a8067a19c9c0e4893a72d314a2e37d6b67ce8dd05c67b9bbacad044b4f"
     },
     "libcurl": {
-      "Version": "8.22.0",
-      "Filename": "pool/main/libc/libcurl/libcurl_8.22.0_x86_64.deb",
-      "SHA256": "b442ccf9eea4a4695bdc71b1bc577990e3d56024d245886f9b4bf2efa3e009aa"
+      "Version": "8.23.0",
+      "Filename": "pool/main/libc/libcurl/libcurl_8.23.0_x86_64.deb",
+      "SHA256": "fa71ce8eca3d0aa48a748fc60e4519351fc9c4d51b20cac5722190cb002cfd1c"
     },
     "libssh2": {
       "Version": "1.11.1-2",
@@ -156,14 +156,14 @@
       "SHA256": "4a6f66ac12565342897ce9b5cd11ba8ce6fce1fd1a91ae679c3468d7fc2ee541"
     },
     "qemu-system-x86-64-headless": {
-      "Version": "1:11.0.3",
-      "Filename": "pool/main/q/qemu-system-x86-64-headless/qemu-system-x86-64-headless_1:11.0.3_x86_64.deb",
-      "SHA256": "f9e044c9c42df23eaee5b0cec561fdc94a0655b188b4ab9ec94df193a41f5380"
+      "Version": "1:11.1.2",
+      "Filename": "pool/main/q/qemu-system-x86-64-headless/qemu-system-x86-64-headless_1:11.1.2_x86_64.deb",
+      "SHA256": "6e50ba0a76b5a74613139c8cdcfe7a29455e6d9c412a68228630d4be6e546444"
     },
     "qemu-common": {
-      "Version": "1:11.0.3",
-      "Filename": "pool/main/q/qemu-common/qemu-common_1:11.0.3_x86_64.deb",
-      "SHA256": "a081423bb27887c68faedf769bbaf406e8175bcbed348216fe6a56bd0121e66f"
+      "Version": "1:11.1.2",
+      "Filename": "pool/main/q/qemu-common/qemu-common_1:11.1.2_x86_64.deb",
+      "SHA256": "fa356520a9e46fb86c1689bbbc23d4bc4625990e6c6bc64299ea9b7c0d83308d"
     },
     "libcap-ng": {
       "Version": "2:0.9.6",
@@ -171,9 +171,9 @@
       "SHA256": "5f5c07e5e96bb415a935b1b25f729ba03db7952a5e55c65582de5fdbe481c83d"
     },
     "pulseaudio": {
-      "Version": "17.0-4",
-      "Filename": "pool/main/p/pulseaudio/pulseaudio_17.0-4_x86_64.deb",
-      "SHA256": "51ce7cc0559e9c0ee0513c5bf2018a2b626f593fd03265f7dbd18c8cd3b0d0fa"
+      "Version": "17.0-5",
+      "Filename": "pool/main/p/pulseaudio/pulseaudio_17.0-5_x86_64.deb",
+      "SHA256": "1930e52ba1c15b9489eebf54dadea1719cbd0c41d9cbd51eacd575c1527ac058"
     },
     "speexdsp": {
       "Version": "1.2.1-1",
@@ -181,14 +181,14 @@
       "SHA256": "9d8b3656fb666b524cd46ef6c37b3323033e7398400746fc09945dc004fb0e7f"
     },
     "libwebrtc-audio-processing": {
-      "Version": "1.3-5",
-      "Filename": "pool/main/libw/libwebrtc-audio-processing/libwebrtc-audio-processing_1.3-5_x86_64.deb",
-      "SHA256": "62c590596749074a10e02cec7f0e177534daa1e5c6f56cd66e965c0d658b7873"
+      "Version": "2.1",
+      "Filename": "pool/main/libw/libwebrtc-audio-processing/libwebrtc-audio-processing_2.1_x86_64.deb",
+      "SHA256": "41c2edbeca90f597a7c629017e1c51ee9e06fdb1d36400cdee7ad1d09eedb864"
     },
     "abseil-cpp": {
-      "Version": "20260526.0",
-      "Filename": "pool/main/a/abseil-cpp/abseil-cpp_20260526.0_x86_64.deb",
-      "SHA256": "d94b07d12d2fa548b284f51716624d9f6e405227fa74014b63d1eb7780d1ec44"
+      "Version": "20260817.0",
+      "Filename": "pool/main/a/abseil-cpp/abseil-cpp_20260817.0_x86_64.deb",
+      "SHA256": "cdd59794ae695e8dbade2d718bf781bc95b1ef01ee159e7617e90d9bca1b2da5"
     },
     "libsoxr": {
       "Version": "0.1.3-8",
@@ -246,9 +246,9 @@
       "SHA256": "348582b47b4b6dec8c13147437d8bd93d029239bc95f30635074cad08efb6220"
     },
     "libandroid-stub": {
-      "Version": "30-1",
-      "Filename": "pool/main/liba/libandroid-stub/libandroid-stub_30-1_x86_64.deb",
-      "SHA256": "2b805f99d4be100c9c60e1ad98444073551a3a22ab78bff6791d125ba3385607"
+      "Version": "30-2",
+      "Filename": "pool/main/liba/libandroid-stub/libandroid-stub_30-2_x86_64.deb",
+      "SHA256": "8f821820f69850016dcff77f4c76a64d1c04dd88d5bdd59f14d498679e4c3433"
     },
     "dbus": {
       "Version": "1.16.2-3",
@@ -256,9 +256,9 @@
       "SHA256": "7860940419ff89270227063267f7aab3e3b7a91789359d9296190e50a361aff7"
     },
     "libx11": {
-      "Version": "1.8.13-1",
-      "Filename": "pool/main/libx/libx11/libx11_1.8.13-1_x86_64.deb",
-      "SHA256": "95d7acb460930fce61c26baeafb002e9b978df569b89d4093ad4de1e7dfd78d7"
+      "Version": "1.8.14",
+      "Filename": "pool/main/libx/libx11/libx11_1.8.14_x86_64.deb",
+      "SHA256": "e155dc1171b12a3f625e8516aa195d3c4ac63b850b079b203029b1b0874d497d"
     },
     "xorgproto": {
       "Version": "2026.1",
@@ -361,9 +361,9 @@
       "SHA256": "91e33ce5d5ebc26118bc3e2f3266f508fd94ea512b6df4ed633118f4d754eb2c"
     },
     "libxi": {
-      "Version": "1.8.3",
-      "Filename": "pool/main/libx/libxi/libxi_1.8.3_x86_64.deb",
-      "SHA256": "0aac03fc1b1102c9c7ade3fa8fd8b392f5be1b18fcf24bc68449b1d1c6a3366d"
+      "Version": "1.8.4",
+      "Filename": "pool/main/libx/libxi/libxi_1.8.4_x86_64.deb",
+      "SHA256": "c558ba4529a341bc2e3f1aa8decc0602aaa3f92812bb22405b9c6e644e54f174"
     },
     "libtheora": {
       "Version": "1.2.0-1",
@@ -396,14 +396,14 @@
       "SHA256": "90fe00b4b8746317c3698d50294fced19df5741e5e5f81e33cc90c86693398c7"
     },
     "libdw": {
-      "Version": "0.196",
-      "Filename": "pool/main/libd/libdw/libdw_0.196_x86_64.deb",
-      "SHA256": "634a24a730d6c27a47c5a3690425abf7d67eef6c64f64e8f16a61ede3fd0947f"
+      "Version": "0.197",
+      "Filename": "pool/main/libd/libdw/libdw_0.197_x86_64.deb",
+      "SHA256": "09b39adff368fe66353df537b993a66ac0384c6e4eafb03a7577545cac64723f"
     },
     "libelf": {
-      "Version": "0.196",
-      "Filename": "pool/main/libe/libelf/libelf_0.196_x86_64.deb",
-      "SHA256": "fb018c2d09bdc98c5c3f4a9756630153bed22cf65487ce375fe19cdb7d073538"
+      "Version": "0.197",
+      "Filename": "pool/main/libe/libelf/libelf_0.197_x86_64.deb",
+      "SHA256": "22446e45c0d033c3c020b02151bff4f72e21cfa49bf9b827b4242836ff0b25f1"
     },
     "json-c": {
       "Version": "0.19",
@@ -453,9 +453,9 @@
   },
   "arm64-v8a": {
     "qemu-utils": {
-      "Version": "1:11.0.3",
-      "Filename": "pool/main/q/qemu-utils/qemu-utils_1:11.0.3_aarch64.deb",
-      "SHA256": "04253f7640c5cbbc94cb438b2270cd03b5d2e95427baed0bfeab2a690fea1922"
+      "Version": "1:11.1.2",
+      "Filename": "pool/main/q/qemu-utils/qemu-utils_1:11.1.2_aarch64.deb",
+      "SHA256": "3034aac2235208db4e54961fe75688230945865e617ed5410ddb60fa66f46d94"
     },
     "zstd": {
       "Version": "1.5.7-1",
@@ -483,9 +483,9 @@
       "SHA256": "a2fb7856875e63ef6b90442752e05974813372c3ca86d2513a78ea43c67a0f8b"
     },
     "ca-certificates": {
-      "Version": "1:2026.09.25",
-      "Filename": "pool/main/c/ca-certificates/ca-certificates_1:2026.09.25_all.deb",
-      "SHA256": "57fab24bf4561bfdd35afe71bc1929914e51c35458cfd1fca2b15e54bc8df7af"
+      "Version": "1:2026.10.20-1",
+      "Filename": "pool/main/c/ca-certificates/ca-certificates_1:2026.10.20-1_all.deb",
+      "SHA256": "ab8a7fe63293b455c02399ee125eb8a0041e430ccfdf89a5be8317522fdf9107"
     },
     "libpixman": {
       "Version": "0.46.4-1",
@@ -533,9 +533,9 @@
       "SHA256": "f2f145d6135ad4843ac9670153be3e3944dc1e6f1736d46d2306c28f2b86f517"
     },
     "libunbound": {
-      "Version": "1.26.1",
-      "Filename": "pool/main/libu/libunbound/libunbound_1.26.1_aarch64.deb",
-      "SHA256": "cbf8d03d16e2cb3f8f640b39f1d0c06dbb6bbb26fdefeeaed97187256bae59d7"
+      "Version": "1.26.2",
+      "Filename": "pool/main/libu/libunbound/libunbound_1.26.2_aarch64.deb",
+      "SHA256": "0eb26a2c0a3f4c80cf11350b4dee4f53f1d154b58bf76555ee13255213178571"
     },
     "resolv-conf": {
       "Version": "1.3",
@@ -578,9 +578,9 @@
       "SHA256": "53d0b84a7ba7459024257cb94d5b136fe13ef858567f65a8064b35950799f2ca"
     },
     "libcurl": {
-      "Version": "8.22.0",
-      "Filename": "pool/main/libc/libcurl/libcurl_8.22.0_aarch64.deb",
-      "SHA256": "e780d925d977c32a3cfe6a2c7d340f0726618786deee98b0cb8b601efb93a8c9"
+      "Version": "8.23.0",
+      "Filename": "pool/main/libc/libcurl/libcurl_8.23.0_aarch64.deb",
+      "SHA256": "2011bb9709261bb3d5ecaa6672faa333be14cf48ad4af37031e3e365309557ac"
     },
     "libssh2": {
       "Version": "1.11.1-2",
@@ -608,14 +608,14 @@
       "SHA256": "c27995e5f52b8ecc9b8b3e662eb08e49f82a18bfd3f34343936acc7b23964724"
     },
     "qemu-system-aarch64-headless": {
-      "Version": "1:11.0.3",
-      "Filename": "pool/main/q/qemu-system-aarch64-headless/qemu-system-aarch64-headless_1:11.0.3_aarch64.deb",
-      "SHA256": "e0e0dec3b5ab264bacbae5656888c8dc45dedf9997d75bafdc4d2d4943911263"
+      "Version": "1:11.1.2",
+      "Filename": "pool/main/q/qemu-system-aarch64-headless/qemu-system-aarch64-headless_1:11.1.2_aarch64.deb",
+      "SHA256": "3badce06e651c7da885287c48be713b61b7ff196e215e91da0f49fcf8fa91679"
     },
     "qemu-common": {
-      "Version": "1:11.0.3",
-      "Filename": "pool/main/q/qemu-common/qemu-common_1:11.0.3_aarch64.deb",
-      "SHA256": "743cc216431a0b0b73dc7f7c404a7c54107bd5f643d073a60325e7797f95016a"
+      "Version": "1:11.1.2",
+      "Filename": "pool/main/q/qemu-common/qemu-common_1:11.1.2_aarch64.deb",
+      "SHA256": "df001684b2cf77a6a07f1d0b8a07c8e6f7d7d46f0b8461ebdc1bcf9e343b6bb3"
     },
     "libcap-ng": {
       "Version": "2:0.9.6",
@@ -623,9 +623,9 @@
       "SHA256": "68e8e2a95e5ac061e40717654fe2014042d88bfa2b85455713ed992eb694f89d"
     },
     "pulseaudio": {
-      "Version": "17.0-4",
-      "Filename": "pool/main/p/pulseaudio/pulseaudio_17.0-4_aarch64.deb",
-      "SHA256": "b119f3a5beb33273a6457e648a2ea501d6a507be8e99501737897c3ea07854cd"
+      "Version": "17.0-5",
+      "Filename": "pool/main/p/pulseaudio/pulseaudio_17.0-5_aarch64.deb",
+      "SHA256": "4e110e32007fee5aaf67cfa2f35ae67c11ed53f45da857d0def426e2ca66f8c8"
     },
     "speexdsp": {
       "Version": "1.2.1-1",
@@ -633,14 +633,14 @@
       "SHA256": "21cd5d122a8d24dffb9b2926dff7059f8f42cde7c5a91f27ea5c9b4f40356be0"
     },
     "libwebrtc-audio-processing": {
-      "Version": "1.3-5",
-      "Filename": "pool/main/libw/libwebrtc-audio-processing/libwebrtc-audio-processing_1.3-5_aarch64.deb",
-      "SHA256": "136f87d3c8aec04b94392a10174851936d21402f2f28aacdefd2cfd05ced367c"
+      "Version": "2.1",
+      "Filename": "pool/main/libw/libwebrtc-audio-processing/libwebrtc-audio-processing_2.1_aarch64.deb",
+      "SHA256": "42d9e12e057dbbbbd513cab67a902ebff0f991c4b1cfe58a42374ab18c278be0"
     },
     "abseil-cpp": {
-      "Version": "20260526.0",
-      "Filename": "pool/main/a/abseil-cpp/abseil-cpp_20260526.0_aarch64.deb",
-      "SHA256": "e489fac652cddc39d9436141e627285f1034a545a06fbb19c420514a419ad877"
+      "Version": "20260817.0",
+      "Filename": "pool/main/a/abseil-cpp/abseil-cpp_20260817.0_aarch64.deb",
+      "SHA256": "b698963bb7096494ad928ce89cd869a53e6adf0b05f5f407b40fda9c85c6e2b0"
     },
     "libsoxr": {
       "Version": "0.1.3-8",
@@ -698,9 +698,9 @@
       "SHA256": "725dd2c6da7fc96e860fcc928e18aa9fb0e85e0bdcaf4f8ce0f0654ca6860fc2"
     },
     "libandroid-stub": {
-      "Version": "30-1",
-      "Filename": "pool/main/liba/libandroid-stub/libandroid-stub_30-1_aarch64.deb",
-      "SHA256": "5b392496146309b8454780821591dccb7e6a7050f8789f3bc97b4bb6c2b6bc67"
+      "Version": "30-2",
+      "Filename": "pool/main/liba/libandroid-stub/libandroid-stub_30-2_aarch64.deb",
+      "SHA256": "74087792a86e3f90772627f2217797e422e5d5fc47f24ad825fc3bbb539a667a"
     },
     "dbus": {
       "Version": "1.16.2-3",
@@ -708,9 +708,9 @@
       "SHA256": "1b6d5e349708414acbbb1404210e32d4e3f390890d02e162639dec1016a8657b"
     },
     "libx11": {
-      "Version": "1.8.13-1",
-      "Filename": "pool/main/libx/libx11/libx11_1.8.13-1_aarch64.deb",
-      "SHA256": "a18c5cf3cfe2670bf1cb4243e3140a0b7639350a4175b5229c969402fdb12e9f"
+      "Version": "1.8.14",
+      "Filename": "pool/main/libx/libx11/libx11_1.8.14_aarch64.deb",
+      "SHA256": "c5206ee9cc26a63985d110b57bc24f23c7c97505e6100c4d6a8547a1aeed5532"
     },
     "xorgproto": {
       "Version": "2026.1",
@@ -813,9 +813,9 @@
       "SHA256": "6e98a24e0d1996d25f7db8d70ecae02cfe5fc146343428a065149003454c7fc9"
     },
     "libxi": {
-      "Version": "1.8.3",
-      "Filename": "pool/main/libx/libxi/libxi_1.8.3_aarch64.deb",
-      "SHA256": "96a5b93c7f46f1d3f52fa5c3c10bd782027a51a5a5222e5ecf4d7ff46b9e19cf"
+      "Version": "1.8.4",
+      "Filename": "pool/main/libx/libxi/libxi_1.8.4_aarch64.deb",
+      "SHA256": "58a19a659db5a90c1557ab5c2ddd7b1c3449898e2dcbf6ffbc14ec02db56cba1"
     },
     "libtheora": {
       "Version": "1.2.0-1",
@@ -848,14 +848,14 @@
       "SHA256": "b8a6d232d592dcd6529589c817927cca3254f3ab40a85fce873d997ace7d1ca2"
     },
     "libdw": {
-      "Version": "0.196",
-      "Filename": "pool/main/libd/libdw/libdw_0.196_aarch64.deb",
-      "SHA256": "2486ab488174ac4a1520f9d5e3e7dbf41a9c54733489e10c2ca24e2de26508f8"
+      "Version": "0.197",
+      "Filename": "pool/main/libd/libdw/libdw_0.197_aarch64.deb",
+      "SHA256": "6c25c05cbba67671238434306ca5e55444d29c9b425600a710618a189d4f9ebb"
     },
     "libelf": {
-      "Version": "0.196",
-      "Filename": "pool/main/libe/libelf/libelf_0.196_aarch64.deb",
-      "SHA256": "cbb0be8f278ae737fdb1e00ffee29444833fe90a051d485d262bcf5b4403a713"
+      "Version": "0.197",
+      "Filename": "pool/main/libe/libelf/libelf_0.197_aarch64.deb",
+      "SHA256": "c47ee2eee8450274f22218307b31471b76113b2825d3c69a5fdc47180cd68c13"
     },
     "json-c": {
       "Version": "0.19",
