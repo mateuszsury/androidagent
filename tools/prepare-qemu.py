@@ -65,6 +65,26 @@ def run(*args):
     return subprocess.check_output(args, text=True).strip()
 
 
+def validate_elf_layout(path):
+    """Reject dynamic strings outside file-backed PT_LOAD ranges before Android dlopen.
+
+    patchelf 0.18 can relocate DT_STRTAB past every load segment when modifying
+    the pinned QEMU binary. Bionic then crashes while reading DT_RUNPATH.
+    """
+    with path.open('rb') as stream:
+        elf = ELFFile(stream)
+        segments = list(elf.iter_segments())
+        dynamic = next((s for s in segments if s['p_type'] == 'PT_DYNAMIC'), None)
+        if dynamic is None:
+            return  # The PRoot loader is a static executable.
+        start = next(dynamic.iter_tags('DT_STRTAB'))['d_ptr']
+        size = next(dynamic.iter_tags('DT_STRSZ'))['d_val']
+        if not any(s['p_type'] == 'PT_LOAD' and s['p_vaddr'] <= start
+                   and start + size <= s['p_vaddr'] + s['p_filesz'] for s in segments):
+            raise RuntimeError('Unmapped ELF dynamic string table: ' + str(path)
+                               + '; install the pinned patchelf from requirements-dev.txt')
+
+
 def fix_version_dependencies(path, aliases):
     # patchelf changes DT_NEEDED but leaves version records naming the old file.
     # Android's linker validates these records, unlike several desktop linkers.
@@ -142,6 +162,7 @@ def package(abi, packages):
         if run(patchelf, "--print-soname", str(output)):
             subprocess.run([patchelf, "--set-soname", name, str(output)], check=True)
         fix_version_dependencies(output, aliases)
+        validate_elf_layout(output)
         done.add(name)
     for f in dest.glob("*.so"):
         if f.name not in done and f.name != "libaausb.so" and not f.name.startswith("libaaterm_"):
