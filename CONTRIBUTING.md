@@ -27,3 +27,21 @@ Release APKs must have a new versionCode, a matching upgrade certificate and exa
 Explain the trigger, resulting behavior and validation. Include screenshots for visible changes and redact personal data, login codes and credentials. Record meaningful limits and failures rather than presenting an untested path as working. PR checks use read-only repository permissions; forks do not need maintainer signing secrets.
 
 Report vulnerabilities privately through [Security](SECURITY.md). General bugs and feature requests belong in the issue forms.
+
+## Authorship and contributions
+
+Project-maintained changes use the Git identity `Mateusz Sury
+<66475105+mateuszsury@users.noreply.github.com>`. Configure it locally before
+committing:
+
+```sh
+git config user.name "Mateusz Sury"
+git config user.email "66475105+mateuszsury@users.noreply.github.com"
+git config user.useConfigOnly true
+```
+
+The maintainer takes responsibility for tool-assisted changes. Do not add AI
+tools as authors or co-authors. Preserve genuine human contributions, upstream
+history, copyright notices and third-party licenses. Keep release provenance
+and checksums intact. Describe the purpose of each change and record relevant
+validation; avoid generic upload messages and environment-specific worktree names.
