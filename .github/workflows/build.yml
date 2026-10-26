@@ -95,9 +95,12 @@ jobs:
         timeout-minutes: 12
         run: |
           echo no | avdmanager create avd --force --name androidagent --package 'system-images;android-${{ matrix.api }};google_apis;x86_64' --device pixel_3a
-          "$ANDROID_SDK_ROOT/emulator/emulator" -avd androidagent -port 5554 -no-window -no-audio -no-boot-anim -no-snapshot -gpu swiftshader_indirect -memory 4096 > "$RUNNER_TEMP/emulator.log" 2>&1 &
-          timeout 120 adb wait-for-device
-          timeout 300 bash -c 'until [ "$(adb shell getprop sys.boot_completed | tr -d "\r")" = 1 ]; do sleep 3; done'
+          "$ANDROID_SDK_ROOT/emulator/emulator" -avd androidagent -port 5554 -no-window -no-audio -no-boot-anim -no-snapshot -no-metrics -gpu swiftshader_indirect -memory 4096 -accel on > "$RUNNER_TEMP/emulator.log" 2>&1 &
+          if ! timeout 120 adb wait-for-device || ! timeout 300 bash -c 'until [ "$(adb shell getprop sys.boot_completed | tr -d "\r")" = 1 ]; do sleep 3; done'; then
+            tail -100 "$RUNNER_TEMP/emulator.log"
+            df -h
+            exit 1
+          fi
           adb shell wm size 720x1480
           adb shell wm density 300
           adb shell settings put global window_animation_scale 0
@@ -124,8 +127,13 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: androidagent-${{ env.APP_VERSION }}-api${{ matrix.api }}
+          name: androidagent-${{ env.APP_VERSION }}-api${{ matrix.api }}-diagnostics
           retention-days: 7
-          path: |
-            artifacts/androidagent-${{ env.APP_VERSION }}.apk
-            artifacts/${{ env.APP_VERSION }}/api${{ matrix.api }}/
+          path: artifacts/${{ env.APP_VERSION }}/api${{ matrix.api }}/
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: androidagent-${{ env.APP_VERSION }}-api${{ matrix.api }}-apk
+          retention-days: 7
+          compression-level: 0
+          path: artifacts/androidagent-${{ env.APP_VERSION }}.apk
