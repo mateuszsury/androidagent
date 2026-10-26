@@ -135,6 +135,8 @@ public final class EmbeddedRuntimeTests extends Instrumentation {
             test("Bundled " + tool + " executes its real version command", () -> {
                 Result result = command(runtime, 60000, tool, "--version");
                 check(result.code == 0 && !result.out.trim().isEmpty(), result.summary());
+                String prefix = tool.equals("node") ? "v" : tool.equals("python") ? "Python " : tool.equals("jq") ? "jq-" : tool + " ";
+                check(result.out.startsWith(prefix), "Missing actual version output: " + result.summary());
                 versions.put(tool, firstLine(result.out));
             });
         }
