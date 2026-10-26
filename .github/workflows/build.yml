@@ -80,7 +80,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y dpkg binutils patchelf
-          python3 -m pip install pyelftools==0.32 pyserial==3.5
+          python3 -m pip install -r requirements-dev.txt
           python3 tools/prepare-qemu.py
           python3 tools/prepare-terminal.py
           ANDROID_NDK_ROOT="$ANDROID_HOME/ndk/29.0.14206865" bash tools/build-usb-native.sh

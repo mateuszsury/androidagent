@@ -285,6 +285,7 @@ def package_native(abi, prefix):
             if subprocess.check_output([patchelf, "--print-soname", str(output)], text=True).strip():
                 subprocess.run([patchelf, "--set-soname", name, str(output)], check=True)
             qemu.fix_version_dependencies(output, aliases)
+        qemu.validate_elf_layout(output)
         inventory[name] = {"source": str(source.relative_to(prefix)), "sha256": digest(output),
                            "source_sha256": digest(source), "bytes": output.stat().st_size}
     for stale in destination.glob("libaaterm_*.so"):
