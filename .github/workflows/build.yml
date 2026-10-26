@@ -39,7 +39,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   android:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 90
     env:
       ANDROID_SERIAL: emulator-5554
@@ -90,10 +90,11 @@ jobs:
         run: |
           python3 -m unittest discover -s tests -p 'test_*.py' -v
       - name: Start Android emulator
+        timeout-minutes: 12
         run: |
           echo no | avdmanager create avd --force --name androidagent --package 'system-images;android-${{ matrix.api }};google_apis;x86_64' --device pixel_3a
           "$ANDROID_SDK_ROOT/emulator/emulator" -avd androidagent -port 5554 -no-window -no-audio -no-boot-anim -no-snapshot -gpu swiftshader_indirect -memory 4096 > "$RUNNER_TEMP/emulator.log" 2>&1 &
-          adb wait-for-device
+          timeout 120 adb wait-for-device
           timeout 300 bash -c 'until [ "$(adb shell getprop sys.boot_completed | tr -d "\r")" = 1 ]; do sleep 3; done'
           adb shell wm size 720x1480
           adb shell wm density 300
@@ -116,7 +117,7 @@ jobs:
         run: |
           EVIDENCE_DIR="${ANDROIDAGENT_EVIDENCE_DIR:-artifacts/ci-api${{ matrix.api }}}"
           mkdir -p "$EVIDENCE_DIR"
-          adb logcat -d > "$EVIDENCE_DIR/logcat.txt" || true
+          timeout 30 adb logcat -d > "$EVIDENCE_DIR/logcat.txt" 2>/dev/null || true
           cp "$RUNNER_TEMP/emulator.log" "$EVIDENCE_DIR/emulator.log" 2>/dev/null || true
       - uses: actions/upload-artifact@v4
         if: always()
