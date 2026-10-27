@@ -16,6 +16,14 @@
 
 An independent community fork of [Buddy](https://github.com/ghorbelhamdi/buddy-android). It is not an official OpenAI or Anthropic application. The application UI is in Polish; project documentation is in English. See the [screenshot gallery](docs/SCREENSHOTS.md).
 
+## Project overview
+
+An Android workspace for coding agents, a native terminal, local Docker and USB tools.
+
+![androidagent — Application overview. Tool approval, runtime lifecycle and device access remain separate boundaries.](docs/assets/presentation/overview.svg)
+
+Application overview. Tool approval, runtime lifecycle and device access remain separate boundaries.
+
 ## Install
 
 **[Download androidagent 0.5.0](https://github.com/mateuszsury/androidagent/releases/download/v0.5.0/androidagent-0.5.0.apk)** · [Release notes and checksums](https://github.com/mateuszsury/androidagent/releases/tag/v0.5.0)
