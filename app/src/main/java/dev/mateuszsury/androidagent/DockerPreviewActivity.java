@@ -64,7 +64,7 @@ public class DockerPreviewActivity extends Screen {
         LinearLayout root = column(this);
         root.setBackgroundColor(BG);
         root.setFitsSystemWindows(true);
-        LinearLayout bar = topBar(this, "Podgląd aplikacji", named ? title.trim() + " · " + origin : origin, refreshAction());
+        LinearLayout bar = topBar(this, "应用预览", named ? title.trim() + " · " + origin : origin, refreshAction());
         // Keep the port visible when a long task name shares the line.
         View subtitle = ((ViewGroup) topBarTitle(bar).getParent()).getChildAt(1);
         if (subtitle instanceof TextView) ((TextView) subtitle).setEllipsize(TextUtils.TruncateAt.MIDDLE);
@@ -72,7 +72,7 @@ public class DockerPreviewActivity extends Screen {
 
         FrameLayout stage = new FrameLayout(this);
         web = new WebView(this);
-        web.setContentDescription("Podgląd aplikacji WWW");
+        web.setContentDescription("Web 应用预览");
         // Revealed on the first committed frame: no white flash over the dark screen.
         web.setVisibility(View.INVISIBLE);
         WebSettings settings = web.getSettings();
@@ -120,7 +120,7 @@ public class DockerPreviewActivity extends Screen {
             if (local(uri)) return false;
             if ("https".equals(uri.getScheme()) || "http".equals(uri.getScheme())) {
                 try { startActivity(new Intent(Intent.ACTION_VIEW, uri)); }
-                catch (android.content.ActivityNotFoundException e) { Toast.makeText(DockerPreviewActivity.this, "Brak przeglądarki do otwarcia odnośnika", Toast.LENGTH_SHORT).show(); }
+                catch (android.content.ActivityNotFoundException e) { Toast.makeText(DockerPreviewActivity.this, "没有可用于打开链接的浏览器", Toast.LENGTH_SHORT).show(); }
             }
             return true;
         }
@@ -154,7 +154,7 @@ public class DockerPreviewActivity extends Screen {
             // A container page crashed WebView's renderer: keep androidagent alive.
             rendererGone = true;
             failed = true;
-            showFailure(lastUrl != null ? lastUrl : home, "WebView: proces strony zakończył pracę");
+            showFailure(lastUrl != null ? lastUrl : home, "WebView：页面进程已结束");
             return true;
         }
     }
@@ -163,13 +163,13 @@ public class DockerPreviewActivity extends Screen {
 
     private View refreshAction() {
         LinearLayout action = row(this);
-        action.setContentDescription("Odśwież");
+        action.setContentDescription("刷新");
         action.setPadding(dp(this, 10), dp(this, 7), dp(this, 13), dp(this, 7));
         action.setMinimumHeight(dp(this, 36));
         action.setBackground(new RippleDrawable(ColorStateList.valueOf(Theme.withAlpha(TEXT, 0x1F)),
                 outlined(this, 0x00000000, 20, OUTLINE, 1), rounded(this, 0xFFFFFFFF, 20)));
         action.addView(icon(this, R.drawable.ms_refresh, ACCENT_TEXT, 16));
-        TextView label = single(monoText(this, "Odśwież", 13, TEXT));
+        TextView label = single(monoText(this, "刷新", 13, TEXT));
         label.setTypeface(mono(this, 600));
         label.setPadding(dp(this, 6), 0, 0, 0);
         label.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
@@ -263,19 +263,19 @@ public class DockerPreviewActivity extends Screen {
         LinearLayout box = column(this);
         box.setGravity(Gravity.CENTER);
         box.setPadding(dp(this, 20), dp(this, 16), dp(this, 20), dp(this, 48));
-        box.addView(emptyState(this, "Aplikacja jeszcze nie odpowiada",
-                "Uruchom kontener z opublikowanym portem i naciśnij Odśwież. Serwer w maszynie wirtualnej może startować kilkanaście sekund."), full());
+        box.addView(emptyState(this, "应用尚未响应",
+                "启动带已发布端口的容器并点击“刷新”。虚拟机中的服务器可能需要十几秒才能启动。"), full());
         failureDetail = monoText(this, "", 12, CODE_TEXT);
         failureDetail.setLineSpacing(dp(this, 3), 1f);
         failureDetail.setPadding(dp(this, 14), dp(this, 12), dp(this, 14), dp(this, 12));
         failureDetail.setBackground(outlined(this, CODE, 12, CODE_LINE, 1));
         failureDetail.setTextIsSelectable(true);
         box.addView(failureDetail, full());
-        TextView hint = text(this, "Agent publikuje aplikację przez docker_run z parametrem port; adres podaje docker_status.", 12, FAINT);
+        TextView hint = text(this, "代理通过带 port 参数的 docker_run 发布应用；地址由 docker_status 提供。", 12, FAINT);
         hint.setGravity(Gravity.CENTER);
         hint.setPadding(dp(this, 8), dp(this, 12), dp(this, 8), 0);
         box.addView(hint, full());
-        Button retry = button(this, "Spróbuj ponownie", true);
+        Button retry = button(this, "重试", true);
         retry.setOnClickListener(v -> refresh());
         LinearLayout.LayoutParams p = wrap();
         p.topMargin = dp(this, 18);
@@ -289,7 +289,7 @@ public class DockerPreviewActivity extends Screen {
         append(s, "$ ", ACCENT);
         append(s, "GET " + url + "\n", CODE_TEXT);
         append(s, "└ ", CODE_MUTED);
-        append(s, reason == null || reason.isEmpty() ? "brak odpowiedzi" : reason, ERR);
+        append(s, reason == null || reason.isEmpty() ? "无响应" : reason, ERR);
         failureDetail.setText(s);
         finishLoading();
         web.setVisibility(View.INVISIBLE);
@@ -310,9 +310,9 @@ public class DockerPreviewActivity extends Screen {
 
     private static String placeholder() {
         return "<!doctype html><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'>"
-                + "<title>Podgląd niedostępny</title><style>html,body{margin:0;background:" + css(BG) + ";color:" + css(MUTED)
+                + "<title>预览不可用</title><style>html,body{margin:0;background:" + css(BG) + ";color:" + css(MUTED)
                 + ";font:15px sans-serif}p{padding:24px}</style>"
-                + "<p>Aplikacja jeszcze nie odpowiada. Uruchom kontener z podglądem i naciśnij Odśwież.</p>";
+                + "<p>应用尚未响应。请启动带预览的容器并点击“刷新”。</p>";
     }
 
     private static String css(int color) { return String.format(Locale.ROOT, "#%06X", color & 0xFFFFFF); }

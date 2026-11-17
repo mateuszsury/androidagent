@@ -55,16 +55,16 @@ public final class TerminalActivity extends Screen {
         LinearLayout root=column(this);root.setBackgroundColor(BG);root.setFitsSystemWindows(true);
         stop=barAction(this,"Stop");stop.setTextColor(ERR);stop.setContentDescription("Stop");
         stop.setOnClickListener(v->{session.stop();Motion.pop(v,0);});
-        root.addView(topBar(this,"Wbudowany terminal",context,stop),full());
+        root.addView(topBar(this,"内置终端",context,stop),full());
 
         // Session status strip: a dot, a mono state and a restart action once the process ended.
         LinearLayout strip=row(this);strip.setPadding(dp(this,16),dp(this,8),dp(this,8),dp(this,2));
         dot=toolDot(this,FAINT);strip.addView(dot);
         status=single(monoText(this,"",12,MUTED));status.setPadding(dp(this,6),0,0,0);strip.addView(status,weight1());
-        restart=barAction(this,"Nowa sesja");restart.setMinHeight(dp(this,36));restart.setPadding(dp(this,10),dp(this,6),dp(this,10),dp(this,6));
+        restart=barAction(this,"新会话");restart.setMinHeight(dp(this,36));restart.setPadding(dp(this,10),dp(this,6),dp(this,10),dp(this,6));
         restart.setVisibility(View.GONE);restart.setOnClickListener(v->restart());strip.addView(restart);
         root.addView(strip,full());
-        String instructions=login?"Zaloguj się na oficjalnej stronie otwartej z linku. Jeśli klient poprosi o kod, wpisz go poniżej.":"Wpisz komendę lub odpowiedź dla klienta. Stop kończy bieżącą sesję terminala.";
+        String instructions=login?"请在链接打开的官方页面登录。如果客户端要求输入代码，请在下方填写。":"输入命令或给客户端的回复。停止将结束当前终端会话。";
         TextView intro=text(this,instructions,12,FAINT);intro.setLineSpacing(dp(this,2),1f);intro.setPadding(dp(this,16),dp(this,2),dp(this,16),dp(this,10));root.addView(intro,full());
 
         // The terminal surface: always dark, mono, ANSI colours as spans, links in the accent colour.
@@ -79,7 +79,7 @@ public final class TerminalActivity extends Screen {
         Spark spark=new Spark(this).animated(false).color(Theme.withAlpha(ACCENT,0xC0));empty.addView(spark,new LinearLayout.LayoutParams(dp(this,28),dp(this,28)));
         emptyTitle=monoText(this,"",14,CODE_TEXT);emptyTitle.setTypeface(mono(this,600));emptyTitle.setGravity(Gravity.CENTER);emptyTitle.setPadding(0,dp(this,14),0,0);empty.addView(emptyTitle,full());
         emptySub=text(this,"",13,CODE_MUTED);emptySub.setGravity(Gravity.CENTER);emptySub.setLineSpacing(dp(this,2),1f);emptySub.setPadding(0,dp(this,6),0,dp(this,16));empty.addView(emptySub,full());
-        Button prepare=button(this,"Otwórz środowisko",true);prepare.setOnClickListener(v->EmbeddedRuntime.open(this));empty.addView(prepare,wrap());
+        Button prepare=button(this,"打开环境",true);prepare.setOnClickListener(v->EmbeddedRuntime.open(this));empty.addView(prepare,wrap());
         empty.setVisibility(View.GONE);
         panel.addView(empty,new FrameLayout.LayoutParams(-1,-1));
         LinearLayout.LayoutParams panelP=new LinearLayout.LayoutParams(-1,0,1);panelP.leftMargin=panelP.rightMargin=dp(this,12);
@@ -87,21 +87,21 @@ public final class TerminalActivity extends Screen {
 
         // Raw keys go straight to the PTY behind `script`: ^C interrupts, Tab completes, arrows walk history.
         keys=row(this);keys.setPadding(dp(this,12),dp(this,8),dp(this,12),0);
-        key("Ctrl-C","Klawisz Ctrl-C",()->"\u0003");
-        key("Tab","Klawisz Tab",()->{String typed=input.getText().toString();input.setText("");return typed+"\t";});
-        key("Esc","Klawisz Escape",()->"\u001b");
-        key("↑","Strzałka w górę",()->session.applicationCursor()?"\u001bOA":"\u001b[A");
-        key("↓","Strzałka w dół",()->session.applicationCursor()?"\u001bOB":"\u001b[B");
+        key("Ctrl-C","Ctrl-C 键",()->"\u0003");
+        key("Tab","Tab 键",()->{String typed=input.getText().toString();input.setText("");return typed+"\t";});
+        key("Esc","Escape 键",()->"\u001b");
+        key("↑","向上箭头",()->session.applicationCursor()?"\u001bOA":"\u001b[A");
+        key("↓","向下箭头",()->session.applicationCursor()?"\u001bOB":"\u001b[B");
         root.addView(keys,full());
 
         LinearLayout bar=row(this);bar.setPadding(dp(this,12),dp(this,8),dp(this,12),dp(this,10));
-        input=input(this,login?"kod lub odpowiedź":"komenda lub odpowiedź",true);input.setContentDescription(login?"Kod lub odpowiedź dla klienta":"Komenda lub odpowiedź dla klienta");
+        input=input(this,login?"代码或回复":"命令或回复",true);input.setContentDescription(login?"给客户端的代码或回复":"给客户端的命令或回复");
         input.setTextSize(TypedValue.COMPLEX_UNIT_SP,14);input.setSingleLine(true);
         input.setInputType(android.text.InputType.TYPE_CLASS_TEXT|android.text.InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
         input.setImeOptions(EditorInfo.IME_ACTION_SEND|EditorInfo.IME_FLAG_NO_FULLSCREEN);
         input.setOnEditorActionListener((v,a,event)->{if(a==EditorInfo.IME_ACTION_SEND||(event!=null&&event.getKeyCode()==KeyEvent.KEYCODE_ENTER&&event.getAction()==KeyEvent.ACTION_DOWN)){send();return true;}return false;});
         bar.addView(ToolUi.prompt(this,"shell".equals(mode)||mode==null?"$":"›",input),weight1());
-        send=button(this,"Wyślij",true);send.setOnClickListener(v->send());
+        send=button(this,"发送",true);send.setOnClickListener(v->send());
         LinearLayout.LayoutParams sp=new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,dp(this,46));sp.leftMargin=dp(this,8);
         bar.addView(send,sp);
         root.addView(bar,full());
@@ -151,16 +151,16 @@ public final class TerminalActivity extends Screen {
         boolean alive=session.alive(),ready=runtime.ready(),ended=session.started&&!alive&&(session.finished||session.stopped);
         if(!session.started&&ready&&visible)startIfReady();
         String state;int color;boolean pulse=false;
-        if(!session.started&&!ready){state=runtime.busy()?"przygotowywanie środowiska…":"środowisko nieprzygotowane";color=runtime.busy()?ACCENT:FAINT;pulse=runtime.busy();}
-        else if(alive){state="sesja aktywna";color=OK;}
-        else if(ended){Integer exit=session.exit;state=exit==null?"sesja zakończona":"sesja zakończona · kod "+exit;color=exit!=null&&exit==0?FAINT:ERR;}
-        else{state="uruchamianie…";color=ACCENT;pulse=true;}
+        if(!session.started&&!ready){state=runtime.busy()?"正在准备环境…":"环境未准备好";color=runtime.busy()?ACCENT:FAINT;pulse=runtime.busy();}
+        else if(alive){state="会话活动";color=OK;}
+        else if(ended){Integer exit=session.exit;state=exit==null?"会话已结束":"会话已结束 · 代码 "+exit;color=exit!=null&&exit==0?FAINT:ERR;}
+        else{state="正在启动…";color=ACCENT;pulse=true;}
         if(!state.equals(shownState)){shownState=state;Motion.swapText(status,state);}
         dot.setColor(color);dot.setPulsing(pulse);
         boolean showEmpty=!session.started&&!ready;
         if(showEmpty){
-            ToolUi.setText(emptyTitle,runtime.busy()?"Przygotowywanie środowiska…":"Środowisko nie jest przygotowane");
-            ToolUi.setText(emptySub,runtime.busy()?runtime.status()+" · "+runtime.progress()+"%":"Terminal działa we wbudowanym Linuxie. Przygotuj go na ekranie środowiska, a sesja uruchomi się sama.");
+            ToolUi.setText(emptyTitle,runtime.busy()?"正在准备环境…":"环境尚未准备好");
+            ToolUi.setText(emptySub,runtime.busy()?runtime.status()+" · "+runtime.progress()+"%":"终端在内置 Linux 中运行。请在环境屏幕准备它，会话会自动启动。");
         }
         if((empty.getVisibility()==View.VISIBLE)!=showEmpty){empty.setVisibility(showEmpty?View.VISIBLE:View.GONE);if(showEmpty)Motion.fadeIn(empty,0);}
         send.setEnabled(alive);send.setAlpha(alive?1f:0.45f);input.setEnabled(alive);
@@ -202,9 +202,9 @@ public final class TerminalActivity extends Screen {
                 int code=process.waitFor();exit=code;append("\u001b[?1049l\u001b[0m\n\u001b["+(code==0?"32":"31")+"m[exit "+code+"]\u001b[0m\n");if("login".equals(mode))runtime.refreshAccounts();
             }catch(Exception e){append("\u001b[0m\n\u001b[31m"+e.getMessage()+"\u001b[0m\n");}finally{finished=true;if(wake.isHeld())wake.release();McpHost.get(app).release(owner);}
         },"embedded-terminal").start();}
-        synchronized void send(String value)throws IOException{if(!alive())throw new IOException("Terminal nie jest uruchomiony");process.getOutputStream().write((value+"\n").getBytes(StandardCharsets.UTF_8));process.getOutputStream().flush();}
+        synchronized void send(String value)throws IOException{if(!alive())throw new IOException("终端未运行");process.getOutputStream().write((value+"\n").getBytes(StandardCharsets.UTF_8));process.getOutputStream().flush();}
         /** Bytes without a newline (control keys, escape sequences) for the PTY's line discipline and readline. */
-        synchronized void sendRaw(String value)throws IOException{if(!alive())throw new IOException("Terminal nie jest uruchomiony");process.getOutputStream().write(value.getBytes(StandardCharsets.UTF_8));process.getOutputStream().flush();}
+        synchronized void sendRaw(String value)throws IOException{if(!alive())throw new IOException("终端未运行");process.getOutputStream().write(value.getBytes(StandardCharsets.UTF_8));process.getOutputStream().flush();}
         /** Answers to terminal queries (cursor position) from the output parser; best effort. */
         private void reply(String value){Process p=process;if(p==null||!p.isAlive())return;try{p.getOutputStream().write(value.getBytes(StandardCharsets.UTF_8));p.getOutputStream().flush();}catch(IOException ignored){}}
         void stop(){stopped=true;Process p=process;if(p!=null&&p.isAlive())p.destroyForcibly();}

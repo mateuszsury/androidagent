@@ -16,11 +16,11 @@ import android.view.Window;
  */
 final class Theme {
     static final String[][] ACCENTS = {
-            {"#D97757", "Koral"}, {"#4F8BFF", "Ocean"}, {"#3FB98A", "Mięta"},
-            {"#9A7CFF", "Fiolet"}, {"#E5678F", "Róż"}, {"#E0A43A", "Bursztyn"},
+            {"#D97757", "Koral"}, {"#4F8BFF", "Ocean"}, {"#3FB98A", "薄荷色"},
+            {"#9A7CFF", "Fiolet"}, {"#E5678F", "粉色"}, {"#E0A43A", "琥珀"},
     };
-    static final String[][] SURFACES = {{"warm", "Ciepła"}, {"neutral", "Neutralna"}, {"black", "Czarna"}};
-    static final String[][] MODES = {{"system", "Systemowy"}, {"light", "Jasny"}, {"dark", "Ciemny"}};
+    static final String[][] SURFACES = {{"warm", "暖色"}, {"neutral", "Neutralna"}, {"black", "黑色"}};
+    static final String[][] MODES = {{"system", "Systemowy"}, {"light", "Jasny"}, {"dark", "深色"}};
 
     private static String applied = "";
 

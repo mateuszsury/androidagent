@@ -38,19 +38,19 @@ public class DockerService extends Service {
             return START_NOT_STICKY;
         }
         NotificationManager notifications = getSystemService(NotificationManager.class);
-        notifications.createNotificationChannel(new NotificationChannel("docker", "Środowisko Docker", NotificationManager.IMPORTANCE_LOW));
+        notifications.createNotificationChannel(new NotificationChannel("docker", "Docker 环境", NotificationManager.IMPORTANCE_LOW));
         PendingIntent open = PendingIntent.getActivity(this, 0, new Intent(this, DockerActivity.class), PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
         PendingIntent stop = PendingIntent.getService(this, 1, new Intent(this, DockerService.class).setAction("stop"), PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
         Notification note = new Notification.Builder(this, "docker").setSmallIcon(R.drawable.ms_terminal)
-                .setContentTitle("Docker na telefonie").setContentText("Środowisko tworzenia aplikacji jest aktywne")
-                .setContentIntent(open).setOngoing(true).addAction(new Notification.Action.Builder(null, "Zatrzymaj", stop).build()).build();
+                .setContentTitle("手机上的 Docker").setContentText("应用构建环境已激活")
+                .setContentIntent(open).setOngoing(true).addAction(new Notification.Action.Builder(null, "停止", stop).build()).build();
         try {
             if (Build.VERSION.SDK_INT >= 34) startForeground(NOTICE, note, android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE);
             else startForeground(NOTICE, note);
         } catch (RuntimeException denied) {
             // Android 12+ can refuse a foreground start that an agent requested
             // while androidagent was in the background. Never boot without it.
-            DockerVm.get(this).startRejected("Android nie pozwolił uruchomić środowiska w tle. Otwórz androidagent → Docker i uruchom je tam.");
+            DockerVm.get(this).startRejected("Android 不允许在后台启动环境。请打开 androidagent → Docker 并在其中启动。");
             stopSelf(id);
             return START_NOT_STICKY;
         }

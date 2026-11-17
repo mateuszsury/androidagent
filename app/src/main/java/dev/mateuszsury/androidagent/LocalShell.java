@@ -15,7 +15,7 @@ final class LocalShell {
   static File workspace(Context c) {
     File f = new File(c.getFilesDir(), "workspace");
     if (!f.isDirectory() && !f.mkdirs())
-      throw new IllegalStateException("Nie można utworzyć katalogu roboczego");
+      throw new IllegalStateException("无法创建工作目录");
     return f;
   }
 
@@ -36,8 +36,8 @@ final class LocalShell {
   }
 
   Result run(Context c, String command) throws Exception {
-    if (command.trim().isEmpty()) throw new IllegalArgumentException("Wpisz komendę");
-    if (command.length() > 8192) throw new IllegalArgumentException("Komenda jest za długa");
+    if (command.trim().isEmpty()) throw new IllegalArgumentException("输入命令");
+    if (command.length() > 8192) throw new IllegalArgumentException("命令过长");
     pidFile = File.createTempFile("shell-", ".pid", c.getCacheDir());
     ProcessBuilder pb =
         new ProcessBuilder(

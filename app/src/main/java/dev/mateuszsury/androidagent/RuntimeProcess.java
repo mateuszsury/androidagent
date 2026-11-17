@@ -25,15 +25,15 @@ final class RuntimeProcess {
     static Process start(ProcessBuilder source) throws IOException {
         String temporaryPath = source.environment().get("PROOT_TMP_DIR");
         if (temporaryPath == null || temporaryPath.isEmpty())
-            throw new IOException("Brak prywatnego katalogu procesu środowiska");
+            throw new IOException("缺少环境进程的私有目录");
         File directory = new File(temporaryPath).getCanonicalFile();
         try {
             if (!directory.isDirectory() || Os.stat(directory.getPath()).st_uid != android.os.Process.myUid())
-                throw new IOException("Katalog procesu nie należy do aplikacji");
+                throw new IOException("进程目录不属于该应用");
         } catch (android.system.ErrnoException error) {
-            throw new IOException("Nie można sprawdzić katalogu procesu", error);
+            throw new IOException("无法检查进程目录", error);
         }
-        if (source.command().isEmpty()) throw new IOException("Brak programu środowiska");
+        if (source.command().isEmpty()) throw new IOException("缺少环境程序");
         File marker = File.createTempFile("runtime-", ".pid", directory);
         try {
             Os.chmod(marker.getPath(), 0600);
@@ -61,7 +61,7 @@ final class RuntimeProcess {
             return new ManagedProcess(wrapped.start(), marker);
         } catch (android.system.ErrnoException error) {
             marker.delete();
-            throw new IOException("Nie można zabezpieczyć pliku procesu", error);
+            throw new IOException("无法保护进程文件", error);
         } catch (IOException | RuntimeException error) {
             marker.delete();
             throw error;

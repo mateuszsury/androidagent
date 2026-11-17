@@ -50,20 +50,20 @@ public class DeviceActivity extends Screen {
     LinearLayout root = column(this);
     root.setBackgroundColor(BG);
     root.setFitsSystemWindows(true);
-    TextView refresh = barAction(this, "Odśwież");
+    TextView refresh = barAction(this, "刷新");
     refresh.setOnClickListener(
         v -> {
           signature = "";
           refresh();
           Motion.pop(v, 0);
         });
-    root.addView(topBar(this, "Twój telefon", "~/telefon · odczyt lokalny", refresh), full());
+    root.addView(topBar(this, "你的手机", "~/telefon · 本地读取", refresh), full());
     ScrollView scroll = new ScrollView(this);
     scroll.setClipToPadding(false);
     LinearLayout content = ToolUi.body(this);
 
     // ---------------------------------------------------------------- hero
-    LinearLayout hero = terminalBox(this, "urządzenie", ACCENT);
+    LinearLayout hero = terminalBox(this, "设备", ACCENT);
     model = title(this, Build.MANUFACTURER + " " + Build.MODEL, 20);
     model.setTypeface(sans(this, 650));
     hero.addView(model, full());
@@ -77,7 +77,7 @@ public class DeviceActivity extends Screen {
     // ---------------------------------------------------------------- battery
     LinearLayout battery = card(this);
     LinearLayout head = row(this);
-    head.addView(ToolUi.caption(this, "Bateria"), weight1());
+    head.addView(ToolUi.caption(this, "电池"), weight1());
     batteryState = badge(this, "", MUTED);
     head.addView(batteryState, wrap());
     battery.addView(head, full());
@@ -93,7 +93,7 @@ public class DeviceActivity extends Screen {
     LinearLayout pair = row(this);
     pair.setGravity(android.view.Gravity.TOP);
     LinearLayout ram = card(this), disk = card(this);
-    ramValue = metric(ram, "Pamięć RAM");
+    ramValue = metric(ram, "RAM 内存");
     ramSub = sub(ram);
     ramMeter = new ToolUi.Meter(this, MUTED);
     ram.addView(ramMeter, ToolUi.meterParams(this, 6, 10));
@@ -109,10 +109,10 @@ public class DeviceActivity extends Screen {
 
     // ---------------------------------------------------------------- status rows
     LinearLayout statuses = ToolUi.group(this);
-    network = new ToolUi.Status(this, "Połączenie");
-    control = new ToolUi.Status(this, "Sterowanie ekranem");
-    runtime = new ToolUi.Status(this, "Środowisko agentów");
-    uptime = new ToolUi.Status(this, "Czas działania");
+    network = new ToolUi.Status(this, "连接");
+    control = new ToolUi.Status(this, "屏幕控制");
+    runtime = new ToolUi.Status(this, "代理环境");
+    uptime = new ToolUi.Status(this, "运行时长");
     ToolUi.add(statuses, network.view);
     ToolUi.add(statuses, control.view);
     ToolUi.add(statuses, runtime.view);
@@ -124,25 +124,25 @@ public class DeviceActivity extends Screen {
     content.addView(error, full());
 
     // ---------------------------------------------------------------- terminal
-    TextView label = sectionLabel(this, "Terminal");
+    TextView label = sectionLabel(this, "终端");
     label.setPadding(dp(this, 20), dp(this, 22), dp(this, 20), dp(this, 6));
     content.addView(label, full());
     TextView detail =
         ToolUi.note(
             this,
-            "Komendy wykonują się na telefonie z uprawnieniami androidagent. Pliki zapisujesz w"
-                + " jego katalogu roboczym. Pełny terminal i klienci agentów są dostępni we wbudowanym środowisku.",
+            "命令在手机上以 androidagent 的权限执行。文件保存在"
+                + "它的工作目录。完整终端和代理客户端可在内置环境中使用。",
             13);
     content.addView(detail, full());
 
-    TextView fieldLabel = ToolUi.caption(this, "Komenda powłoki");
+    TextView fieldLabel = ToolUi.caption(this, "Shell 命令");
     fieldLabel.setPadding(dp(this, 20), dp(this, 14), dp(this, 20), dp(this, 8));
     content.addView(fieldLabel, full());
-    command = input(this, "Komenda powłoki", true);
+    command = input(this, "Shell 命令", true);
     command.setSingleLine(true);
     command.setText("id; uname -a");
     command.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
-    command.setContentDescription("Komenda powłoki");
+    command.setContentDescription("Shell 命令");
     command.setImeOptions(EditorInfo.IME_ACTION_GO | EditorInfo.IME_FLAG_NO_FULLSCREEN);
     command.setOnEditorActionListener(
         (v, action, event) -> {
@@ -180,7 +180,7 @@ public class DeviceActivity extends Screen {
     chipP.topMargin = dp(this, 10);
     content.addView(chipScroll, chipP);
 
-    run = button(this, "Uruchom komendę", true);
+    run = button(this, "运行命令", true);
     run.setOnClickListener(
         v -> {
           if (busy) {
@@ -193,7 +193,7 @@ public class DeviceActivity extends Screen {
 
     output = terminalText(this, "");
     output.setMinHeight(dp(this, 140));
-    output.setText(style("$ Gotowy. Katalog: workspace/"));
+    output.setText(style("$ 完成。目录：workspace/"));
     content.addView(output, sideParams(12));
     TextView hint = monoText(this, "limit 10 s · wynik do 32 KB · bez roota", 11, FAINT);
     hint.setPadding(dp(this, 20), dp(this, 8), dp(this, 20), dp(this, 6));
@@ -201,7 +201,7 @@ public class DeviceActivity extends Screen {
 
     LinearLayout more = ToolUi.group(this);
     ToolUi.Row setup =
-        new ToolUi.Row(this, R.drawable.ms_terminal, "Otwórz środowisko i klientów", "Pełny terminal · Codex · Claude Code", true)
+        new ToolUi.Row(this, R.drawable.ms_terminal, "打开环境与客户端", "完整终端 · Codex · Claude Code", true)
             .onClick(v -> EmbeddedRuntime.open(this));
     ToolUi.add(more, setup.view);
     LinearLayout.LayoutParams moreP = cardParams(this);
@@ -272,11 +272,11 @@ public class DeviceActivity extends Screen {
       boolean charging = s.getBoolean("charging");
       int color = level < 0 ? FAINT : level < 20 ? ERR : level < 50 ? WARN : OK;
       ToolUi.setText(batteryValue, level < 0 ? "—" : level + "%");
-      ToolUi.setText(batteryState, charging ? "ładowanie" : "na baterii");
+      ToolUi.setText(batteryState, charging ? "加载中" : "na baterii");
       batteryState.setTextColor(charging ? OK : MUTED);
       batteryState.setBackground(rounded(this, Theme.withAlpha(charging ? OK : MUTED, 0x22), 6));
       batteryMeter.set(level < 0 ? 0 : level / 100f, color);
-      batteryMeter.setContentDescription("Bateria " + level + "%");
+      batteryMeter.setContentDescription("电池 " + level + "%");
       long ramFree = s.getLong("ram_available_bytes"), ramTotal = s.optLong("ram_total_bytes", 0);
       ToolUi.setText(ramValue, DeviceState.gb(ramFree));
       ToolUi.setText(ramSub, ramTotal > 0 ? "wolne z " + DeviceState.gb(ramTotal) : "wolne");
@@ -288,9 +288,9 @@ public class DeviceActivity extends Screen {
       String net = s.getString("network");
       network.set(net, "offline".equals(net) ? ERR : OK);
       boolean screen = s.getBoolean("accessibility_connected");
-      control.set(screen ? "Aktywne" : "Wyłączone", screen ? OK : FAINT);
+      control.set(screen ? "已开启" : "已关闭", screen ? OK : FAINT);
       boolean ready = s.getBoolean("runtime_ready"), preparing = s.getBoolean("runtime_busy");
-      runtime.set(ready ? "Gotowe" : preparing ? "Przygotowywanie" : "Nieprzygotowane", ready ? OK : preparing ? ACCENT : FAINT);
+      runtime.set(ready ? "就绪" : preparing ? "正在准备" : "未准备好", ready ? OK : preparing ? ACCENT : FAINT);
       runtime.dot.setPulsing(preparing);
       ToolUi.setVisible(error, false);
     } catch (Exception e) {
@@ -322,10 +322,10 @@ public class DeviceActivity extends Screen {
       boolean ok = full.startsWith("\n[exit 0]", exit) || full.startsWith("\n[exit 0 ", exit);
       sb.setSpan(new ForegroundColorSpan(AnsiText.PALETTE[ok ? 2 : 1]), exit + 1, full.length(), flags);
     }
-    int failed = full.indexOf("\n\nBłąd: ");
+    int failed = full.indexOf("\n\n错误： ");
     if (failed >= 0) sb.setSpan(new ForegroundColorSpan(AnsiText.PALETTE[1]), failed + 2, full.length(), flags);
-    if (full.endsWith("Wykonywanie…"))
-      sb.setSpan(new ForegroundColorSpan(CODE_MUTED), full.length() - "Wykonywanie…".length(), full.length(), flags);
+    if (full.endsWith("执行中…"))
+      sb.setSpan(new ForegroundColorSpan(CODE_MUTED), full.length() - "执行中…".length(), full.length(), flags);
     return sb;
   }
 
@@ -336,7 +336,7 @@ public class DeviceActivity extends Screen {
       return;
     }
     busy = true;
-    run.setText("Zatrzymaj");
+    run.setText("停止");
     run.setTextColor(ERR);
     run.setBackground(outlined(this, ERR_SOFT, 10, Theme.withAlpha(ERR, 0x40), 1));
     command.setEnabled(false);
@@ -349,7 +349,7 @@ public class DeviceActivity extends Screen {
               try {
                 result = task.run(getApplicationContext(), cmd).display();
               } catch (Exception e) {
-                result = "Błąd: " + e.getMessage();
+                result = "错误：" + e.getMessage();
               }
               final String done = result;
               runOnUiThread(
@@ -357,7 +357,7 @@ public class DeviceActivity extends Screen {
                     if (isDestroyed()) return;
                     busy = false;
                     command.setEnabled(true);
-                    run.setText("Uruchom komendę");
+                    run.setText("运行命令");
                     run.setTextColor(ON_ACCENT);
                     run.setBackground(rounded(this, ACCENT, 10));
                     output.setText(style("$ " + cmd + "\n\n" + done));

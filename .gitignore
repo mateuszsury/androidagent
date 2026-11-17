@@ -42,3 +42,8 @@ app/src/main/assets/terminal/licenses/
 .pytest_cache/
 .ruff_cache/
 *.egg-info/
+
+# 本次本地构建产物（合并官方资源，体积大）
+build-patched/
+build-patched*/
+_pl.txt

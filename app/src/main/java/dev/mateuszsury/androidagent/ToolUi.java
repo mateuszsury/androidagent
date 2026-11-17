@@ -440,7 +440,7 @@ final class ToolUi {
         return d[0];
     }
 
-    /** A sheet with a message (selectable; mono in a terminal panel when {@code code}) and "Zamknij". */
+    /** A sheet with a message (selectable; mono in a terminal panel when {@code code}) and "关闭". */
     static Dialog message(Activity a, String title, String body, boolean code, boolean error) {
         if (a.isFinishing() || a.isDestroyed()) return null;
         LinearLayout content = column(a);
@@ -454,7 +454,7 @@ final class ToolUi {
             m.setLineSpacing(dp(a, 3), 1f);
             content.addView(m, full());
         }
-        Button close = button(a, "Zamknij", false);
+        Button close = button(a, "关闭", false);
         LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(a, 46));
         p.topMargin = dp(a, 16);
         content.addView(close, p);
@@ -513,11 +513,11 @@ final class ToolUi {
         t.setPadding(dp(a, 9), dp(a, 4), dp(a, 9), dp(a, 4));
         t.setBackground(outlined(a, Theme.withAlpha(color, 0x14), 8, Theme.withAlpha(color, 0x50), 1));
         t.setForeground(a.getDrawable(ripple(a, false)));
-        t.setContentDescription("Adres aplikacji " + label);
+        t.setContentDescription("应用地址 " + label);
         Runnable copy = () -> {
             android.content.ClipboardManager cm = a.getSystemService(android.content.ClipboardManager.class);
             if (cm != null) cm.setPrimaryClip(android.content.ClipData.newPlainText("URL", url));
-            android.widget.Toast.makeText(a, "Skopiowano " + label, android.widget.Toast.LENGTH_SHORT).show();
+            android.widget.Toast.makeText(a, "已复制 " + label, android.widget.Toast.LENGTH_SHORT).show();
         };
         t.setOnClickListener(v -> (open == null ? copy : open).run());
         t.setOnLongClickListener(v -> {

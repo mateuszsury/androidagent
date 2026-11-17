@@ -15,7 +15,7 @@ import android.widget.TextView;
 
 /**
  * Claude Code's thinking indicator, drawn natively: a coral starburst whose rays breathe and turn
- * ({@link Spark}), and {@link Line}: the spark, a shimmering verb ("Kombinuję…") and elapsed time.
+ * ({@link Spark}), and {@link Line}: the spark, a shimmering verb ("正在组合…") and elapsed time.
  * The glyphs (✻ ✶ ✳ ✢) are not in the bundled fonts, so the star is painted on a Canvas.
  */
 final class Spark extends View {
@@ -103,13 +103,13 @@ final class Spark extends View {
 
     /** Playful verbs, in the spirit of Claude Code's spinner. */
     static final String[] VERBS = {
-            "Myślę", "Kombinuję", "Analizuję", "Rozważam", "Główkuję", "Dumam", "Planuję", "Pichcę",
-            "Warzę", "Szlifuję", "Łączę kropki", "Przetwarzam", "Kminię", "Składam", "Wymyślam", "Przeliczam",
-            "Rozkminiam", "Klaruję", "Destyluję", "Tkam", "Doprawiam", "Mieszam", "Krystalizuję", "Ogarniam",
+            "思考中", "正在组合", "正在分析", "正在考虑", "正在构思", "Dumam", "正在规划", "正在拼写",
+            "正在发酵", "正在打磨", "正在连接点", "正在处理", "正在构思", "正在组合", "正在构思", "正在计算",
+            "Rozkminiam", "正在整理", "正在提炼", "Tkam", "Doprawiam", "正在混合", "正在明确", "Ogarniam",
     };
 
     /**
-     * "✻ Kombinuję… (12s · Stop)" — a spark, a verb with a moving highlight and the elapsed time. When
+     * "✻ 正在组合… (12s · 停止)" — a spark, a verb with a moving highlight and the elapsed time. When
      * the agent reports a concrete status (a tool step), it is shown instead of the verb.
      */
     static final class Line extends LinearLayout {
@@ -145,7 +145,7 @@ final class Spark extends View {
             meta.setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_NO);
             addView(meta, new LayoutParams(0, LayoutParams.WRAP_CONTENT, 1));
             shimmer = new ShimmerAnimator(verb);
-            setContentDescription("Agent pracuje");
+            setContentDescription("代理工作中");
             update();
         }
 
@@ -185,7 +185,7 @@ final class Spark extends View {
         }
 
         private static boolean isGeneric(String s) {
-            return s.equals("Thinking…") || s.equals("Working…") || s.equals("Pracuję…") || s.equals("Myślę…");
+            return s.equals("Thinking…") || s.equals("Working…") || s.equals("工作中…") || s.equals("思考中…");
         }
 
         @Override protected void onAttachedToWindow() {

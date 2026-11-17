@@ -49,7 +49,7 @@ Everything below uses androidagent's own phone tools; no separate Termux app or 
    hands it to Android's package installer, which shows its own confirmation screen.
 2. If it returns `status: needs_permission`, androidagent may not install apps yet. The tool already opened
    Android's "Install unknown apps" setting for androidagent: tell the user to turn on **Allow from this
-   source** (also reachable in androidagent → Uprawnienia → Instalowanie aplikacji), then call `install_apk`
+   source** (also reachable in androidagent → 权限 → 安装应用), then call `install_apk`
    again. Never change that setting yourself.
 3. If it returns `status: waiting_for_user`, tell the user to tap Install/Update and confirm. Then call
    `install_status` with the package name and `wait_s: 45` (it works without screen control and reports

@@ -302,7 +302,7 @@ final class IntentTools implements ToolProviders.Provider {
         if (text.isEmpty()) throw new IllegalArgumentException("text is empty");
         Intent send = new Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, text);
         if (!subject.isEmpty()) send.putExtra(Intent.EXTRA_SUBJECT, subject);
-        PhoneTools.launch(app, Intent.createChooser(send, "Udostępnij"), "the share sheet");
+        PhoneTools.launch(app, Intent.createChooser(send, "分享"), "the share sheet");
         return settle("Opened the share sheet with " + text.length() + " characters. The user picks the app and sends it.");
     }
 

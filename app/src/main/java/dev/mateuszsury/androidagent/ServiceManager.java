@@ -56,12 +56,12 @@ import java.util.regex.Pattern;
  * survives the agent's turn (whose PRoot is started with --kill-on-exit), the chat's Stop and the
  * global emergency Stop (they only end processes in {@code EmbeddedRuntime.helperProcesses},
  * terminal sessions and approved one-off commands). Only this manager stops a service: the
- * "Usługi w tle" screen, the notification's "Zatrzymaj wszystkie" action or the service_* tools.
+ * "后台服务" screen, the notification's "全部停止" action or the service_* tools.
  * Definitions persist in {@code files/services/registry.json}; output goes to a rotating
  * {@code files/services/NAME.log} (512 KB × 2).
  */
 final class ServiceManager {
-    static final String NOT_PREPARED = "Środowisko nie jest przygotowane";
+    static final String NOT_PREPARED = "环境尚未准备好";
     static final String DEFAULT_CWD = "~/.buddy/work";
     static final String STARTING = "starting", RUNNING = "running", EXITED = "exited", FAILED = "failed",
             STOPPED = "stopped";
@@ -90,16 +90,16 @@ final class ServiceManager {
         void validate() {
             validateName(name);
             if (command == null || command.trim().isEmpty())
-                throw new IllegalArgumentException("Command is empty. (Wpisz komendę usługi.)");
+                throw new IllegalArgumentException("命令为空。（请输入服务命令。）");
             if (command.length() > MAX_COMMAND || command.indexOf('\0') >= 0)
-                throw new IllegalArgumentException("Command is too long or contains NUL. (Komenda jest za długa.)");
+                throw new IllegalArgumentException("命令过长或包含 NUL。（命令过长。）");
             if (cwd == null || cwd.trim().isEmpty()) cwd = DEFAULT_CWD;
             cwd = cwd.trim();
             if (cwd.length() > 512 || cwd.indexOf('\0') >= 0)
-                throw new IllegalArgumentException("Working directory path is invalid. (Nieprawidłowy katalog.)");
+                throw new IllegalArgumentException("工作目录路径无效。（目录无效。）");
             if (port != 0 && (port < 1024 || port > 65535))
                 throw new IllegalArgumentException("Port must be 1024–65535: ports below 1024 need root. "
-                        + "(Port musi być w zakresie 1024–65535.)");
+                        + "（端口必须在 1024–65535 范围内。）");
             if (!RESTART_NEVER.equals(restart) && !RESTART_ON_FAILURE.equals(restart))
                 throw new IllegalArgumentException("restart must be \"never\" or \"on-failure\".");
             if (env.size() > 32) throw new IllegalArgumentException("At most 32 environment variables.");
@@ -126,12 +126,12 @@ final class ServiceManager {
         /** The exact text the owner approves (the command is last and verbatim). */
         String approvalText(boolean replacing) {
             StringBuilder s = new StringBuilder();
-            s.append(replacing ? "Zastąpić i uruchomić usługę w tle „" : "Uruchomić usługę w tle „").append(name).append("”?\n\n");
-            s.append("Będzie działać po zakończeniu pracy agenta, aż ją zatrzymasz (Usługi w tle).\n");
-            s.append("Katalog: ").append(cwd).append('\n');
+            s.append(replacing ? "替换并运行后台服务“" : "要在后台运行服务“").append(name).append("”?\n\n");
+            s.append("它会在代理工作结束后继续运行，直到你将其停止（后台服务）。\n");
+            s.append("目录：").append(cwd).append('\n');
             s.append("Port: ").append(port == 0 ? "—" : String.valueOf(port));
-            s.append(" · autostart: ").append(autostart ? "tak" : "nie");
-            s.append(" · restart: ").append(RESTART_ON_FAILURE.equals(restart) ? "po błędzie" : "nie").append('\n');
+            s.append(" · autostart: ").append(autostart ? "是" : "否");
+            s.append(" · restart: ").append(RESTART_ON_FAILURE.equals(restart) ? "出错后" : "否").append('\n');
             for (Map.Entry<String, String> e : env.entrySet()) s.append(e.getKey()).append('=').append(e.getValue()).append('\n');
             s.append('\n').append(command);
             return s.toString();
@@ -264,7 +264,7 @@ final class ServiceManager {
     static void validateName(String name) {
         if (name == null || !NAME.matcher(name).matches())
             throw new IllegalArgumentException("Invalid service name \"" + name + "\": use 1–32 characters a-z, 0-9 "
-                    + "and '-', e.g. \"web\". (Nazwa: małe litery, cyfry i „-”.)");
+                    + "和“-”，例如“web”。（名称：小写字母、数字和“-”。）");
     }
 
     void addListener(Listener l) {
@@ -366,9 +366,9 @@ final class ServiceManager {
         synchronized (this) {
             Service s = services.get(d.name);
             if (s != null && (s.process != null || STARTING.equals(s.state) || RUNNING.equals(s.state)))
-                throw new IllegalStateException("Service \"" + d.name + "\" is running; stop it first. (Usługa już działa.)");
+                throw new IllegalStateException("Service \"" + d.name + "\" 正在运行；请先停止它。（服务已在运行。）");
             if (s == null && services.size() >= MAX_SERVICES)
-                throw new IllegalStateException("At most " + MAX_SERVICES + " services; remove an unused one. (Limit usług.)");
+                throw new IllegalStateException("At most " + MAX_SERVICES + "services；删除未使用的服务。（服务限制。）");
             if (s == null) {
                 s = new Service();
                 s.created = System.currentTimeMillis();
@@ -429,7 +429,7 @@ final class ServiceManager {
         }
         changed();
         if (p == null) return;
-        s.log.line("── zatrzymywanie · " + clock(System.currentTimeMillis()) + " ──");
+        s.log.line("── 正在停止 · " + clock(System.currentTimeMillis()) + " ──");
         terminate(s, p);
     }
 
@@ -453,7 +453,7 @@ final class ServiceManager {
         changed();
     }
 
-    /** The owner's "Zatrzymaj wszystkie usługi": stops every service in parallel. Blocking. */
+    /** The owner's "停止所有服务": stops every service in parallel. Blocking. */
     void stopAll() {
         List<String> names;
         synchronized (this) {
@@ -507,7 +507,7 @@ final class ServiceManager {
                 for (String n : names) {
                     Service s = services.get(n);
                     s.state = FAILED;
-                    s.error = NOT_PREPARED + " · autostart wstrzymany";
+                    s.error = NOT_PREPARED + " · 自启动已暂停";
                 }
                 restored = false;
             } else {
@@ -531,7 +531,7 @@ final class ServiceManager {
                     Service s = services.get(n);
                     if (s != null && STARTING.equals(s.state) && s.process == null) {
                         s.state = STOPPED;
-                        s.error = "Autostart czeka na otwarcie aplikacji";
+                        s.error = "自启动等待应用打开";
                     }
                 }
             }
@@ -611,7 +611,7 @@ final class ServiceManager {
                 s.state = FAILED;
                 s.error = message;
             }
-            s.log.line("── błąd uruchomienia · " + message + " ──");
+            s.log.line("── 启动错误 · " + message + " ──");
         } finally {
             changed();
         }
@@ -653,14 +653,14 @@ final class ServiceManager {
                 s.stopping = false;
                 s.state = STOPPED;
                 s.error = "";
-                banner = "── zatrzymano · po " + duration(ran) + " ──";
+                banner = "── 已停止 · 于 " + duration(ran) + " ──";
             } else if (RESTART_ON_FAILURE.equals(s.def.restart) && code != 0) {
                 long now = SystemClock.elapsedRealtime();
                 while (!s.restartTimes.isEmpty() && now - s.restartTimes.peekFirst() > RESTART_WINDOW_MS) s.restartTimes.pollFirst();
                 if (s.restartTimes.size() >= MAX_RESTARTS) {
                     s.state = FAILED;
-                    s.error = "Zbyt wiele awarii: " + MAX_RESTARTS + " ponownych uruchomień w 10 min. Sprawdź logi.";
-                    banner = "── koniec · kod " + code + " · limit ponownych uruchomień ──";
+                    s.error = "Zbyt wiele awarii: " + MAX_RESTARTS + "10 分钟内的重启次数。请检查日志。";
+                    banner = "── 结束 · 代码 " + code + "· 重启次数限制 ──";
                 } else {
                     long delay = 1000L << s.restartTimes.size(); // 1, 2, 4, 8, 16 s
                     s.restartTimes.addLast(now);
@@ -670,12 +670,12 @@ final class ServiceManager {
                     s.restartAt = now + delay;
                     long next = ++s.generation;
                     s.pendingRestart = timer.schedule(() -> async(() -> relaunch(s, next)), delay, TimeUnit.MILLISECONDS);
-                    banner = "── koniec · kod " + code + " · ponowne uruchomienie za " + delay / 1000 + " s ──";
+                    banner = "── 结束 · 代码 " + code + " · 重启倒计时 " + delay / 1000 + " s ──";
                 }
             } else {
                 s.state = EXITED;
                 s.error = last;
-                banner = "── koniec · kod " + code + " · po " + duration(ran) + " ──";
+                banner = "── 结束 · 代码 " + code + " · po " + duration(ran) + " ──";
             }
         }
         s.log.line(banner);
@@ -1000,7 +1000,7 @@ final class ServiceManager {
             foregroundError = "";
             return true;
         } catch (RuntimeException e) {
-            foregroundError = "Android nie pozwolił pokazać powiadomienia usług w tle. Otwórz aplikację, aby je przywrócić.";
+            foregroundError = "Android 不允许显示后台服务通知。请打开应用以恢复。";
             return false;
         }
     }
@@ -1012,7 +1012,7 @@ final class ServiceManager {
         Service s = services.get(name);
         if (s == null)
             throw new IllegalArgumentException("Unknown service \"" + name + "\". Use service_list to see names. "
-                    + "(Nie ma usługi „" + name + "”.)");
+                    + "（没有服务“" + name + "”.)");
         return s;
     }
 
@@ -1039,7 +1039,7 @@ final class ServiceManager {
         if (s.restartAt > 0) st.restartInMs = Math.max(0, s.restartAt - SystemClock.elapsedRealtime());
         int port = st.mainPort();
         if (port != 0) {
-            st.urls.add(new String[]{"http://127.0.0.1:" + port, "telefon"});
+            st.urls.add(new String[]{"http://127.0.0.1:" + port, "手机"});
             for (NetAddresses.Address a : NetAddresses.lan(network)) st.urls.add(new String[]{"http://" + a.ip + ":" + port, a.label()});
         }
         return st;
@@ -1189,9 +1189,9 @@ final class ServiceManager {
         return f.format(new Date(wall));
     }
 
-    /** "1 działa", "2 działają", "5 działa" — Polish agreement for a count of running services. */
+    /** "1 个运行中", "2 个运行中", "5 个运行中" — Polish agreement for a count of running services. */
     static String runningLabel(int n) {
         int tens = n % 100, ones = n % 10;
-        return n + (n != 1 && ones >= 2 && ones <= 4 && (tens < 12 || tens > 14) ? " działają" : " działa");
+        return n + (n != 1 && ones >= 2 && ones <= 4 && (tens < 12 || tens > 14) ? "运行中" : "运行中");
     }
 }

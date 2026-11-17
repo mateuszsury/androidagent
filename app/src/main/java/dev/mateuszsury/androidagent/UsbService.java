@@ -21,10 +21,10 @@ public class UsbService extends Service {
     @Override public int onStartCommand(Intent i,int flags,int id){
         acceptStart(i,id);
         if(i!=null&&"stop".equals(i.getAction())){McpHost.get(this).emergencyStop();stopSelf();return START_NOT_STICKY;}
-        NotificationManager nm=getSystemService(NotificationManager.class);nm.createNotificationChannel(new NotificationChannel("usb-device","Urządzenia USB",NotificationManager.IMPORTANCE_LOW));
+        NotificationManager nm=getSystemService(NotificationManager.class);nm.createNotificationChannel(new NotificationChannel("usb-device","USB 设备",NotificationManager.IMPORTANCE_LOW));
         PendingIntent open=PendingIntent.getActivity(this,906,new Intent(this,UsbActivity.class),PendingIntent.FLAG_IMMUTABLE|PendingIntent.FLAG_UPDATE_CURRENT);
         PendingIntent stop=PendingIntent.getService(this,907,new Intent(this,UsbService.class).setAction("stop"),PendingIntent.FLAG_IMMUTABLE|PendingIntent.FLAG_UPDATE_CURRENT);
-        Notification n=new Notification.Builder(this,"usb-device").setSmallIcon(R.mipmap.ic_launcher).setContentTitle("androidagent · aktywne USB").setContentText("Otwórz urządzenia lub naciśnij Stop").setContentIntent(open).setOngoing(true).addAction(0,"Stop",stop).build();
+        Notification n=new Notification.Builder(this,"usb-device").setSmallIcon(R.mipmap.ic_launcher).setContentTitle("androidagent · USB 已连接").setContentText("打开设备或点击停止").setContentIntent(open).setOngoing(true).addAction(0,"Stop",stop).build();
         try{if(android.os.Build.VERSION.SDK_INT>=34)startForeground(906,n,android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE);else startForeground(906,n);}
         catch(SecurityException e){android.util.Log.w("androidagentUsb","USB foreground permission was lost before service startup",e);closeAcceptedSessions();stopSelfResult(id);}
         return START_NOT_STICKY;

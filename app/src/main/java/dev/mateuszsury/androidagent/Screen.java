@@ -70,7 +70,7 @@ abstract class Screen extends Activity {
                 if (!resumed || isFinishing() || isDestroyed()) return;
                 if (McpHost.get(Screen.this).running()) { action.run(); offerNotifications(); }
                 else if (SystemClock.elapsedRealtime() < deadline) hostStartup.postDelayed(this, 100);
-                else Toast.makeText(Screen.this, "Nie udało się uruchomić narzędzi. Spróbuj ponownie.", Toast.LENGTH_LONG).show();
+                else Toast.makeText(Screen.this, "工具启动失败。请重试。", Toast.LENGTH_LONG).show();
             }
         });
     }

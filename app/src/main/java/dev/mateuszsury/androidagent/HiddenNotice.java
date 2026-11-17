@@ -8,7 +8,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 
-/** The "androidagent jest ukryty" notification shown after the bubble is dragged away, and its actions. */
+/** The "androidagent 已隐藏" notification shown after the bubble is dragged away, and its actions. */
 public final class HiddenNotice extends BroadcastReceiver {
     private static final String CHANNEL = "bubble_hidden";
     private static final int ID = 1;
@@ -16,7 +16,7 @@ public final class HiddenNotice extends BroadcastReceiver {
 
     static void show(Context c) {
         NotificationManager nm = c.getSystemService(NotificationManager.class);
-        nm.createNotificationChannel(new NotificationChannel(CHANNEL, "Ukryty dymek",
+        nm.createNotificationChannel(new NotificationChannel(CHANNEL, "隐藏气泡",
                 NotificationManager.IMPORTANCE_LOW));
         PendingIntent showBubble = PendingIntent.getBroadcast(c, 0,
                 new Intent(c, HiddenNotice.class).setAction(ACTION_SHOW),
@@ -26,11 +26,11 @@ public final class HiddenNotice extends BroadcastReceiver {
                 PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
         Notification n = new Notification.Builder(c, CHANNEL)
                 .setSmallIcon(R.drawable.ic_launcher_monochrome)
-                .setContentTitle("androidagent jest ukryty")
-                .setContentText("Stuknij, aby znów pokazać dymek.")
+                .setContentTitle("androidagent 已隐藏")
+                .setContentText("点击可再次显示气泡。")
                 .setColor(Ui.ACCENT)
                 .setContentIntent(showBubble)
-                .addAction(new Notification.Action.Builder(null, "Otwórz rozmowy", openApp).build())
+                .addAction(new Notification.Action.Builder(null, "打开对话", openApp).build())
                 .setOngoing(false)
                 .setAutoCancel(true)
                 .build();

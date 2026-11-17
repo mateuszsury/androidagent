@@ -32,7 +32,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * "Usługi w tle": the owner's view of long-running services — state, URLs, logs, start/stop,
+ * "后台服务": the owner's view of long-running services — state, URLs, logs, start/stop,
  * remove and adding a service by hand. Entry point: {@code new Intent(context, ServicesActivity.class)}.
  */
 public final class ServicesActivity extends Screen implements ServiceManager.Listener {
@@ -59,9 +59,9 @@ public final class ServicesActivity extends Screen implements ServiceManager.Lis
         LinearLayout root = column(this);
         root.setBackgroundColor(BG);
         root.setFitsSystemWindows(true);
-        ImageButton add = iconButton(this, R.drawable.ms_add, "Dodaj usługę");
+        ImageButton add = iconButton(this, R.drawable.ms_add, "添加服务");
         add.setOnClickListener(v -> showAdd());
-        LinearLayout bar = topBar(this, "Usługi w tle", "~/services", add);
+        LinearLayout bar = topBar(this, "后台服务", "~/services", add);
         subtitle = (TextView) ((LinearLayout) ((LinearLayout) bar.getChildAt(0)).getChildAt(1)).getChildAt(1);
         root.addView(bar, full());
         ScrollView scroll = new ScrollView(this);
@@ -118,7 +118,7 @@ public final class ServicesActivity extends Screen implements ServiceManager.Lis
         }
         int running = 0;
         for (ServiceManager.Status st : all) if (st.active()) running++;
-        setIfChanged(subtitle, all.isEmpty() ? "~/services · brak usług"
+        setIfChanged(subtitle, all.isEmpty() ? "~/services · 无服务"
                 : "~/services · " + ServiceManager.runningLabel(running) + " · " + saved(all.size()));
         if (!force && sig.toString().equals(shape)) {
             for (ServiceManager.Status st : all) {
@@ -137,16 +137,16 @@ public final class ServicesActivity extends Screen implements ServiceManager.Lis
         facts.clear();
         if (!runtimeOk) {
             body.addView(notice(WARN, ServiceManager.NOT_PREPARED,
-                    "Usługi działają we wbudowanym terminalu. Przygotuj go, aby je uruchomić.",
-                    "Otwórz panel środowiska", () -> EmbeddedRuntime.open(this)), cardParams(this));
+                    "服务在内置终端中运行。请准备它以启动它们。",
+                    "打开环境面板", () -> EmbeddedRuntime.open(this)), cardParams(this));
         }
         if (!manager.foregroundError().isEmpty())
-            body.addView(notice(WARN, "Powiadomienie usług wstrzymane", manager.foregroundError(), null, null), cardParams(this));
+            body.addView(notice(WARN, "服务通知已暂停", manager.foregroundError(), null, null), cardParams(this));
         body.addView(summary(running), boxParams());
-        body.addView(sectionLabel(this, all.isEmpty() ? "Usługi" : "Usługi · " + all.size()));
+        body.addView(sectionLabel(this, all.isEmpty() ? "服务" : "服务 · " + all.size()));
         if (all.isEmpty()) {
-            LinearLayout empty = emptyState(this, "Brak usług", "Poproś agenta: „uruchom serwer WWW na porcie 8080”");
-            Button add = outlinedButton(this, "Dodaj usługę", ACCENT_TEXT);
+            LinearLayout empty = emptyState(this, "没有服务", "对代理说：“在 8080 端口启动一个 Web 服务器”");
+            Button add = outlinedButton(this, "添加服务", ACCENT_TEXT);
             add.setOnClickListener(v -> showAdd());
             LinearLayout.LayoutParams ap = wrap();
             ap.gravity = Gravity.CENTER_HORIZONTAL;
@@ -178,16 +178,16 @@ public final class ServicesActivity extends Screen implements ServiceManager.Lis
     /** The network panel: where other devices reach the services, and the stop-all control. */
     private View summary(int running) {
         List<NetAddresses.Address> lan = NetAddresses.lan(manager.network());
-        LinearLayout box = terminalBox(this, "sieć lokalna", Theme.withAlpha(ACCENT, 0x8C));
+        LinearLayout box = terminalBox(this, "本地网络", Theme.withAlpha(ACCENT, 0x8C));
         LinearLayout head = row(this);
         Ui.Dot dot = toolDot(this, lan.isEmpty() ? FAINT : OK);
         head.addView(dot);
-        String where = lan.isEmpty() ? "Brak Wi-Fi" : lan.get(0).label() + " · " + lan.get(0).ip;
+        String where = lan.isEmpty() ? "无 Wi-Fi" : lan.get(0).label() + " · " + lan.get(0).ip;
         TextView net = single(monoText(this, where, 14, TEXT));
         net.setTypeface(mono(this, 600));
         net.setPadding(dp(this, 6), 0, dp(this, 8), 0);
         head.addView(net, weight1());
-        head.addView(badge(this, running == 0 ? "nic nie działa" : ServiceManager.runningLabel(running), running == 0 ? MUTED : OK));
+        head.addView(badge(this, running == 0 ? "没有东西在运行" : ServiceManager.runningLabel(running), running == 0 ? MUTED : OK));
         box.addView(head, full());
         for (int i = 1; i < lan.size(); i++) {
             TextView more = single(monoText(this, lan.get(i).label() + " · " + lan.get(i).ip, 12, MUTED));
@@ -195,16 +195,16 @@ public final class ServicesActivity extends Screen implements ServiceManager.Lis
             box.addView(more, full());
         }
         TextView hint = text(this, lan.isEmpty()
-                ? "Bez Wi-Fi usługi są dostępne tylko na tym telefonie: http://127.0.0.1:PORT."
-                : "Inne urządzenia w tej sieci otworzą usługę pod adresem http://" + lan.get(0).ip
-                        + ":PORT, jeśli nasłuchuje na 0.0.0.0. Na telefonie: http://127.0.0.1:PORT.", 13, MUTED);
+                ? "无 Wi-Fi 时，服务仅在本机可用：http://127.0.0.1:PORT。"
+                : "此网络中的其他设备可通过 http:// 打开服务" + lan.get(0).ip
+                        + ":PORT（如果监听 0.0.0.0）。手机上：http://127.0.0.1:PORT。", 13, MUTED);
         hint.setLineSpacing(dp(this, 2), 1f);
         hint.setPadding(0, dp(this, 8), 0, 0);
         box.addView(hint, full());
         if (running > 0) {
-            Button stopAll = outlinedButton(this, "Zatrzymaj wszystkie usługi", ERR);
-            stopAll.setOnClickListener(v -> confirmSheet(this, "Zatrzymać wszystkie usługi?",
-                    "Serwery i boty przestaną odpowiadać. Możesz uruchomić je ponownie w tym miejscu.", "Zatrzymaj", true,
+            Button stopAll = outlinedButton(this, "停止所有服务", ERR);
+            stopAll.setOnClickListener(v -> confirmSheet(this, "停止所有服务？",
+                    "服务器和机器人将停止响应。你可以在这里重新启动它们。", "停止", true,
                     () -> {
                         for (ServiceManager.Status st : manager.active()) busy.add(st.def.name);
                         refresh(true);
@@ -232,7 +232,7 @@ public final class ServicesActivity extends Screen implements ServiceManager.Lis
         title.setTypeface(mono(this, 600));
         title.setPadding(dp(this, 6), 0, dp(this, 8), 0);
         head.addView(title, weight1());
-        head.addView(badge(this, stopping ? "zatrzymywanie" : stateLabel(st), color));
+        head.addView(badge(this, stopping ? "正在停止" : stateLabel(st), color));
         card.addView(head, full());
 
         TextView command = codeBlock(this, st.def.command);
@@ -240,7 +240,7 @@ public final class ServicesActivity extends Screen implements ServiceManager.Lis
         command.setMaxLines(4);
         command.setEllipsize(TextUtils.TruncateAt.END);
         command.setLineSpacing(0, 1.25f);
-        command.setContentDescription("Komenda: " + st.def.command);
+        command.setContentDescription("命令：" + st.def.command);
         LinearLayout.LayoutParams cp = full();
         cp.topMargin = dp(this, 10);
         card.addView(command, cp);
@@ -256,7 +256,7 @@ public final class ServicesActivity extends Screen implements ServiceManager.Lis
         card.addView(fact, full());
 
         if (!st.error.isEmpty()) {
-            boolean waiting = st.error.startsWith("Autostart czeka");
+            boolean waiting = st.error.startsWith("自启动等待中");
             TextView err = text(this, st.error, 13, waiting ? WARN : ERR);
             err.setPadding(dp(this, 10), dp(this, 7), dp(this, 10), dp(this, 7));
             err.setBackground(rounded(this, waiting ? WARN_SOFT : ERR_SOFT, 8));
@@ -267,9 +267,9 @@ public final class ServicesActivity extends Screen implements ServiceManager.Lis
         if (st.active()) {
             String warning = null;
             if (st.def.port != 0 && !st.portOpen && ServiceManager.RUNNING.equals(st.state))
-                warning = "Port " + st.def.port + " jeszcze nie nasłuchuje. Sprawdź logi.";
+                warning = "Port " + st.def.port + "尚未监听。请检查日志。";
             else if (st.loopbackOnly)
-                warning = "Nasłuchuje tylko na 127.0.0.1: inne urządzenia się nie połączą. Użyj 0.0.0.0.";
+                warning = "仅监听 127.0.0.1：其他设备无法连接。请使用 0.0.0.0。";
             if (warning != null) {
                 TextView w = text(this, warning, 13, WARN);
                 w.setPadding(0, dp(this, 8), 0, 0);
@@ -290,7 +290,7 @@ public final class ServicesActivity extends Screen implements ServiceManager.Lis
         Button logs = button(this, "Logi", false);
         logs.setOnClickListener(v -> showLogs(name));
         actions.addView(logs, new LinearLayout.LayoutParams(0, dp(this, 40), 1));
-        Button toggle = st.active() || stopping ? outlinedButton(this, "Zatrzymaj", ERR) : button(this, "Uruchom", true);
+        Button toggle = st.active() || stopping ? outlinedButton(this, "停止", ERR) : button(this, "运行", true);
         toggle.setEnabled(!stopping);
         toggle.setAlpha(stopping ? 0.5f : 1f);
         toggle.setOnClickListener(v -> {
@@ -300,15 +300,15 @@ public final class ServicesActivity extends Screen implements ServiceManager.Lis
         LinearLayout.LayoutParams tp = new LinearLayout.LayoutParams(0, dp(this, 40), 1);
         tp.leftMargin = dp(this, 8);
         actions.addView(toggle, tp);
-        TextView remove = monoText(this, "Usuń", 13, ERR);
+        TextView remove = monoText(this, "删除", 13, ERR);
         remove.setTypeface(mono(this, 600));
         remove.setGravity(Gravity.CENTER);
         remove.setPadding(dp(this, 14), 0, dp(this, 10), 0);
         remove.setBackgroundResource(ripple(this, true));
-        remove.setContentDescription("Usuń usługę " + name);
-        remove.setOnClickListener(v -> confirmSheet(this, "Usunąć usługę „" + name + "”?",
-                "Usługa zostanie zatrzymana, a jej definicja i logi usunięte. Tej operacji nie można cofnąć.",
-                "Usuń", true, () -> operate(name, () -> manager.remove(name))));
+        remove.setContentDescription("删除服务 " + name);
+        remove.setOnClickListener(v -> confirmSheet(this, "删除服务“" + name + "”?",
+                "服务将被停止，其定义和日志将被删除。此操作无法撤销。",
+                "删除", true, () -> operate(name, () -> manager.remove(name))));
         actions.addView(remove, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, dp(this, 40)));
         LinearLayout.LayoutParams ap = full();
         ap.topMargin = dp(this, 14);
@@ -325,11 +325,11 @@ public final class ServicesActivity extends Screen implements ServiceManager.Lis
         u.setPadding(dp(this, 8), 0, dp(this, 6), 0);
         r.addView(u, weight1());
         r.addView(single(monoText(this, label, 11, FAINT)));
-        ImageButton copy = iconButton(this, R.drawable.ms_content_copy, "Kopiuj adres " + url, MUTED);
+        ImageButton copy = iconButton(this, R.drawable.ms_content_copy, "复制地址 " + url, MUTED);
         copy.setLayoutParams(new LinearLayout.LayoutParams(dp(this, 40), dp(this, 40)));
         copy.setOnClickListener(v -> copy(url));
         r.addView(copy);
-        r.setContentDescription("Otwórz " + url);
+        r.setContentDescription("打开 " + url);
         r.setForeground(getDrawable(ripple(this, false)));
         r.setOnClickListener(v -> open(url));
         r.setOnLongClickListener(v -> {
@@ -380,12 +380,12 @@ public final class ServicesActivity extends Screen implements ServiceManager.Lis
         TextView t = title(this, "Logi · " + name, 18);
         t.setAccessibilityHeading(true);
         head.addView(t, weight1());
-        TextView copy = barAction(this, "Kopiuj");
+        TextView copy = barAction(this, "复制");
         head.addView(copy);
         c.addView(head, full());
-        TextView path = single(monoText(this, "files/services/" + name + ".log · 2 pliki po 512 KB", 11, FAINT));
+        TextView path = single(monoText(this, "files/services/" + name + ".log · 2 个文件，每个 512 KB", 11, FAINT));
         c.addView(path, full());
-        TextView out = terminalText(this, "Wczytywanie…");
+        TextView out = terminalText(this, "正在加载…");
         out.setTextSize(11);
         LinearLayout.LayoutParams op = full();
         op.topMargin = dp(this, 12);
@@ -395,7 +395,7 @@ public final class ServicesActivity extends Screen implements ServiceManager.Lis
         final String[] last = {null};
         final boolean[] open = {true};
         copy.setOnClickListener(v -> {
-            if (last[0] != null) copyText("Logi " + name, last[0], "Skopiowano logi");
+            if (last[0] != null) copyText("Logi " + name, last[0], "已复制 logi");
         });
         Runnable load = new Runnable() {
             @Override public void run() {
@@ -406,9 +406,9 @@ public final class ServicesActivity extends Screen implements ServiceManager.Lis
                     try {
                         text = manager.logs(name, 400);
                     } catch (Exception e) {
-                        text = "Nie można odczytać logów: " + e.getMessage();
+                        text = "无法读取日志：" + e.getMessage();
                     }
-                    final String value = text.isEmpty() ? "Brak wpisów. Usługa jeszcze nic nie wypisała." : text;
+                    final String value = text.isEmpty() ? "没有记录。服务尚未输出任何内容。" : text;
                     poll.post(() -> {
                         if (!open[0]) return;
                         if (!value.equals(last[0])) {
@@ -432,29 +432,29 @@ public final class ServicesActivity extends Screen implements ServiceManager.Lis
 
     private void showAdd() {
         LinearLayout c = column(this);
-        TextView t = title(this, "Dodaj usługę", 18);
+        TextView t = title(this, "添加服务", 18);
         t.setAccessibilityHeading(true);
         c.addView(t);
-        TextView sub = text(this, "Komenda działa we wbudowanym terminalu także po zakończeniu pracy agenta. "
-                + "Uruchom ją na pierwszym planie, bez „&” na końcu.", 13, MUTED);
+        TextView sub = text(this, "命令在内置终端中运行，即使在代理工作结束后也是如此。"
+                + "请在前台运行它，末尾不要加“&”。", 13, MUTED);
         sub.setPadding(0, dp(this, 6), 0, dp(this, 4));
         c.addView(sub, full());
-        EditText name = field(c, "Nazwa", "web", true);
+        EditText name = field(c, "名称", "web", true);
         name.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
-        EditText command = field(c, "Komenda", "python3 -m http.server 8080 --bind 0.0.0.0", false);
+        EditText command = field(c, "命令", "python3 -m http.server 8080 --bind 0.0.0.0", false);
         command.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
         command.setMinLines(2);
         command.setMaxLines(6);
         command.setGravity(Gravity.TOP | Gravity.START);
-        EditText cwd = field(c, "Katalog", ServiceManager.DEFAULT_CWD, true);
+        EditText cwd = field(c, "目录", ServiceManager.DEFAULT_CWD, true);
         cwd.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
-        EditText port = field(c, "Port", "8080 (opcjonalnie)", true);
+        EditText port = field(c, "Port", "8080（可选）", true);
         port.setInputType(InputType.TYPE_CLASS_NUMBER);
         final boolean[] autostart = {false}, restart = {true};
-        LinearLayout auto = switchRow(this, "Autostart", "Uruchamiaj przy starcie aplikacji", false, on -> autostart[0] = on);
+        LinearLayout auto = switchRow(this, "自启动", "应用启动时运行", false, on -> autostart[0] = on);
         auto.setPadding(0, dp(this, 12), 0, dp(this, 6));
         c.addView(auto, full());
-        LinearLayout again = switchRow(this, "Restart po błędzie", "Do 5 razy w ciągu 10 minut", true, on -> restart[0] = on);
+        LinearLayout again = switchRow(this, "出错后重启", "10 分钟内最多 5 次", true, on -> restart[0] = on);
         again.setPadding(0, dp(this, 6), 0, dp(this, 12));
         c.addView(again, full());
         TextView error = text(this, "", 13, ERR);
@@ -462,8 +462,8 @@ public final class ServicesActivity extends Screen implements ServiceManager.Lis
         error.setPadding(0, 0, 0, dp(this, 10));
         c.addView(error, full());
         LinearLayout buttons = row(this);
-        Button cancel = button(this, "Anuluj", false);
-        Button save = button(this, "Dodaj i uruchom", true);
+        Button cancel = button(this, "取消", false);
+        Button save = button(this, "添加并运行", true);
         buttons.addView(cancel, new LinearLayout.LayoutParams(0, dp(this, 48), 1));
         LinearLayout.LayoutParams sp = new LinearLayout.LayoutParams(0, dp(this, 48), 1);
         sp.leftMargin = dp(this, 10);
@@ -482,15 +482,15 @@ public final class ServicesActivity extends Screen implements ServiceManager.Lis
             d.restart = restart[0] ? ServiceManager.RESTART_ON_FAILURE : ServiceManager.RESTART_NEVER;
             String problem = null;
             String p = port.getText().toString().trim();
-            if (!d.name.matches("[a-z0-9-]{1,32}")) problem = "Nazwa: 1–32 znaki — małe litery, cyfry i „-”, np. web.";
-            else if (d.command.isEmpty()) problem = "Wpisz komendę usługi.";
+            if (!d.name.matches("[a-z0-9-]{1,32}")) problem = "名称：1–32 个字符——小写字母、数字和“-”，例如 web。";
+            else if (d.command.isEmpty()) problem = "请输入服务命令。";
             else if (!p.isEmpty()) {
                 try { d.port = Integer.parseInt(p); } catch (NumberFormatException e) { d.port = -1; }
-                if (d.port < 1024 || d.port > 65535) problem = "Port musi być liczbą od 1024 do 65535.";
+                if (d.port < 1024 || d.port > 65535) problem = "端口必须是 1024 到 65535 之间的数字。";
             }
             if (problem == null) {
                 ServiceManager.Status existing = manager.status(d.name);
-                if (existing != null && existing.active()) problem = "Usługa „" + d.name + "” już działa. Zatrzymaj ją najpierw.";
+                if (existing != null && existing.active()) problem = "服务“" + d.name + "”已在运行。请先停止它。";
             }
             if (problem == null) {
                 try { d.validate(); } catch (RuntimeException e) { problem = e.getMessage(); }
@@ -531,12 +531,12 @@ public final class ServicesActivity extends Screen implements ServiceManager.Lis
 
     static String stateLabel(ServiceManager.Status st) {
         switch (st.state) {
-            case ServiceManager.RUNNING: return "działa";
+            case ServiceManager.RUNNING: return "运行中";
             case ServiceManager.STARTING:
-                return st.restartInMs > 0 ? "restart za " + Math.max(1, (st.restartInMs + 999) / 1000) + " s" : "uruchamianie";
-            case ServiceManager.EXITED: return st.exitCode == 0 ? "zakończona" : "kod " + st.exitCode;
-            case ServiceManager.FAILED: return "błąd";
-            default: return "zatrzymana";
+                return st.restartInMs > 0 ? "重启倒计时 " + Math.max(1, (st.restartInMs + 999) / 1000) + " s" : "启动中";
+            case ServiceManager.EXITED: return st.exitCode == 0 ? "已结束" : "代码 " + st.exitCode;
+            case ServiceManager.FAILED: return "错误";
+            default: return "已停止";
         }
     }
 
@@ -553,13 +553,13 @@ public final class ServicesActivity extends Screen implements ServiceManager.Lis
     private static String factsText(ServiceManager.Status st) {
         StringBuilder s = new StringBuilder();
         if (st.active() && st.pid != 0) s.append("PID ").append(st.pid).append(" · ");
-        if (st.active() && st.startedAtWall > 0) s.append("czas ").append(ServiceManager.duration(st.uptimeMs)).append(" · ");
+        if (st.active() && st.startedAtWall > 0) s.append("时间 ").append(ServiceManager.duration(st.uptimeMs)).append(" · ");
         if (st.def.port != 0) s.append("port ").append(st.def.port).append(" · ");
         else if (!st.ports.isEmpty()) s.append("port ").append(st.ports.get(0)).append(" · ");
-        s.append("restarty ").append(st.restarts);
+        s.append("重启 ").append(st.restarts);
         if (st.def.autostart) s.append(" · autostart");
-        if (ServiceManager.RESTART_NEVER.equals(st.def.restart)) s.append(" · bez restartu");
-        s.append(" · ").append(st.owner.startsWith("chat:") ? "od agenta" : st.owner.equals("owner") ? "dodana ręcznie" : "zewnętrzna");
+        if (ServiceManager.RESTART_NEVER.equals(st.def.restart)) s.append(" · 不重启");
+        s.append(" · ").append(st.owner.startsWith("chat:") ? "来自代理" : st.owner.equals("owner") ? "手动添加" : "外部");
         return s.toString();
     }
 
@@ -570,20 +570,20 @@ public final class ServicesActivity extends Screen implements ServiceManager.Lis
 
     private static String saved(int n) {
         int tens = n % 100, ones = n % 10;
-        if (n == 1) return "1 zapisana";
-        return n + (ones >= 2 && ones <= 4 && (tens < 12 || tens > 14) ? " zapisane" : " zapisanych");
+        if (n == 1) return "1 个已保存";
+        return n + (ones >= 2 && ones <= 4 && (tens < 12 || tens > 14) ? " 已保存" : "已保存");
     }
 
     private void open(String url) {
         try {
             startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
         } catch (ActivityNotFoundException e) {
-            Toast.makeText(this, "Brak przeglądarki do otwarcia adresu", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "没有可用于打开地址的浏览器", Toast.LENGTH_SHORT).show();
         }
     }
 
     private void copy(String url) {
-        copyText("Adres usługi", url, "Skopiowano " + url);
+        copyText("服务地址", url, "已复制 " + url);
     }
 
     private void copyText(String label, String text, String toast) {

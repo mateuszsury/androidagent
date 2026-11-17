@@ -112,7 +112,7 @@ final class MediaTools implements ToolProviders.Provider {
         String how;
         try {
             Intent open = new Intent(app, CaptureActivity.class).putExtra(CaptureActivity.TOKEN, token);
-            how = FileTools.launch(app, open, "Agent prosi o zdjęcie", "Dotknij, aby otworzyć aparat.");
+            how = FileTools.launch(app, open, "代理请求拍照", "点击打开相机。");
         } catch (RuntimeException e) {
             CAPTURES.remove(token);
             throw e;
@@ -120,7 +120,7 @@ final class MediaTools implements ToolProviders.Provider {
         String path = FileTools.display(app, target);
         if (!capture.done.await(timeoutS, TimeUnit.SECONDS)) {
             return ToolProviders.result(new JSONObject().put("status", "pending").put("path", path).put("message",
-                    ("notification".equals(how) ? "androidagent is in the background, so a notification \"Agent prosi o zdjęcie\" "
+                    ("notification".equals(how) ? "androidagent 在后台，因此通知“代理请求拍照” "
                             + "opens the camera; ask the user to tap it. " : "The camera is still open. ")
                             + "When the user takes the photo it is saved at " + path + "; check later with file_info."));
         }
@@ -196,7 +196,7 @@ final class MediaTools implements ToolProviders.Provider {
 
     private static void requirePhotos(Context app) {
         if (!photosAllowed(app))
-            throw new SecurityException("Photo access is off. Ask the user to allow Zdjęcia in androidagent > Uprawnienia. "
+            throw new SecurityException("照片访问已关闭。请用户在 androidagent > 权限中允许照片。"
                     + "This tool never shows a permission dialog itself. take_photo works without this permission.");
     }
 
@@ -259,7 +259,7 @@ final class MediaTools implements ToolProviders.Provider {
                         + "The user decides what to photograph; tell them what you need first.",
                 new JSONObject().put("timeout_s", ToolProviders.prop("integer", "Seconds to wait for the camera, 10-50, default 45"))));
         t.put(ToolProviders.tool("recent_photos", "List the newest photos in the phone's gallery (id, name, date, size, album). "
-                        + "Needs photo access allowed by the user in androidagent > Uprawnienia > Zdjęcia.",
+                        + "需要用户在 androidagent > 权限 > 照片中允许照片访问。",
                 new JSONObject().put("limit", ToolProviders.prop("integer", "How many, 1-50, default 10"))));
         t.put(ToolProviders.tool("import_photo", "Copy one gallery photo (id from recent_photos) into ~/.buddy/work/photos and "
                         + "return a preview image. Needs photo access.",

@@ -1,5 +1,6 @@
 package dev.mateuszsury.androidagent;
 
+import android.content.Context;
 import android.util.Log;
 
 import org.json.JSONArray;
@@ -36,6 +37,15 @@ final class McpServer {
     static final int PORT = 8766;
     private static final String TAG = "androidagentMcp";
     private static final String DEFAULT_PROTOCOL = "2025-06-18";
+
+    /** One listener per app instance: the official package keeps 8766, clones use a
+     *  package-derived neighbour so two installed copies can run at the same time. */
+    static int portFor(Context c) {
+        String pkg = c.getPackageName();
+        String official = "dev.mateuszsury.android" + "agent";
+        if (official.equals(pkg)) return PORT;
+        return PORT + 1 + Math.floorMod(pkg.hashCode(), 62);
+    }
 
     interface Handler {
         default String principal(String credential) { return null; }

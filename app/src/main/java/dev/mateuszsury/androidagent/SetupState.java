@@ -9,8 +9,8 @@ import android.text.TextUtils;
 /** Quick setup progress from saved state (no ping): used for the Chats header and the Settings card. */
 final class SetupState {
     static final String[] STEPS = {
-            "Wbudowane środowisko", "Oficjalny klient agenta", "Logowanie do konta",
-            "Uprawnienia opcjonalne", "Pierwsza rozmowa",
+            "内置环境", "官方代理客户端", "登录账户",
+            "可选权限", "第一个对话",
     };
     /** Must match HELPER_VERSION in termux/buddy-run. */
     static final int HELPER_VERSION = 16;

@@ -17,12 +17,14 @@ set -u
 export PATH=$HOME/bin:/data/data/com.termux/files/usr/bin:$PATH
 # The claude launcher sets BUN_OPTIONS with a path relative to its folder; never inherit a stale one.
 unset BUN_OPTIONS
+# 模型供应商密钥（由 androidagent 的“模型供应商”设置写入）。
+[ -f "$HOME/.androidagent/provider.env" ] && . "$HOME/.androidagent/provider.env"
 D=$HOME/.buddy
 W=$D/work
 mkdir -p "$W" "$D/sessions"
 TOKEN=${1:-}
 CMD=${2:-}
-URL=http://127.0.0.1:8766
+URL=http://127.0.0.1:${ANDROIDAGENT_MCP_PORT:-8766}
 
 post() { # post one JSON event to the bubble
   curl -s -m 5 -o /dev/null -X POST -H "Authorization: Bearer $TOKEN" \
@@ -277,7 +279,7 @@ if ! mkdir "$S/run-lock" 2>/dev/null; then
     rmdir "$S/run-lock" 2>/dev/null || true
     mkdir "$S/run-lock" 2>/dev/null || exit 1
   else
-    event buddy_error "Poprzednie zadanie w tej rozmowie nadal trwa." "$(cat "$S/run" 2>/dev/null)"
+    event buddy_error "此对话的上一个任务仍在运行。" "$(cat "$S/run" 2>/dev/null)"
     event buddy_done
     exit 0
   fi
@@ -303,7 +305,7 @@ find "$S" -maxdepth 1 -name 'cancel-*' -mtime +1 -delete 2>/dev/null || true
 
 if ! have "$BACKEND"; then
   if [ "${ANDROIDAGENT_EMBEDDED:-0}" = 1 ]; then
-    event buddy_error "Wybrany klient nie jest zainstalowany. Otwórz panel środowiska w androidagent."
+    event buddy_error "所选客户端未安装。请打开 androidagent 的环境面板。"
   else
     event buddy_error "The selected agent isn't installed in Termux."
   fi
@@ -318,16 +320,16 @@ if [ -n "${FILES:-}" ]; then
   IFS=, read -ra ids <<< "$FILES"
   for id in "${ids[@]}"; do
     if ! [[ "$id" =~ ^[A-Za-z0-9._-]{1,120}$ && "$id" != *..* && "$id" != . ]]; then
-      event buddy_error "Nieprawidłowy identyfikator załącznika. Dołącz plik ponownie."
+      event buddy_error "附件标识无效。请重新附加文件。"
       exit 0
     fi
-    DOWNLOAD_TMP=$(mktemp "$S/.attachment.XXXXXX") || { event buddy_error "Nie można przygotować pliku załącznika."; exit 0; }
+    DOWNLOAD_TMP=$(mktemp "$S/.attachment.XXXXXX") || { event buddy_error "无法准备附件文件。"; exit 0; }
     if curl -s -f -m 120 -H "Authorization: Bearer $TOKEN" "$URL/file/$id" -o "$DOWNLOAD_TMP" && mv -T -- "$DOWNLOAD_TMP" "$S/files/$id"; then
       DOWNLOAD_TMP=""
       ATT+=("$S/files/$id")
       case "${id,,}" in *.jpg|*.jpeg|*.png|*.webp|*.gif) IMGS+=("$S/files/$id") ;; esac
     else
-      event buddy_error "Nie udało się pobrać załącznika ${id#*_} z aplikacji."
+      event buddy_error "无法从应用下载附件 ${id#*_}。"
       exit 0
     fi
   done
@@ -452,9 +454,9 @@ stream_codex() {
       elif .type == "turn.completed" then
         {type:"result", subtype:"success", result:""}
       elif .type == "turn.failed" then
-        {type:"result", subtype:"error", is_error:true, result:("Codex: " + (.error.message // "zadanie nie powiodło się"))}
+        {type:"result", subtype:"error", is_error:true, result:("Codex: " + (.error.message // "任务失败"))}
       elif .type == "error" then
-        {type:"buddy_error", text:("Codex: " + (.message // "błąd"))}
+        {type:"buddy_error", text:("Codex: " + (.message // "错误"))}
       else empty end) | . + {buddy_session:$s,buddy_run:$r}' 2>/dev/null | while IFS= read -r ev; do printf '%s' "$ev" | post; done
   done
 }
@@ -463,7 +465,7 @@ stream_codex() {
 (
   if [ "$BACKEND" = codex ]; then
     if ! have codex; then
-      if [ "${ANDROIDAGENT_EMBEDDED:-0}" = 1 ]; then event buddy_error "Codex nie jest zainstalowany. Otwórz panel środowiska w androidagent."
+      if [ "${ANDROIDAGENT_EMBEDDED:-0}" = 1 ]; then event buddy_error "Codex 未安装。请打开 androidagent 的环境面板。"
       else event buddy_error "Codex isn't installed in Termux."; fi
       exit 0
     fi
@@ -472,7 +474,7 @@ stream_codex() {
     name=Codex
   else
     if ! have claude; then
-      if [ "${ANDROIDAGENT_EMBEDDED:-0}" = 1 ]; then event buddy_error "Claude Code nie jest zainstalowany. Otwórz panel środowiska w androidagent."
+      if [ "${ANDROIDAGENT_EMBEDDED:-0}" = 1 ]; then event buddy_error "Claude Code 未安装。请打开 androidagent 的环境面板。"
       else event buddy_error "Claude Code isn't installed in Termux."; fi
       exit 0
     fi
@@ -484,7 +486,7 @@ stream_codex() {
   # discards context and can repeat side effects from a partially completed turn.
   if [ "$status" -ne 0 ]; then
     detail=$(tail -c 400 "$S/last-error.log" 2>/dev/null)
-    event buddy_error "$name zakończył się błędem (kod $status)${detail:+: $detail}"
+    event buddy_error "$name 运行失败（代码 $status）${detail:+: $detail}"
   fi
 ) &
 wait $! 2>/dev/null

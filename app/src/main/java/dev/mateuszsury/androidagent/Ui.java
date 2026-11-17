@@ -438,7 +438,7 @@ final class Ui {
             c.addView(m);
         }
         LinearLayout btns = row(a);
-        Button no = button(a, "Anuluj", false);
+        Button no = button(a, "取消", false);
         Button yes = button(a, action, !destructive);
         if (destructive) {
             yes.setTextColor(ERR);
@@ -470,9 +470,9 @@ final class Ui {
         bar.setGravity(Gravity.CENTER);
         bar.setPadding(dp(a, 8), dp(a, 2), dp(a, 8), dp(a, 2));
         Object[][] items = {
-                {R.drawable.ms_chat_bubble, "Czaty", MainActivity.class},
-                {R.drawable.ms_terminal, "Sesje", MonitorActivity.class},
-                {R.drawable.ms_tune, "Ustawienia", SetupActivity.class},
+                {R.drawable.ms_chat_bubble, "聊天", MainActivity.class},
+                {R.drawable.ms_terminal, "会话", MonitorActivity.class},
+                {R.drawable.ms_tune, "设置", SetupActivity.class},
         };
         for (int i = 0; i < items.length; i++) {
             final int idx = i;
@@ -528,15 +528,15 @@ final class Ui {
     // ------------------------------------------------------------ claude code kit
 
     /**
-     * A screen's top bar: back arrow ("Wróć"), a title with an optional mono subtitle (a path-like
-     * context line, e.g. "~/docker · 2 zadania") and trailing actions. A hairline separates it.
+     * A screen's top bar: back arrow ("返回"), a title with an optional mono subtitle (a path-like
+     * context line, e.g. "~/docker · 2 个任务") and trailing actions. A hairline separates it.
      */
     static LinearLayout topBar(Activity a, String title, String subtitle, View... actions) {
         LinearLayout wrap = column(a);
         LinearLayout bar = row(a);
         bar.setPadding(dp(a, 4), dp(a, 6), dp(a, 8), dp(a, 6));
         bar.setMinimumHeight(dp(a, 60));
-        ImageButton back = iconButton(a, R.drawable.ms_arrow_back, "Wróć");
+        ImageButton back = iconButton(a, R.drawable.ms_arrow_back, "返回");
         back.setOnClickListener(v -> a.finish());
         bar.addView(back);
         LinearLayout texts = column(a);
@@ -562,7 +562,7 @@ final class Ui {
         return (TextView) ((LinearLayout) bar.getChildAt(1)).getChildAt(0);
     }
 
-    /** A text action for a top bar, e.g. "Odśwież". */
+    /** A text action for a top bar, e.g. "刷新". */
     static TextView barAction(Context c, String label) {
         TextView t = monoText(c, label, 13, ACCENT_TEXT);
         t.setTypeface(mono(c, 600));
@@ -666,7 +666,7 @@ final class Ui {
         }
     }
 
-    /** Small mono status label, e.g. "dev", "działa", "błąd". */
+    /** Small mono status label, e.g. "dev", "运行中", "错误". */
     static TextView badge(Context c, String s, int color) {
         TextView t = single(monoText(c, s, 11, color));
         t.setTypeface(mono(c, 600));

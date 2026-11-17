@@ -497,7 +497,7 @@ final class Markdown {
                     Intent i = new Intent(Intent.ACTION_VIEW, Uri.parse(target)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     widget.getContext().startActivity(i);
                 } catch (Exception e) {
-                    Toast.makeText(widget.getContext(), "Nie można otworzyć: " + target, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(widget.getContext(), "无法打开：" + target, Toast.LENGTH_SHORT).show();
                 }
             }
 
@@ -720,17 +720,17 @@ final class Markdown {
             live.setPadding(0, 0, dp(c, 8), 0);
             header.addView(live);
         }
-        TextView copy = monoText(c, "Kopiuj", 11, CODE_MUTED);
+        TextView copy = monoText(c, "复制", 11, CODE_MUTED);
         copy.setPadding(dp(c, 12), dp(c, 8), dp(c, 12), dp(c, 8));
-        copy.setContentDescription("Kopiuj kod");
+        copy.setContentDescription("复制代码");
         copy.setBackgroundResource(ripple(c, true));
         copy.setOnClickListener(v -> {
-            c.getSystemService(ClipboardManager.class).setPrimaryClip(ClipData.newPlainText("Kod", copied));
-            Toast.makeText(c, "Skopiowano kod", Toast.LENGTH_SHORT).show();
-            copy.setText("Skopiowano ✓");
+            c.getSystemService(ClipboardManager.class).setPrimaryClip(ClipData.newPlainText("代码", copied));
+            Toast.makeText(c, "已复制代码", Toast.LENGTH_SHORT).show();
+            copy.setText("已复制 ✓");
             copy.setTextColor(SYN_STRING);
             copy.postDelayed(() -> {
-                copy.setText("Kopiuj");
+                copy.setText("复制");
                 copy.setTextColor(CODE_MUTED);
             }, 1600);
         });

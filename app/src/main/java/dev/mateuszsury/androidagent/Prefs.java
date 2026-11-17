@@ -132,6 +132,15 @@ final class Prefs {
         sp(c).edit().putString("signed", s).apply();
     }
 
+    /** 模型供应商配置（JSON），写入终端的 .codex/config.toml 与 provider.env。 */
+    static String provider(Context c) {
+        return sp(c).getString("provider", "");
+    }
+
+    static void setProvider(Context c, String json) {
+        sp(c).edit().putString("provider", json == null ? "" : json).apply();
+    }
+
     /** Codex's model list from its cache in Termux, as JSON [[slug, name], …]. */
     static String codexModels(Context c) {
         return sp(c).getString("codex_models", "[]");

@@ -37,7 +37,7 @@ final class ChatHub {
 
     /** Chats that may work at the same time; the embedded runtime sizes its request pool from it. */
     static final int MAX_RUNNING = 6;
-    static final String THINKING = "Myślę…", WORKING = "Pracuję…";
+    static final String THINKING = "思考中…", WORKING = "工作中…";
     private static final long NO_RESPONSE_MS = 30000;
     /** Stall watchdog: how often it looks, how long a run whose helper process has ended may
      *  stay silent (late callbacks), and the much longer limit when liveness is unknown. */
@@ -81,7 +81,7 @@ final class ChatHub {
             changed();
             return s;
         }
-        add(s, Bubble.Kind.STEP, "Kontynuuję wcześniejszą sesję " + s.brainName() + ". Jeśli jest nadal otwarta w terminalu, najpierw ją tam zamknij.");
+        add(s, Bubble.Kind.STEP, "正在继续之前的会话" + s.brainName() + "。如果它仍在终端中打开，请先在那里关闭。");
         changed();
         return s;
     }
@@ -172,7 +172,7 @@ final class ChatHub {
 
     /** Sends a message with attachments (ids from Attachments); the helper fetches them before the agent runs. */
     String send(final Sessions.Session ses, String text, List<String> files) {
-        if (ses.running) return "Ta rozmowa nadal pracuje. Zatrzymaj ją albo napisz w innej rozmowie.";
+        if (ses.running) return "此对话仍在工作。请停止它，或在其他对话中发言。";
         if ("/status".equals(text.trim())) {
             add(ses, Bubble.Kind.USER, text);
             try { add(ses, Bubble.Kind.BUDDY, DeviceState.summary(app)); }
@@ -182,13 +182,13 @@ final class ChatHub {
         }
         // Each working chat holds one runtime request slot; a queued request would only time out.
         if (sessions.runningCount() >= MAX_RUNNING)
-            return "Za dużo równoległych rozmów (maks. " + MAX_RUNNING + "). Zatrzymaj jedną z nich.";
-        if (!McpHost.get(app).running()) return "Otwórz wbudowane środowisko, aby uruchomić most narzędzi. Sterowanie ekranem jest opcjonalne.";
+            return "并行对话过多（最多 " + MAX_RUNNING + "）。请停止其中一个。";
+        if (!McpHost.get(app).running()) return "打开内置环境以启动工具桥。屏幕控制是可选的。";
         if (!SetupState.helperCurrent(app) || !SetupState.agentReady(app, ses.backend))
-            return "Przygotuj " + ses.brainName() + " we wbudowanym środowisku i zaloguj się do własnego konta. /status działa lokalnie bez modelu.";
+            return "准备 " + ses.brainName() + "在内置环境中并使用你自己的账户登录。/status 在本地运行，无需模型。";
         boolean hasFiles = files != null && !files.isEmpty();
         if (text.isEmpty() && !hasFiles) return null;
-        String forAgent = text.isEmpty() && hasFiles ? "Zobacz, co załączam." : text;
+        String forAgent = text.isEmpty() && hasFiles ? "看看我附加了什么。" : text;
         McpHost.get(app).allowControl();
         // The helper echoes this identifier on every callback. A stopped run may still have
         // an HTTP request in flight when the next request in the same chat begins.
@@ -210,7 +210,7 @@ final class ChatHub {
         main.postDelayed(() -> {
             if (ses.running && id == ses.runId && !ses.runAcknowledged) {
                 stop(ses);
-                add(ses, Bubble.Kind.ERROR, "Brak odpowiedzi klienta. Otwórz panel środowiska w androidagent i sprawdź jego stan oraz logowanie.");
+                add(ses, Bubble.Kind.ERROR, "客户端无响应。请打开 androidagent 的环境面板，检查其状态和登录情况。");
                 changed();
             }
         }, NO_RESPONSE_MS);
@@ -220,7 +220,7 @@ final class ChatHub {
     /** Change a chat's model; the next message uses it, and the conversation continues. */
     void setModel(Sessions.Session ses, String model) {
         ses.model = model == null ? "" : model.trim();
-        add(ses, Bubble.Kind.STEP, "Model: " + Models.label(ses.backend, ses.model));
+        add(ses, Bubble.Kind.STEP, "模型：" + Models.label(ses.backend, ses.model));
         changed();
     }
 
@@ -241,10 +241,10 @@ final class ChatHub {
         flushStream(ses);
         ses.running = false;
         ses.status = "";
-        settleSteps(ses, false, "Przerwano");
-        if (deliveryError == null) add(ses, Bubble.Kind.STEP, "Zatrzymano.");
-        else add(ses, Bubble.Kind.ERROR, "Dostęp do narzędzi telefonu został zakończony, ale polecenie Stop nie dotarło do klienta: "
-                + deliveryError + " Sprawdź procesy we wbudowanym środowisku.");
+        settleSteps(ses, false, "已中断");
+        if (deliveryError == null) add(ses, Bubble.Kind.STEP, "已停止。");
+        else add(ses, Bubble.Kind.ERROR, "手机工具访问已结束，但 Stop 命令未送达客户端："
+                + deliveryError + "在内置环境中检查进程。");
         changed();
     }
 
@@ -381,7 +381,7 @@ final class ChatHub {
                 }
                 if (error) {
                     settleSteps(ses, false, null);
-                    add(ses, Bubble.Kind.ERROR, r.isEmpty() ? ses.brainName() + " przerwał pracę." : r);
+                    add(ses, Bubble.Kind.ERROR, r.isEmpty() ? ses.brainName() + "中断了工作。" : r);
                 } else if (!ses.gotText && !r.isEmpty()) {
                     reply(ses, r);
                 }
@@ -389,16 +389,16 @@ final class ChatHub {
             }
             case "buddy_error":
                 flushStream(ses);
-                add(ses, Bubble.Kind.ERROR, ev.optString("text", "Coś poszło nie tak."));
+                add(ses, Bubble.Kind.ERROR, ev.optString("text", "出了点问题。"));
                 String activeRun = ev.optString("active_run");
                 if (activeRun.matches("[A-Za-z0-9_-]{1,64}") && !activeRun.equals(ses.callbackRun)) {
                     // The app process may have restarted while its helper survived.
                     // Cancel that exact old run; its late callbacks cannot finish this one.
                     try {
                         commands.run("stop", ses.id, activeRun);
-                        add(ses, Bubble.Kind.STEP, "Poproszono klienta o zatrzymanie poprzedniego zadania. Wyślij wiadomość ponownie po jego zakończeniu.");
+                        add(ses, Bubble.Kind.STEP, "已请求客户端停止上一个任务。请在其结束后重新发送消息。");
                     } catch (Exception e) {
-                        add(ses, Bubble.Kind.ERROR, "Nie udało się zatrzymać poprzedniego zadania klienta: " + e.getMessage());
+                        add(ses, Bubble.Kind.ERROR, "停止客户端上一个任务失败：" + e.getMessage());
                     }
                 }
                 break;
@@ -407,8 +407,8 @@ final class ChatHub {
                 ses.running = false;
                 McpHost.get(app).revoke(ses.id);
                 ses.status = "";
-                settleSteps(ses, false, "Przerwano");
-                add(ses, Bubble.Kind.STEP, "Zatrzymano.");
+                settleSteps(ses, false, "已中断");
+                add(ses, Bubble.Kind.STEP, "已停止。");
                 break;
             case "buddy_done":
                 flushStream(ses);
@@ -462,7 +462,7 @@ final class ChatHub {
             for (Sessions.Session s : sessions.all)
                 if (s.running && (latest == null || s.lastEventAt > latest.lastEventAt)) latest = s;
             String st = latest == null || latest.status.isEmpty() ? WORKING : latest.status;
-            return n > 1 ? n + " " + Sessions.plural(n, "rozmowa", "rozmowy", "rozmów") + " · " + st : st;
+            return n > 1 ? n + " " + Sessions.plural(n, "对话", "个对话", "个对话") + " · " + st : st;
         }
         return flash;
     }
@@ -541,17 +541,17 @@ final class ChatHub {
         }
         // The agent finished its turn and only the completion callback was lost.
         boolean completed = processGone && ses.resultSeen && ses.lastError.isEmpty();
-        settleSteps(ses, completed, completed ? null : "Przerwano");
+        settleSteps(ses, completed, completed ? null : "已中断");
         if (completed) {
             if (!ses.lastReply.isEmpty()) {
                 Prefs.setHadReply(app);
                 flash(ses.lastReply);
             }
         } else if (processGone) {
-            add(ses, Bubble.Kind.ERROR, "Proces agenta zakończył się bez odpowiedzi.");
+            add(ses, Bubble.Kind.ERROR, "代理进程结束，未给出回复。");
         } else {
-            add(ses, Bubble.Kind.ERROR, "Agent nie dał znaku życia od " + (UNKNOWN_SILENCE_MS / 60000)
-                    + " minut, więc zadanie zostało zatrzymane. Wyślij wiadomość ponownie, aby kontynuować.");
+            add(ses, Bubble.Kind.ERROR, "代理已" + (UNKNOWN_SILENCE_MS / 60000)
+                    + "分钟，任务已停止。请重新发送消息以继续。");
         }
     }
 
@@ -674,7 +674,7 @@ final class ChatHub {
             else if (item instanceof JSONObject) {
                 String type = ((JSONObject) item).optString("type");
                 if ("text".equals(type)) part = ((JSONObject) item).optString("text");
-                else if ("image".equals(type)) part = "[obraz]";
+                else if ("image".equals(type)) part = "[图片]";
             }
             if (part == null) continue;
             if (text.length() > 0) text.append('\n');
@@ -785,13 +785,13 @@ final class ChatHub {
                 break;
             }
             case "Task":
-            case "Agent":
+            case "代理":
                 s = in.optString("description");
                 break;
             case "TodoWrite": {
                 JSONArray todos = in.optJSONArray("todos");
                 int n = todos == null ? 0 : todos.length();
-                s = n + " " + Sessions.plural(n, "zadanie", "zadania", "zadań");
+                s = n + " " + Sessions.plural(n, "任务", "任务", "个任务");
                 break;
             }
             default:
@@ -844,52 +844,52 @@ final class ChatHub {
             if (separator > 0) n = name.substring(separator + 2);
         }
         switch (n) {
-            case "read_screen": return "Czytam ekran";
-            case "screenshot": return "Robię zrzut ekranu";
+            case "read_screen": return "正在读取屏幕";
+            case "screenshot": return "正在截图";
             case "tap": return in.has("element") ? "Dotykam elementu " + in.optInt("element") : "Dotykam " + in.optInt("x") + "," + in.optInt("y");
-            case "long_press": return "Przytrzymuję";
-            case "type_text": return "Wpisuję „" + clip(in.optString("text"), 40) + "”";
-            case "scroll": return "Przewijam " + direction(in.optString("direction"));
-            case "swipe": return "Przesuwam palcem";
+            case "long_press": return "正在保持";
+            case "type_text": return "正在输入“" + clip(in.optString("text"), 40) + "”";
+            case "scroll": return "正在滚动 " + direction(in.optString("direction"));
+            case "swipe": return "正在滑动";
             case "press": return "Naciskam " + button(in.optString("button"));
             case "open_app": return "Otwieram " + in.optString("app");
-            case "list_apps": return "Sprawdzam aplikacje";
+            case "list_apps": return "正在检查应用";
             case "open_url": return "Otwieram " + clip(in.optString("url"), 40);
-            case "device_status": return "Sprawdzam stan telefonu";
-            case "run_command": return "Uruchamiam: " + clip(in.optString("command"), 40);
+            case "device_status": return "正在检查手机状态";
+            case "run_command": return "正在启动：" + clip(in.optString("command"), 40);
             case "wait":
             case "ToolSearch":
                 return null;
-            case "TodoWrite": return "Aktualizuję listę zadań";
-            case "confirm": return "Proszę o Twoją zgodę";
+            case "TodoWrite": return "正在更新任务列表";
+            case "confirm": return "请求你的授权";
             case "notify": {
                 String text = in.optString("text").trim();
-                return text.isEmpty() ? "Wysyłam powiadomienie" : text;
+                return text.isEmpty() ? "正在发送通知" : text;
             }
-            case "WebSearch": return "Szukam w sieci: " + clip(in.optString("query"), 40);
-            case "WebFetch": return "Czytam " + clip(in.optString("url"), 40);
-            case "Bash": return in.has("command") ? "Uruchamiam: " + clip(in.optString("command"), 40) : "Uruchamiam polecenie";
+            case "WebSearch": return "正在搜索：" + clip(in.optString("query"), 40);
+            case "WebFetch": return "正在读取 " + clip(in.optString("url"), 40);
+            case "Bash": return in.has("command") ? "正在启动：" + clip(in.optString("command"), 40) : "正在运行命令";
             case "Edit":
-            case "MultiEdit": return in.has("file_path") ? "Edytuję " + clip(baseName(in.optString("file_path")), 40) : "Edytuję pliki";
-            case "Write": return in.has("file_path") ? "Zapisuję " + clip(baseName(in.optString("file_path")), 40) : "Zapisuję pliki";
-            case "NotebookEdit": return "Edytuję notatnik " + clip(baseName(in.optString("notebook_path", in.optString("file_path"))), 40);
-            case "Read": return in.has("file_path") ? "Czytam " + clip(baseName(in.optString("file_path")), 40) : "Czytam plik";
-            case "Grep": return "Przeszukuję pliki: " + clip(in.optString("pattern"), 40);
-            case "Glob": return "Szukam plików: " + clip(in.optString("pattern"), 40);
+            case "MultiEdit": return in.has("file_path") ? "正在编辑" + clip(baseName(in.optString("file_path")), 40) : "正在编辑文件";
+            case "Write": return in.has("file_path") ? "正在保存 " + clip(baseName(in.optString("file_path")), 40) : "正在保存文件";
+            case "NotebookEdit": return "正在编辑笔记" + clip(baseName(in.optString("notebook_path", in.optString("file_path"))), 40);
+            case "Read": return in.has("file_path") ? "正在读取 " + clip(baseName(in.optString("file_path")), 40) : "正在读取文件";
+            case "Grep": return "正在搜索文件：" + clip(in.optString("pattern"), 40);
+            case "Glob": return "正在查找文件：" + clip(in.optString("pattern"), 40);
             case "Task":
-            case "Agent": {
+            case "代理": {
                 String what = in.optString("description").trim();
-                return what.isEmpty() ? "Zlecam podzadanie" : "Zlecam podzadanie: " + clip(what, 40);
+                return what.isEmpty() ? "委托子任务" : "我派发子任务：" + clip(what, 40);
             }
-            case "Skill": return "Używam umiejętności " + clip(in.optString("skill", in.optString("command")), 40);
-            default: return "Używam " + n;
+            case "Skill": return "正在使用技能 " + clip(in.optString("skill", in.optString("command")), 40);
+            default: return "正在使用 " + n;
         }
     }
 
     private static String direction(String d) {
         switch (d) {
-            case "up": return "w górę";
-            case "down": return "w dół";
+            case "up": return "向上";
+            case "down": return "向下";
             case "left": return "w lewo";
             case "right": return "w prawo";
             default: return d;
@@ -898,11 +898,11 @@ final class ChatHub {
 
     private static String button(String b) {
         switch (b) {
-            case "back": return "Wstecz";
-            case "home": return "Ekran główny";
-            case "recents": return "Ostatnie aplikacje";
+            case "back": return "返回";
+            case "home": return "主屏幕";
+            case "recents": return "最近的应用";
             case "notifications": return "Powiadomienia";
-            case "quick_settings": return "Szybkie ustawienia";
+            case "quick_settings": return "快速设置";
             default: return b;
         }
     }

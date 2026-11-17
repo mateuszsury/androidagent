@@ -16,7 +16,7 @@ import java.util.List;
 /**
  * Foreground owner of the background services: it runs while at least one service is starting or
  * running, keeps the CPU (partial wake lock) and Wi-Fi awake so servers answer with the screen off,
- * and shows "Usługi w tle: N działają" with a "Zatrzymaj wszystkie" action.
+ * and shows "后台服务：N 个运行中" with a "全部停止" action.
  */
 public final class ServicesService extends Service {
     static final String STOP_ALL = "dev.mateuszsury.androidagent.services.STOP_ALL";
@@ -107,7 +107,7 @@ public final class ServicesService extends Service {
 
     private Notification build(List<ServiceManager.Status> active) {
         NotificationManager nm = getSystemService(NotificationManager.class);
-        nm.createNotificationChannel(new NotificationChannel("services", "Usługi w tle", NotificationManager.IMPORTANCE_LOW));
+        nm.createNotificationChannel(new NotificationChannel("services", "后台服务", NotificationManager.IMPORTANCE_LOW));
         PendingIntent open = PendingIntent.getActivity(this, NOTICE, new Intent(this, ServicesActivity.class)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK), PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
         PendingIntent stop = PendingIntent.getService(this, NOTICE + 1, new Intent(this, ServicesService.class).setAction(STOP_ALL),
@@ -118,21 +118,21 @@ public final class ServicesService extends Service {
             names.append(names.length() == 0 ? "" : " · ").append(st.def.name).append(port != 0 ? " :" + port : "");
             String url = st.urls.isEmpty() ? "" : st.urls.get(st.urls.size() - 1)[0];
             lines.append(lines.length() == 0 ? "" : "\n").append(st.def.name)
-                    .append(ServiceManager.STARTING.equals(st.state) ? " · uruchamianie" : "")
+                    .append(ServiceManager.STARTING.equals(st.state) ? " · 正在启动" : "")
                     .append(url.isEmpty() ? "" : " · " + url);
         }
-        String title = active.isEmpty() ? "Usługi w tle" : "Usługi w tle: " + ServiceManager.runningLabel(active.size());
+        String title = active.isEmpty() ? "后台服务" : "后台服务：" + ServiceManager.runningLabel(active.size());
         return new Notification.Builder(this, "services")
                 .setSmallIcon(R.drawable.ms_terminal)
                 .setContentTitle(title)
-                .setContentText(names.length() == 0 ? "Zatrzymywanie…" : names.toString())
-                .setStyle(new Notification.BigTextStyle().bigText(lines.length() == 0 ? "Zatrzymywanie…" : lines.toString()))
+                .setContentText(names.length() == 0 ? "正在停止…" : names.toString())
+                .setStyle(new Notification.BigTextStyle().bigText(lines.length() == 0 ? "正在停止…" : lines.toString()))
                 .setContentIntent(open)
                 .setOngoing(true)
                 .setOnlyAlertOnce(true)
                 .setShowWhen(false)
                 .setCategory(Notification.CATEGORY_SERVICE)
-                .addAction(new Notification.Action.Builder(null, "Zatrzymaj wszystkie", stop).build())
+                .addAction(new Notification.Action.Builder(null, "全部停止", stop).build())
                 .build();
     }
 

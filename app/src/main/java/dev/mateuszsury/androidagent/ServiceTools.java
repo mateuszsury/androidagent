@@ -15,7 +15,7 @@ import static dev.mateuszsury.androidagent.ToolProviders.tool;
 /** service_* MCP tools: long-running owner-approved services that outlive the agent's turn. */
 final class ServiceTools implements ToolProviders.Provider {
     private static final String DEV_MODE_OFF = "Developer mode is off: background services need it. Ask the owner to "
-            + "enable developer mode in androidagent settings. (Włącz tryb programisty w ustawieniach androidagent.)";
+            + "请在 androidagent 设置中启用开发者模式。";
 
     @Override public JSONArray list(Context app) throws JSONException {
         JSONObject name = prop("string", "Service name: 1–32 characters a-z, 0-9 and '-', e.g. \"web\".");
@@ -88,7 +88,7 @@ final class ServiceTools implements ToolProviders.Provider {
                 require(services, n);
                 int lines = Math.max(1, Math.min(a.optInt("lines", 100), 2000));
                 String log = services.logs(n, lines);
-                return ToolProviders.text(log.isEmpty() ? "(empty log · dziennik jest pusty)" : log);
+                return ToolProviders.text(log.isEmpty() ? "（空日志 · 日志为空）" : log);
             }
             case "service_start":
                 return start(app, caller, services, a);
@@ -142,7 +142,7 @@ final class ServiceTools implements ToolProviders.Provider {
                 return ToolProviders.result(existing.json().put("note", "Already running with this exact definition. "
                         + "Use service_restart to restart it."));
             throw new IllegalStateException("Service \"" + d.name + "\" is already running with a different definition. "
-                    + "Call service_stop first, or choose another name. (Usługa „" + d.name + "” już działa.)");
+                    + "请先调用 service_stop，或选择其他名称。（服务“" + d.name + "”已在运行。）");
         }
         runtime(services);
         if (existing == null || !existing.def.sameAs(d)) {
@@ -209,7 +209,7 @@ final class ServiceTools implements ToolProviders.Provider {
         ServiceManager.Status st = services.status(name);
         if (st == null)
             throw new IllegalArgumentException("Unknown service \"" + name + "\". Use service_list to see names. "
-                    + "(Nie ma usługi „" + name + "”.)");
+                    + "（没有服务“" + name + "”.)");
         return st;
     }
 
@@ -224,7 +224,7 @@ final class ServiceTools implements ToolProviders.Provider {
     private static String notPrepared() {
         return ServiceManager.NOT_PREPARED + ": the embedded terminal runtime is not prepared, so services cannot "
                 + "start. Ask the owner to prepare it in androidagent's environment panel. "
-                + "(Przygotuj środowisko w panelu „Wbudowany terminal”.)";
+                + "（在“内置终端”面板中准备环境。）";
     }
 
     private static JSONObject props(Object... pairs) throws JSONException {

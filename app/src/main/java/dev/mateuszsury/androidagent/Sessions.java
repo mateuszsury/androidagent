@@ -47,7 +47,7 @@ final class Sessions {
         /** Text for places that can't show attachments (bubble panel, previews). */
         String label() {
             if (files.isEmpty()) return text;
-            String n = files.size() == 1 ? "📎 " + Attachments.name(files.get(0)) : "📎 " + files.size() + " " + plural(files.size(), "załącznik", "załączniki", "załączników");
+            String n = files.size() == 1 ? "📎 " + Attachments.name(files.get(0)) : "📎 " + files.size() + " " + plural(files.size(), "附件", "附件", "个附件");
             return text.isEmpty() ? n : n + "\n" + text;
         }
     }
@@ -89,7 +89,7 @@ final class Sessions {
         }
 
         String label() {
-            return title.isEmpty() ? "Nowa rozmowa" : title;
+            return title.isEmpty() ? "新对话" : title;
         }
     }
 
@@ -198,7 +198,7 @@ final class Sessions {
         if (all.contains(s)) save(s);
     }
 
-    /** Polish plural: 1 plik, 2–4 pliki, 5+ plików (12–14 always take the last form). */
+    /** 复数形式：1 用单数，2–4 用少数，5+ 用多数（12–14 总是用多数）。 */
     static String plural(int n, String one, String few, String many) {
         if (n == 1) return one;
         int tens = n % 100, units = n % 10;

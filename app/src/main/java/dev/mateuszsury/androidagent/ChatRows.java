@@ -32,7 +32,7 @@ final class ChatRows {
     /** Result lines shown under a tool call before "… +N linii" (a task plan shows more). */
     static final int PREVIEW = 3, TODO_PREVIEW = 8;
     /** The result ChatHub gives calls that were cut short by Stop. */
-    static final String INTERRUPTED = "Przerwano";
+    static final String INTERRUPTED = "已中断";
 
     /**
      * A marker gutter and a content column. After layout the marker moves onto the content's first
@@ -104,10 +104,10 @@ final class ChatRows {
         return tool;
     }
 
-    /** "1 linia", "3 linie", "12 linii", "22 linie". */
+    /** "1 linia", "3 行", "12 linii", "22 行". */
     static String lines(int n) {
         int ones = n % 10, tens = n % 100;
-        String word = n == 1 ? "linia" : ones >= 2 && ones <= 4 && (tens < 12 || tens > 14) ? "linie" : "linii";
+        String word = n == 1 ? "linia" : ones >= 2 && ones <= 4 && (tens < 12 || tens > 14) ? "线路" : "linii";
         return n + " " + word;
     }
 
@@ -188,7 +188,7 @@ final class ChatRows {
         }
 
         /**
-         * Stopped before it finished: still "running" after the run ended, settled as "Przerwano",
+         * Stopped before it finished: still "running" after the run ended, settled as "已中断",
          * or an error that never got any output (a run cut short by the app process ending).
          */
         private boolean interrupted(JSONObject m) {
@@ -359,7 +359,7 @@ final class ChatRows {
 
         private static String moreLabel(int hidden, int total, int stored, boolean expanded) {
             if (!expanded) return "… +" + lines(hidden);
-            return stored < hidden ? "zwiń · łącznie " + lines(total) : "zwiń";
+            return stored < hidden ? "收起 · 共 " + lines(total) : "收起";
         }
 
         private static String join(List<String> lines, int from, int to) {

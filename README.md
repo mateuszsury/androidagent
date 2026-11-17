@@ -2,6 +2,8 @@
 
 **Codex and Claude Code on your Android device.** A native chat interface, an embedded terminal, phone tools, optional Docker environments, and USB access in one application.
 
+> **中文本地化分支**：界面已汉化为中文，并新增“模型供应商”设置。本分支的全部改动、构建与发布操作由 **LongCat-2.5**（androidagent 内置代理）在手机上自主完成，**未经真机验证**。详见 [LOCALIZATION-zh.md](LOCALIZATION-zh.md)。
+
 [![Release](https://img.shields.io/github/v/release/mateuszsury/androidagent)](https://github.com/mateuszsury/androidagent/releases/latest)
 [![Checks](https://github.com/mateuszsury/androidagent/actions/workflows/quality.yml/badge.svg)](https://github.com/mateuszsury/androidagent/actions/workflows/quality.yml)
 [![License](https://img.shields.io/badge/app%20license-Apache--2.0-blue)](LICENSE)

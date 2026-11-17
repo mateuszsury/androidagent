@@ -1,0 +1,961 @@
+Usługi w tle	后台服务
+Myślę…	思考中…
+Otwórz środowisko	打开环境
+Odśwież	刷新
+Pracuję…	工作中…
+Przegląd uprawnień	权限检查
+Usuń	删除
+Wbudowane środowisko	内置环境
+Wyłączone · opcjonalne	已关闭 · 可选
+Wyślij	发送
+błąd	错误
+Dodaj usługę	添加服务
+Komenda powłoki	Shell 命令
+Odrzuć	拒绝
+Pliki środowiska	环境文件
+Pokaż postęp	显示进度
+Udostępnij 	分享 
+Uruchom komendę	运行命令
+Urządzenia USB	USB 设备
+Urządzenie USB	USB 设备
+rozmów	个对话
+Środowisko nie jest przygotowane	环境尚未准备好
+ · następne zadanie	 · 下一个任务
+(Nie ma usługi „	（没有服务“
+Błąd: 	错误：
+Ciepła	暖色
+Komenda jest za długa	命令过长
+Narzędzia agentów	代理工具
+Nie otwarto żadnego połączenia.	未打开任何连接。
+Nieprawidłowa nazwa	名称无效
+Odpowiedź na żywo	实时回复
+Otwórz	打开
+Otwórz 	打开 
+Otwórz rozmowy	打开对话
+Otwórz środowisko i klientów	打开环境与客户端
+Przerwano pracę środowiska	环境工作已取消
+Przygotowywanie środowiska…	正在准备环境…
+Przygotuj wybranych agentów	准备所选代理
+Sprawdź konto	检查账户
+Udostępnij	分享
+Uruchom środowisko	启动环境
+Ustawienia powiadomień	通知设置
+Wpisz komendę	输入命令
+Wróć	返回
+Wyłączona · opcjonalna	已关闭 · 可选
+Wyłączony · opcjonalny	已关闭 · 可选
+Wyślij plik	发送文件
+Włącz tryb programisty w ustawieniach androidagent.	在 androidagent 设置中开启开发者模式。
+Zaloguj się	登录
+Zatrzymaj wszystkie usługi	停止所有服务
+Zatwierdź	确认
+Zdjęcia	照片
+działa	运行中
+sieć komórkowa	移动网络
+Ścieżka na drugim Androidzie	另一台 Android 上的路径
+Środowisko nie jest gotowe	环境未就绪
+Środowisko zatrzymane	环境已停止
+Środowisko zostało zatrzymane	环境已停止
+środowisko	环境
+ Android może najpierw wymagać zezwolenia na ustawienia z ograniczeniami w informacjach o aplikacji.	Android 可能首先要求在应用信息中允许受限设置。
+ Sprawdź procesy we wbudowanym środowisku.	在内置环境中检查进程。
+ dla podglądu	用于预览
+ działa	运行中
+ działa · 	运行中 · 
+ działają	运行中
+ elementów	项
+ jego katalogu roboczym. Pełny terminal i klienci agentów są dostępni we wbudowanym środowisku.	它的工作目录。完整终端和代理客户端可在内置环境中使用。
+ jest gotowy. Zaloguj się do własnego konta przez oficjalną stronę. Instalacja środowiska nie loguje Cię automatycznie.	已就绪。请通过官方页面登录你自己的账户。安装环境不会自动登录。
+ jeszcze nie nasłuchuje. Sprawdź logi.	尚未监听。请检查日志。
+ minut, więc zadanie zostało zatrzymane. Wyślij wiadomość ponownie, aby kontynuować.	分钟，任务已停止。请重新发送消息以继续。
+ nie zostały zapisane.	未保存。
+ plików w projekcie	项目中的文件
+ ponownych uruchomień w 10 min. Sprawdź logi.	10 分钟内的重启次数。请检查日志。
+ przerwał pracę.	中断了工作。
+ services; remove an unused one. (Limit usług.)	services；删除未使用的服务。（服务限制。）
+ w panelu środowiska.	在环境面板中。
+ we wbudowanym środowisku i zaloguj się do własnego konta. /status działa lokalnie bez modelu.	在内置环境中并使用你自己的账户登录。/status 在本地运行，无需模型。
+ włączonych · zgody Androida	已启用 · Android 权限
+ · bez uruchomień	· 无重启
+ · limit ponownych uruchomień ──	· 重启次数限制 ──
+ · obsługuje sesje w tle	· 支持后台会话
+ · otwieranie i udostępnianie działa tylko w katalogu roboczym	· 打开和分享仅在工作目录中有效
+ · podgląd: 	· 预览：
+ · przytrzymaj plik, aby zobaczyć działania	· 长按文件查看操作
+ · ładowanie	· 加载中
+%.1f GB w środowisku · %.1f GB na telefonie	环境中 %.1f GB · 手机上 %.1f GB
+(Port musi być w zakresie 1024–65535.)	（端口必须在 1024–65535 范围内。）
+(Przygotuj środowisko w panelu „Wbudowany terminal”.)	（在“内置终端”面板中准备环境。）
+(bez wiadomości)	（无消息）
+). Zatrzymaj jedną z nich.	）。请停止其中一个。
+, pokaż rozmowy	，显示对话
+, rozwiń	，展开
+, wróć do rozmowy	，返回对话
+, zwiń	，收起
+. Agenta możesz też zmienić na ekranie głównym.	。你也可以在主屏幕切换代理。
+. Dotknij, aby otworzyć instalator.	。点击打开安装器。
+. Dotknij, aby otworzyć ustawienia.	。点击打开设置。
+. Jeśli jest nadal otwarta w terminalu, najpierw ją tam zamknij.	。如果它仍在终端中打开，请先在那里关闭。
+. Zachowano diagnostykę rozruchu.	。已保存启动诊断。
+1 CPU · mniejsze obciążenie	1 CPU · 较低负载
+1 działa	1 个运行中
+1 dzień	1 天
+2 działają	2 个运行中
+5 działa	5 个运行中
+:PORT, jeśli nasłuchuje na 0.0.0.0. Na telefonie: http://127.0.0.1:PORT.	:PORT（如果监听 0.0.0.0）。手机上：http://127.0.0.1:PORT。
+<!doctype html><meta name=viewport content='width=device-width,initial-scale=1'><title>Moja aplikacja</title><style>body{font:20px system-ui;background:#f7f7f5;color:#202020;max-width:600px;margin:15vh auto;padding:24px}button{background:#202020;color:white;border:0;border-radius:24px;padding:14px 24px;font:inherit}</style><h1>Zbudowano na telefonie.</h1><p>Ta aplikacja działa w Dockerze w androidagent.</p><button onclick='this.textContent=\"Działa!\"'>Sprawdź</button>	<!doctype html><meta name=viewport content='width=device-width,initial-scale=1'><title>我的应用</title><style>body{font:20px system-ui;background:#f7f7f5;color:#202020;max-width:600px;margin:15vh auto;padding:24px}button{background:#202020;color:white;border:0;border-radius:24px;padding:14px 24px;font:inherit}</style><h1>已在手机上构建。</h1><p>此应用运行在 androidagent 的 Docker 中。</p><button onclick='this.textContent=\"运行正常！\"'>测试</button>
+<p>Aplikacja jeszcze nie odpowiada. Uruchom kontener z podglądem i naciśnij Odśwież.</p>	<p>应用尚未响应。请启动带预览的容器并点击“刷新”。</p>
+<title>Podgląd niedostępny</title><style>html,body{margin:0;background:	<title>预览不可用</title><style>html,body{margin:0;background:
+A notification \"Dotknij, aby otworzyć\" was posted: ask the user to tap it, or to 	已发布“点击打开”通知：请用户点击它，或
+Aby rozmawiać z Codexem lub Claude Code, otwórz środowisko i zaloguj się do wybranego konta.	要与 Codex 或 Claude Code 对话，请打开环境并登录所选账户。
+Adres usługi	服务地址
+Agent chce otworzyć: 	代理想要打开：
+Agent chce pokazać plik. Dotknij, aby otworzyć.	代理想要显示文件。点击打开。
+Agent chce wykonać komendę	代理想要执行命令
+Agent chce zainstalować 	代理想要安装
+Agent czeka na Twoją zgodę	代理等待你的授权
+Agent może odczytać tytuł i treść powiadomień, otworzyć je, nacisnąć ich przycisk lub je zamknąć, 	代理可以读取通知的标题和内容、打开通知、点击其按钮或关闭通知，
+Agent może przejrzeć najnowsze zdjęcia z galerii i skopiować wybrane do swojego katalogu roboczego. 	代理可以浏览图库中最新的照片，并把选中的照片复制到自己的工作目录。
+Agent może sterować telefonem	代理可以控制手机
+Agent nie dał znaku życia od 	代理已
+Agent prosi o zdjęcie	代理请求拍照
+Agent przygotował 	代理已准备好
+Agent przygotował plik do udostępnienia. Dotknij, aby wybrać aplikację.	代理已准备好要分享的文件。点击选择应用。
+Agent publikuje aplikację przez docker_run z parametrem port; adres podaje docker_status.	代理通过带 port 参数的 docker_run 发布应用；地址由 docker_status 提供。
+Agent sprawdzi położenie telefonu, gdy poprosisz np. o pogodę lub trasę w okolicy. 	当你要求天气或附近路线时，代理会检查手机位置。
+Agent zapisuje tu projekty i wyniki pracy. Utwórz plik lub folder przyciskiem Nowy.	代理在这里保存项目和工作成果。用“新建”按钮创建文件或文件夹。
+Aktualizowanie nadzoru Dockera z zachowaniem dysku i projektów	正在更新 Docker 监控，同时保留磁盘和项目
+Aktualizuję listę zadań	正在更新任务列表
+Analizuję	正在分析
+Android lub producent urządzenia może mimo to zatrzymać proces przy braku pamięci. 	即使如此，Android 或设备厂商仍可能在内存不足时停止该进程。
+Android może nadal pokazywać aktywną usługę w swoim panelu.	Android 可能仍在其面板中显示该服务处于活动状态。
+Android może oznaczyć to ustawienie jako ograniczone dla aplikacji z pliku APK. 	Android 可能会将此设置标记为对 APK 应用的受限设置。
+Android nie pozwolił pokazać powiadomienia usług w tle. Otwórz aplikację, aby je przywrócić.	Android 不允许显示后台服务通知。请打开应用以恢复。
+Android nie pozwolił uruchomić środowiska w tle. Otwórz androidagent → Docker i uruchom je tam.	Android 不允许在后台启动环境。请打开 androidagent → Docker 并在其中启动。
+Android nie zainstalował aplikacji.	Android 未安装该应用。
+Android ogranicza je do uprawnień androidagent; nie są ograniczone do katalogu projektu. 	Android 将其限制在 androidagent 的权限内；并不限制在项目目录内。
+Anuluj operację	取消操作
+Archiwum środowiska przekracza limit	环境归档超出限制
+Automatyczna konfiguracja nie loguje Cię do konta. Zgody systemowe udzielasz w 	自动配置不会登录你的账户。系统授权请在
+Bateria, pamięć i połączenie	电池、内存和连接
+Bez Wi-Fi usługi są dostępne tylko na tym telefonie: http://127.0.0.1:PORT.	无 Wi-Fi 时，服务仅在本机可用：http://127.0.0.1:PORT。
+Brak czytelnych wiadomości	没有可读消息
+Brak odpowiedzi klienta. Otwórz panel środowiska w androidagent i sprawdź jego stan oraz logowanie.	客户端无响应。请打开 androidagent 的环境面板，检查其状态和登录情况。
+Brak poprawnego środowiska terminalowego dla tego ABI	缺少适用于该 ABI 的正确终端环境
+Brak programu środowiska	缺少环境程序
+Brak prywatnego katalogu procesu środowiska	缺少环境进程的私有目录
+Brak przeglądarki do otwarcia adresu	没有可用于打开地址的浏览器
+Brak przeglądarki do otwarcia odnośnika	没有可用于打开链接的浏览器
+Brak rozmów	没有对话
+Brak urządzeń USB. Podłącz urządzenie kablem OTG.	没有 USB 设备。请使用 OTG 线连接设备。
+Brak usług	没有服务
+Brak wpisów.	没有记录。
+Brak wpisów. Usługa jeszcze nic nie wypisała.	没有记录。服务尚未输出任何内容。
+Brak właściciela komendy	缺少命令所有者
+Brak właściciela prośby	缺少请求所有者
+Brak właściciela żądania	缺少请求所有者
+Brak zapisanego dziennika. Najpierw uruchom środowisko.	没有已保存的日志。请先启动环境。
+Brakuje bazy zapisanego dysku. Dysk użytkownika pozostaje zachowany.	缺少已保存磁盘的基准。用户磁盘保持不变。
+Buduj aplikacje i sprzątaj środowiska	构建应用并清理环境
+Buduj i uruchamiaj aplikacje w osobnych środowiskach. Zachowaj wyniki i posprzątaj po zadaniu. Bez roota.	在独立环境中构建和运行应用。保留成果并在任务后清理。无需 root。
+Będzie działać po zakończeniu pracy agenta, aż ją zatrzymasz (Usługi w tle).\n	它会在代理工作结束后继续运行，直到你将其停止（后台服务）。\n
+Błąd rozruchu Docker Engine	Docker Engine 启动错误
+Błąd środowiska 	环境错误 
+Call service_stop first, or choose another name. (Usługa „	请先调用 service_stop，或选择其他名称。（服务“
+Ciepła to oryginalny odcień androidagent. Czarna (true black) działa tylko w trybie ciemnym.	暖色是 androidagent 的原始色调。纯黑（true black）仅在深色模式下生效。
+Co dziś zrobimy?	今天做点什么？
+Codex i Claude Code mogą wykonywać komendy i zmieniać pliki dostępne dla androidagent. 	Codex 和 Claude Code 可以执行命令并修改 androidagent 可访问的文件。
+Codex pozostaje domyślnym agentem nowych rozmów.	Codex 仍然是新对话的默认代理。
+Codex z kontem ChatGPT lub Claude Code z kontem Claude. Oficjalni klienci działają 	使用 ChatGPT 账户的 Codex 或 Claude 账户的 Claude Code。官方客户端运行
+Command is empty. (Wpisz komendę usługi.)	命令为空。（请输入服务命令。）
+Command is too long or contains NUL. (Komenda jest za długa.)	命令过长或包含 NUL。（命令过长。）
+Coś poszło nie tak.	出了点问题。
+Czas działania	运行时长
+Czeka na Twoją zgodę	等待你的授权
+Czy chcesz kontynuować?	是否继续？
+Czy kontynuować?	是否继续？
+Czytaj ekran, działaj w aplikacjach	读取屏幕，操作应用
+Czytaj odpowiedzi na głos	朗读回复
+Destyluję	正在提炼
+Dla długich rozmów, kompilacji i maszyny Docker możesz pozwolić aplikacji działać w tle. 	对于长对话、编译和 Docker 机器，你可以允许应用在后台运行。
+Do 5 razy w ciągu 10 minut	10 分钟内最多 5 次
+Docker działa na telefonie	Docker 正在手机上运行
+Dodaj załącznik	添加附件
+Dodaj zdjęcie lub plik	添加照片或文件
+Dokument źródeł przekracza limit	来源文档超出限制
+Dokładna	精确
+Domyślny	默认
+Domyślny agent	默认代理
+Dostęp agentów aktywny · Codex i Claude Code	代理访问已启用 · Codex 和 Claude Code
+Dostęp agentów wyłączony	代理访问已禁用
+Dostęp agentów zatrzymany	代理访问已停止
+Dostęp do narzędzi telefonu został zakończony, ale polecenie Stop nie dotarło do klienta: 	手机工具访问已结束，但 Stop 命令未送达客户端：
+Dostęp do powiadomień	通知访问权限
+Dostęp do powiadomień (Android: Notification access > androidagent).	通知访问权限（Android：通知访问 > androidagent）。
+Dotknij Aktualizuj, potem potwierdź	点击“更新”，然后确认
+Dotknij Zainstaluj, potem potwierdź	点击“安装”，然后确认
+Dotknij, aby otworzyć aparat.	点击打开相机。
+Dotknij, aby otworzyć.	点击打开。
+Dołącz zdjęcie lub plik	附加照片或文件
+Doświadczenie	体验
+Dyktowanie wymaga też dostępnej usługi rozpoznawania mowy w telefonie.	听写还需要手机上有可用的语音识别服务。
+Działa teraz	正在运行
+Działa tylko przy otwartej aplikacji. Android zapyta, czy udostępnić dokładną, czy przybliżoną lokalizację.	仅在应用打开时运行。Android 会询问是否共享精确位置或大致位置。
+Działa w tle, np. rozmowa kontynuowana z aplikacji Claude. 	在后台运行，例如从 Claude 应用继续的对话。
+Działa w usłudze w tle Claude Code, np. rozmowa kontynuowana z aplikacji Claude.	在 Claude Code 后台服务中运行，例如从 Claude 应用继续的对话。
+Działania agenta	代理操作
+Dziennik ostatnich kroków konfiguracji.	最近配置步骤的日志。
+Dziennik z poprzedniego uruchomienia możesz zachować przyciskiem „Zachowaj diagnostykę rozruchu”.	你可以通过“保存启动诊断”按钮保留上次运行的日志。
+Dziennik środowiska	环境日志
+Długie zadania i bateria	长任务与电池
+Edytor obsługuje pliki tekstowe do 256 KB	编辑器支持最大 256 KB 的文本文件
+Edytuję 	正在编辑
+Edytuję notatnik 	正在编辑笔记
+Edytuję pliki	正在编辑文件
+Ekran główny	主屏幕
+Gotowy. Zapisz pliki, zbuduj obraz i uruchom aplikację.	就绪。保存文件、构建镜像并运行应用。
+Główkuję	正在构思
+Historia klientów będzie dostępna po przygotowaniu środowiska. Rozmowy androidagent pozostają zapisane.	客户端历史记录将在环境准备完成后可用。androidagent 的对话仍会保存。
+Historia rozmów	对话历史
+Historia rozmów jest zapisana. Możesz wrócić do niej z ekranu głównego.	对话历史已保存。你可以从主屏幕返回。
+Import został przerwany. Wybierz niedodane pliki ponownie.	导入已中断。请重新选择未添加的文件。
+Importowanie załączników…	正在导入附件…
+Inne urządzenia w tej sieci otworzą aplikację bez logowania	此网络中的其他设备无需登录即可打开应用
+Inne urządzenia w tej sieci otworzą usługę pod adresem http://	此网络中的其他设备可通过 http:// 打开服务
+Jak wprowadzić układ w tryb programowania?	如何进入烧录模式？
+Jedna aplikacja zawiera własne środowisko terminalowe, pliki i narzędzia telefonu. Nie musisz instalować osobnej aplikacji Termux.	一个应用包含自己的终端环境、文件和手机工具。你无需安装单独的 Termux 应用。
+Jeżeli Android blokuje tę zgodę po instalacji APK, otwórz Informacje o aplikacji 	如果 Android 在安装 APK 后阻止此授权，请打开“应用信息”
+Katalog procesu nie należy do aplikacji	进程目录不属于该应用
+Katalog startowy: ~/.buddy/work. Dostęp obejmuje również inne pliki dostępne dla aplikacji.	起始目录：~/.buddy/work。访问范围还包括该应用可访问的其他文件。
+Katalogi i nośniki	目录与存储介质
+Każdą instalację i aktualizację potwierdzasz sam w oknie Androida.	每次安装和更新都需要你在 Android 窗口中自行确认。
+Klaruję	正在整理
+Klienci agentów	代理客户端
+Klient nie potwierdził oczekiwanej wersji: 	客户端未确认预期版本：
+Kminię	正在构思
+Kod lub odpowiedź dla klienta	给客户端的代码或回复
+Kombinuję	正在组合
+Kombinuję…	正在组合…
+Komenda /status odczytuje stan telefonu lokalnie. Ten wynik nie jest odpowiedzią modelu.	/status 命令在本地读取手机状态。该结果不是模型的回答。
+Komenda działa we wbudowanym terminalu także po zakończeniu pracy agenta. 	命令在内置终端中运行，即使在代理工作结束后也是如此。
+Komenda lub odpowiedź dla klienta	给客户端的命令或回复
+Komenda wymaga osobnego wątku narzędzia.	命令需要单独的工具线程。
+Komendy agentów we wbudowanym środowisku wykonują się bez osobnego potwierdzenia. 	代理命令在内置环境中执行，无需单独确认。
+Komendy narzędzia telefonu run_command wymagają zatwierdzenia dokładnej treści.	手机工具 run_command 命令需要确认确切内容。
+Komendy wykonują się na telefonie z uprawnieniami androidagent. Pliki zapisujesz w	命令在手机上以 androidagent 的权限执行。文件保存在
+Konfiguracja anulowana. Możesz ją ponowić.	配置已取消。你可以重试。
+Konfiguruj agentów	配置代理
+Kontynuować w aplikacji Claude?	要在 Claude 应用中继续吗？
+Kontynuuję wcześniejszą sesję 	正在继续之前的会话
+Kopiowanie środowiska	正在复制环境
+Krystalizuję	正在明确
+Krótkie komunikaty o postępie od agenta (narzędzie notify).	来自代理的简短进度通知（notify 工具）。
+Licencje i źródła	许可与来源
+Licencje libusb/usbredir: panel Docker → Licencje i źródła.	libusb/usbredir 许可：Docker 面板 → 许可与来源。
+Licencje środowiska	环境许可
+Linia sterująca adaptera	适配器控制线
+Linie sterujące	控制线
+Linux nie uruchomił Dockera w wyznaczonym czasie. Zachowano diagnostykę rozruchu.	Linux 未在指定时间内启动 Docker。已保存启动诊断。
+Lista plików	文件列表
+Lokalny stan telefonu jest dostępny także przed logowaniem.	手机本地状态在登录前也可用。
+Manifest jest zbyt duży	清单过大
+Miejsce na Twoje pomysły	你的想法将出现在这里
+Mięta	薄荷色
+Miętowy	薄荷
+Most narzędzi jest konfigurowany automatycznie dla rozmów w androidagent. 	工具桥会为 androidagent 中的对话自动配置。
+Może to być nawet sesja sterująca androidagent. Zatrzymanie kończy bieżącą pracę tej rozmowy.	它甚至可能是控制 androidagent 的会话。停止将结束此对话的当前工作。
+Możesz kontynuować ją w oficjalnej aplikacji Claude. Dostępność zależy od konta. Wpisz /exit, aby zakończyć.	你可以在 Claude 官方应用中继续。可用性取决于账户。输入 /exit 结束。
+Możesz wrócić do rozmów. Przygotowanie trwa w tle.	你可以返回对话。准备在后台进行。
+Możesz zachować inne włączone usługi ułatwień dostępu. androidagent ich nie zastępuje.	你可以保留其他已启用的无障碍服务。androidagent 不会取代它们。
+Możesz zmienić domyślny wybór w ustawieniach i dodać drugiego klienta.	你可以在设置中更改默认选择并添加第二个客户端。
+Myślę	思考中
+Mów teraz…	现在请说…
+Na skróty	快捷方式
+Nacisnąć przycisk „	点击按钮“
+Najpierw utwórz rozmowę. Możesz przydzielić urządzenie aktywnej odpowiedzi albo jednorazowo następnemu zadaniu.	请先创建对话。你可以将设备分配给当前回复，或一次性分配给下一个任务。
+Najpierw zatrzymaj środowisko	请先停止环境
+Narzędzia	工具
+Narzędzia agenta	代理工具
+Narzędzia nie odpowiedziały poprawnie	工具未正确响应
+Narzędzie przekroczyło limit 	工具超出限制 
+Narzędzie zakończyło się kodem 	工具以代码 
+Następne pliki →	下一个文件 →
+Następnie wróć do ustawień ułatwień dostępu.	然后返回无障碍设置。
+Następny krok: 	下一步：
+Nasłuchuje tylko na 127.0.0.1: inne urządzenia się nie połączą. Użyj 0.0.0.0.	仅监听 127.0.0.1：其他设备无法连接。请使用 0.0.0.0。
+Nazwa: 1–32 znaki — małe litery, cyfry i „-”, np. web.	名称：1–32 个字符——小写字母、数字和“-”，例如 web。
+Needs photo access allowed by the user in androidagent > Uprawnienia > Zdjęcia.	需要用户在 androidagent > 权限 > 照片中允许照片访问。
+Nic teraz nie działa.	现在没有任何东西在运行。
+Nie daje dostępu do haseł ani do ustawień chronionych przez Androida.	它不会提供对密码或 Android 受保护设置的访问。
+Nie dotykaj ekranu, dopóki agent nie skończy, albo stuknij Zatrzymaj, by przejąć sterowanie.	在代理完成前请勿触碰屏幕，或点击“停止”以接管控制。
+Nie można odczytać logów: 	无法读取日志：
+Nie można otworzyć: 	无法打开：
+Nie można potwierdzić wersji zapisanego dysku. Zachowaj wyniki przed zmianą środowiska.	无法确认已保存磁盘的版本。请在更改环境前保存成果。
+Nie można przygotować narzędzia terminala	无法准备终端工具
+Nie można przygotować pliku procesu środowiska	无法准备环境进程文件
+Nie można sprawdzić katalogu procesu	无法检查进程目录
+Nie można usunąć dysku	无法删除磁盘
+Nie można usunąć tymczasowego pliku środowiska	无法删除环境临时文件
+Nie można utworzyć dysku: 	无法创建磁盘：
+Nie można utworzyć katalogu roboczego	无法创建工作目录
+Nie można utworzyć katalogu środowiska	无法创建环境目录
+Nie można zabezpieczyć pliku procesu	无法保护进程文件
+Nie można zaktualizować DNS środowiska	无法更新环境 DNS
+Nie można zaktualizować mostu narzędzi	无法更新工具桥
+Nie można zapisać kernela	无法保存内核
+Nie można zapisać klienta 	无法保存客户端 
+Nie można zapisać obrazu Linuxa	无法保存 Linux 镜像
+Nie można zapisać wersji środowiska	无法保存环境版本
+Nie można zapisać środowiska terminalowego	无法保存终端环境
+Nie można zastąpić androidagent z poziomu aplikacji.	无法从应用内替换 androidagent。
+Nie trzeba udostępniać całej pamięci telefonu. 	无需共享整个手机存储。
+Nie udało się odczytać sesji.	读取会话失败。
+Nie udało się otworzyć rozmowy.	打开对话失败。
+Nie udało się uruchomić	启动失败
+Nie udało się uruchomić narzędzi. Spróbuj ponownie.	工具启动失败。请重试。
+Nie udało się utworzyć folderu	创建文件夹失败
+Nie udało się wykonać operacji.	操作执行失败。
+Nie udało się zatrzymać poprzedniego zadania klienta: 	停止客户端上一个任务失败：
+Nieprawidłowa nazwa pliku.	文件名无效。
+Nieprawidłowa suma SHA256 środowiska	环境 SHA256 校验和无效
+Nieprawidłowa suma klienta	客户端校验和无效
+Nieprawidłowa ścieżka archiwum	归档路径无效
+Nieprawidłowe źródło oficjalnego klienta	官方客户端来源无效
+Nieprawidłowy port podglądu w Linuxie: 	Linux 中的预览端口无效：
+Nowa rozmowa z załącznikiem	带附件的新对话
+Nowe rozmowy użyją wybranego agenta. Claude Code korzysta z Twojego konta Claude, a Codex z konta ChatGPT.	新对话将使用所选代理。Claude Code 使用你的 Claude 账户，Codex 使用 ChatGPT 账户。
+Nowe rozmowy użyją wybranego agenta. Historia każdej rozmowy pozostaje przy swoim	新对话将使用所选代理。每个对话的历史记录仍保留在
+Nowe rozmowy użyją: 	新对话将使用：
+Nośnik niedostępny	存储介质不可用
+Numer układu z identyfikacji ESP	来自 ESP 识别信息的芯片编号
+Odbierz dostęp rozmowie	撤销对话的访问权限
+Odczyt lokalny: bateria, pamięć, sieć\n	本地读取：电池、内存、网络\n
+Odpowiedzi będą czytane na głos	回复将被朗读
+Odpowiedzi nie będą czytane na głos	回复不会被朗读
+Odrzucić zmiany?	放弃更改？
+Odśwież dziennik	刷新日志
+Odświeżanie co 3 sekundy	每 3 秒刷新
+Oficjalne klienty wymagają internetu i Twojego konta. Przygotowanie narzędzi jest automatyczne, a logowanie wykonujesz samodzielnie przez oficjalną stronę.	官方客户端需要互联网和你的账户。工具准备是自动的，登录由你通过官方页面自行完成。
+Otwarte połączenia	已打开的连接
+Otwiera tę rozmowę we wbudowanym terminalu z Remote Control dla tej sesji. 	它会在内置终端中为此会话打开带远程控制的对话。
+Otwieranie, udostępnianie i instalowanie działa tylko dla plików w ~/	打开、分享和安装仅适用于 ~/ 中的文件
+Otwórz Docker w androidagent i uruchom środowisko. 	打开 androidagent 中的 Docker 并启动环境。
+Otwórz aparat	打开相机
+Otwórz czat	打开聊天
+Otwórz logowanie · konto połączone	打开登录 · 账户已连接
+Otwórz panel środowiska	打开环境面板
+Otwórz panel środowiska, aby zobaczyć postęp, ponowić pobieranie lub otworzyć pliki i terminal. Przygotowanie środowiska nie zastępuje logowania do konta.	打开环境面板以查看进度、重新下载或打开文件和终端。准备环境不会替代账户登录。
+Otwórz podgląd	打开预览
+Otwórz przewodnik →	打开指南 →
+Otwórz terminal	打开终端
+Otwórz urządzenia lub naciśnij Stop	打开设备或点击停止
+Otwórz wbudowane środowisko, aby uruchomić most narzędzi. Sterowanie ekranem jest opcjonalne.	打开内置环境以启动工具桥。屏幕控制是可选的。
+Pamięć	内存
+Pamięć RAM	RAM 内存
+Pamięć środowiska Docker	Docker 环境内存
+Pełny terminal · Codex · Claude Code	完整终端 · Codex · Claude Code
+Photo access is off. Ask the user to allow Zdjęcia in androidagent > Uprawnienia. 	照片访问已关闭。请用户在 androidagent > 权限中允许照片。
+Pichcę	正在拼写
+Pierwsze uruchomienie narzędzi	首次启动工具
+Planuję	正在规划
+Plik już nie istnieje.	文件已不存在。
+Pliki i USB: zgoda pojawia się dopiero po wybraniu folderu albo konkretnego urządzenia. 	文件和 USB：只有在选择文件夹或具体设备后才会出现授权。
+Po zalogowaniu rozpocznij rozmowę. /status odczytuje stan telefonu lokalnie i działa bez modelu.	登录后开始对话。/status 在本地读取手机状态，无需模型。
+Pobrany plik jest zbyt duży	下载的文件过大
+Poczekaj na zakończenie importu załączników.	请等待附件导入完成。
+Podgląd aplikacji	应用预览
+Podgląd aplikacji WWW	Web 应用预览
+Podgląd w sieci Wi-Fi	Wi-Fi 网络中的预览
+Podłączone urządzenia	已连接的设备
+Pokazują aktywne zadania i przycisk zatrzymania. Odmowa nie blokuje rozmów ani narzędzi. 	它们显示活动任务和停止按钮。拒绝不会阻止对话或工具。
+Pokazują pracę agentów, USB i Dockera oraz przycisk Stop. 	它们显示代理、USB 和 Docker 的工作以及停止按钮。
+Ponów przygotowanie	重试准备
+Poproszono klienta o zatrzymanie poprzedniego zadania. Wyślij wiadomość ponownie po jego zakończeniu.	已请求客户端停止上一个任务。请在其结束后重新发送消息。
+Poproś agenta: „uruchom serwer WWW na porcie 8080”	对代理说：“在 8080 端口启动一个 Web 服务器”
+Poproś o coś na telefonie, np. „sprawdź baterię” albo „ustaw budzik na 7:00”.	让代理在手机上做事，例如“检查电池”或“设置 7:00 的闹钟”。
+Poprzednie narzędzia tej rozmowy są jeszcze aktywne lub zatrzymywane. Spróbuj ponownie za chwilę.	此对话的上一个工具仍在活动或正在停止。请稍后重试。
+Port musi być liczbą od 1024 do 65535.	端口必须是 1024 到 65535 之间的数字。
+Posprzątaj	清理
+Posprzątaj i usuń zadanie	清理并删除任务
+Potrzebna tylko narzędziom, które zmieniają na przykład jasność ekranu. 	只有修改系统设置（例如屏幕亮度）的工具才需要它。
+Potrzebny tylko do dyktowania. Możesz zawsze pisać na klawiaturze. 	只需用于听写。你始终可以用键盘输入。
+Potwierdź instalację w oknie Androida.	请在 Android 窗口中确认安装。
+Powiadomienia aplikacji wyłączone	应用通知已关闭
+Powiadomienia aplikacji włączone	应用通知已开启
+Powiadomienia pokazują postęp i przycisk Stop. Mikrofon jest potrzebny tylko do rozmów głosowych. Wyjątek optymalizacji baterii pomaga przy długich zadaniach.	通知会显示进度和停止按钮。麦克风仅用于语音对话。电池优化白名单有助于长任务。
+Powiadomienie usług wstrzymane	服务通知已暂停
+Pozostałe usługi ułatwień dostępu pozostają pod Twoją kontrolą.	其余无障碍服务仍由你控制。
+Pozwala odczytywać ekran, dotykać i wpisywać tekst w innych aplikacjach. Rozmowy, terminal i Docker działają bez tej zgody.	允许读取屏幕、触摸其他应用并在其中输入文本。对话、终端和 Docker 无需此授权即可工作。
+Pozwala otworzyć instalator Androida dla aplikacji zbudowanych przez agenta. 	允许为代理构建的应用打开 Android 安装器。
+Połącz ADB / zaakceptuj klucz	连接 ADB / 接受密钥
+Połączenie	连接
+Połączenie 	连接 
+Połączone	已连接
+Proces agenta zakończył się bez odpowiedzi.	代理进程结束，未给出回复。
+Procesory środowiska Docker	Docker 环境处理器
+Projekt nie zawiera plików.	项目不包含文件。
+Proszę o Twoją zgodę	请求你的授权
+Prośba agenta	代理请求
+Prośba o zgodę wymaga osobnego wątku narzędzia.	授权请求需要单独的工具线程。
+Prośby agenta o zgodę i akcje, które musisz wykonać sam.	代理的授权请求以及你需要亲自执行的操作。
+Przeglądaj pliki	浏览文件
+Przejdź do 	前往 
+Przejdź do rozmów	前往对话
+Przeszukuję pliki: 	正在搜索文件：
+Przy otwarciu adaptera linie sterujące mogą zmienić stan. Flashowanie wymaga wskazania układu i firmware'u. Android na drugim telefonie musi zaakceptować klucz ADB. Nośniki otwieramy przez systemowy wybór katalogu.	打开适配器时，控制线可能改变状态。烧录需要指定芯片和固件。另一台手机上的 Android 必须接受 ADB 密钥。存储介质通过系统目录选择器打开。
+Przybliżona	大致
+Przycisk telefonu w rozmowie Claude Code otwiera tę sesję we wbudowanym terminalu 	在 Claude Code 对话中，电话按钮会在内置终端中打开此会话 
+Przydział	分配
+Przygotowanie narzędzi lub działanie klienta	工具准备或客户端操作
+Przygotowanie nie zakończyło się	准备未完成
+Przygotowanie środowiska	准备环境
+Przygotowanie środowiska wymaga co najmniej 1 GB wolnego miejsca.	准备环境至少需要 1 GB 可用空间。
+Przygotowuję instalator Androida…	正在准备 Android 安装器…
+Przygotowywanie środowiska	正在准备环境
+Przygotuj / ponów	准备 / 重试
+Przygotuj wbudowane środowisko w panelu Środowisko i konta, aby odczytać tę sesję.	请在“环境与账户”面板中准备内置环境，以便读取此会话。
+Przygotuj wbudowane środowisko w panelu Środowisko i konta.	请在“环境与账户”面板中准备内置环境。
+Przytrzymuję	正在保持
+Później	稍后
+Później, pomiń przewodnik	稍后，跳过指南
+Restart po błędzie	出错后重启
+Robienie zdjęć aparatem nie wymaga tej zgody: zdjęcie zawsze robisz sam.	使用相机拍照不需要此授权：照片始终由你自己拍摄。
+Robię zrzut ekranu	正在截图
+Rozmawiaj mikrofonem w dowolnym czacie; wiadomość 	在任何聊天中用麦克风对话；消息 
+Rozmowy i terminal działają bez dostępu do innych aplikacji.	对话和终端无需访问其他应用即可工作。
+Rozpakowywanie narzędzi terminala	正在解压终端工具
+Rozpakowywanie środowiska Linux	正在解压 Linux 环境
+Rozpocznij rozmowę	开始对话
+Rozważam	正在考虑
+Róż	粉色
+Różany	粉色
+Ręczny BOOT / RESET	手动 BOOT / RESET
+Serwery WWW i procesy działające po rozmowie	Web 服务器和对话结束后仍运行的进程
+Serwery i boty przestaną odpowiadać. Możesz uruchomić je ponownie w tym miejscu.	服务器和机器人将停止响应。你可以在这里重新启动它们。
+Sesja bez tytułu	无标题会话
+Składam	正在组合
+Sprawdzanie wbudowanego środowiska · 	正在检查内置环境 · 
+Sprawdź ponownie	重新检查
+Sprawdź stan telefonu	检查手机状态
+Sprawdź telefon	检查手机
+Sprawdź, co jest na ekranie telefonu, i opisz dostępne działania.	查看手机屏幕上有什么，并描述可用的操作。
+Spróbuj ponownie	重试
+Steruję telefonem	正在控制手机
+Stop · odbierz cały dostęp	停止 · 撤销所有访问权限
+Strzałka w dół	向下箭头
+Strzałka w górę	向上箭头
+Stuknij, aby znów pokazać dymek.	点击可再次显示气泡。
+Suma SHA256 pobranego pliku nie zgadza się	下载文件的 SHA256 校验和不匹配
+Sygnał przerwania linii	线路中断信号
+Szlifuję	正在打磨
+Szukam plików: 	正在查找文件：
+Szybka komenda powłoki telefonu	手机 Shell 快速命令
+Słucham…	正在听…
+Słucham… mów teraz	正在听… 请说
+Ta aktualizacja zmienia bazę dysku. Najpierw zachowaj wyniki; dysk nie został zmieniony.	此更新会更改磁盘基准。请先保存成果；磁盘尚未更改。
+Ta rozmowa nadal pracuje. Zatrzymaj ją albo napisz w innej rozmowie.	此对话仍在工作。请停止它，或在其他对话中发言。
+Ta rozmowa wciąż pracuje. Najpierw ją zatrzymaj.	此对话仍在工作。请先停止它。
+Ta sesja nie zawiera wiadomości do wyświetlenia.	此会话没有可显示的消息。
+Taki element już istnieje	该元素已存在
+Te ustawienia nie są dostępne. Otwórz informacje o androidagent w ustawieniach Androida.	这些设置不可用。请在 Android 设置中打开 androidagent 的应用信息。
+Tekst bez końca linii	文本没有换行符
+Ten APK nie zawiera środowiska QEMU. Zbuduj pełny wariant aplikacji.	此 APK 不包含 QEMU 环境。请构建完整版本。
+Terminal działa we wbudowanym Linuxie. Przygotuj go na ekranie środowiska, a sesja uruchomi się sama.	终端在内置 Linux 中运行。请在环境屏幕准备它，会话会自动启动。
+Terminal i oficjalni klienci działają wewnątrz androidagent.	终端和官方客户端在 androidagent 内运行。
+Terminal i rozmowy działają bez dostępu do ekranu i mikrofonu. 	终端和对话无需屏幕和麦克风访问即可工作。
+Terminal i rozmowy nie wymagają roota ani zgody na instalowanie innych aplikacji.	终端和对话不需要 root，也不需要安装其他应用的授权。
+Terminal, Python, Node.js, Git i most narzędzi są w tej aplikacji. Środowisko 	终端、Python、Node.js、Git 和工具桥都在本应用中。环境 
+Terminal, pliki i most narzędzi są dostępne w androidagent. Nie potrzebujesz osobnej aplikacji Termux.	终端、文件和工具桥都在 androidagent 中。你不需要单独的 Termux 应用。
+Terminal, pliki i oficjalne logowanie znajdziesz w panelu środowiska. Uprawnienia Androida pozostają pod Twoją kontrolą.	终端、文件和官方登录可在环境面板中找到。Android 权限仍由你控制。
+To może być sesja, której używasz teraz w terminalu. 	这可能是你现在在终端中使用的会话。
+To plik APK. Użyj przycisku Zainstaluj.	这是一个 APK 文件。请使用“安装”按钮。
+Treść pliku	文件内容
+Trwa zatrzymywanie narzędzi. Spróbuj ponownie za chwilę.	工具正在停止。请稍后重试。
+Trwa zbyt wiele operacji. Poczekaj na ich zakończenie.	正在进行的操作过多。请等待它们完成。
+Tu pojawią się Twoje rozmowy.	你的对话将显示在这里。
+Tu pojawią się Twoje zadania.	你的任务将显示在这里。
+Tu pojawią się sesje Claude Code i Codex z tego telefonu.	此手机上的 Claude Code 和 Codex 会话将显示在这里。
+Twoje usługi zostają	你的服务将
+Twój agent. Twój telefon.\nOd pomysłu do wykonania.	你的代理。你的手机。\n从想法到实现。
+Twój telefon	你的手机
+UART, ESP, drugi Android i nośniki	UART、ESP、第二台 Android 和存储介质
+UART, ESP, drugi Android i pliki z nośników. Wybierz urządzenie i przydziel dostęp rozmowie. Docker jest opcjonalny.	UART、ESP、第二台 Android 以及存储介质中的文件。选择设备并分配给对话。Docker 是可选的。
+USB i lokalne narzędzia dla Codexa i Claude Code	面向 Codex 和 Claude Code 的 USB 与本地工具
+USB: przypięte źródła i licencje\n\n	USB：固定来源与许可\n\n
+Unosi się nad innymi aplikacjami. Przeciągnij go na przycisk zamknięcia, 	它悬浮在其他应用之上。将其拖到关闭按钮上， 
+Uprawnienia włączasz samodzielnie w oknach Androida.	你需要自行在 Android 窗口中开启权限。
+Uruchom ją na pierwszym planie, bez „&” na końcu.	请在前台运行它，末尾不要加“&”。
+Uruchom kontener z opublikowanym portem i naciśnij Odśwież. Serwer w maszynie wirtualnej może startować kilkanaście sekund.	启动带已发布端口的容器并点击“刷新”。虚拟机中的服务器可能需要十几秒才能启动。
+Uruchom środowisko i utwórz zadanie w panelu Docker.	在 Docker 面板中启动环境并创建任务。
+Uruchomić usługę w tle „	要在后台运行服务“
+Ustawienia dostępu do powiadomień	通知访问设置
+Ustawienia ułatwień dostępu	无障碍设置
+Ustawienia zdjęć	照片设置
+Usuniesz dysk roboczy, zadania i obrazy Dockera. Zachowane pliki pozostaną dostępne.	你将删除工作磁盘、任务和 Docker 镜像。保留的文件仍可访问。
+Usuniesz kontener, jego obraz i pliki robocze. Zachowane pliki pozostaną dostępne.	你将删除容器、其镜像和工作文件。保留的文件仍可访问。
+Usunięta rozmowa androidagent	已删除 androidagent 对话
+Usunięto zadania i cache Dockera	已删除任务和 Docker 缓存
+Usunąć plik?	删除文件？
+Usunąć rozmowę?	删除对话？
+Usunąć usługę „	删除服务“
+Usunąć zadanie?	删除任务？
+Usuń dysk	删除磁盘
+Usuń katalog z aplikacji	从应用中删除目录
+Usuń plik	删除文件
+Usuń rozmowę	删除对话
+Usuń usługę 	删除服务 
+Usuń wszystkie zadania i cache	删除所有任务和缓存
+Usuń załącznik	移除附件
+Usługa ułatwień dostępu pozwala agentowi odczytywać ekran, klikać i przewijać. 	无障碍服务允许代理读取屏幕、点击和滚动。 
+Usługa ułatwień dostępu pozwala czytać i sterować ekranem. Jej włączenie wymaga Twojej zgody w ustawieniach systemu.	无障碍服务允许读取和控制屏幕。开启它需要在系统设置中征得其同意。
+Usługa w tle Claude Code	Claude Code 后台服务
+Usługa zostanie zatrzymana, a jej definicja i logi usunięte. Tej operacji nie można cofnąć.	服务将被停止，其定义和日志将被删除。此操作无法撤销。
+Usługa „	服务“
+Usługi	服务
+Usługi działają we wbudowanym terminalu. Przygotuj go, aby je uruchomić.	服务在内置终端中运行。请准备它以启动它们。
+Usługi w tle: 	后台服务：
+Usługi w tle: N działają	后台服务：N 个运行中
+Usługi · 	服务 · 
+Utwórz folder	创建文件夹
+Utwórz plik	创建文件
+Używam 	正在使用 
+Używam umiejętności 	正在使用技能 
+W czym mogę pomóc?	我能帮你什么？
+W razie problemów sprawdź też ograniczenia działania w tle w Informacjach o aplikacji.	如果出现问题，请也在应用信息中检查后台运行限制。
+W tej rozmowie nic teraz nie działa.	此对话现在没有任何东西在运行。
+W ustawieniach wybierz androidagent i potwierdź zgodę. 	请在设置中选择 androidagent 并确认授权。 
+Warzę	正在发酵
+WebView: proces strony zakończył pracę	WebView：页面进程已结束
+Widoczne na pasku stanu, gdy agent obsługuje telefon.	当代理操作手机时，它会显示在状态栏中。
+Working directory path is invalid. (Nieprawidłowy katalog.)	工作目录路径无效。（目录无效。）
+Wpisuję „	正在输入“
+Wpisz komendę lub odpowiedź dla klienta. Stop kończy bieżącą sesję terminala.	输入命令或给客户端的回复。停止将结束当前终端会话。
+Wpisz komendę usługi.	请输入服务命令。
+Wybierz plik, aby wczytać go do edytora.	选择文件以加载到编辑器中。
+Wybór dla tej rozmowy. Dostępność modeli zależy od Twojego konta.	此对话的选择。模型可用性取决于你的账户。
+Wyeksportuj plik przed usunięciem zadania.	请在删除任务之前导出文件。
+Wygląd	外观
+Wyjątek optymalizacji baterii pomaga utrzymać długie zadania. Android wymaga Twojej zgody; ustawienie dotyczy tylko androidagent.	电池优化白名单有助于维持长任务。Android 需要你的同意；该设置仅适用于 androidagent。
+Wykonaj komendę	执行命令
+Wykonać dokładnie tę komendę w lokalnym katalogu androidagent?\n\n	是否要在 androidagent 的本地目录中执行这条命令？\n\n
+Wymyślam	正在构思
+Wypróbuj przykładową aplikację	试用示例应用
+Wysyłam powiadomienie	正在发送通知
+Wyszukiwanie urządzeń…	正在搜索设备…
+Wyłączone	已关闭
+Własne środowisko	自定义环境
+Własny akcent	自定义强调色
+Własny kolor	自定义颜色
+Włącz dostęp agentów	启用代理访问
+Włącz dostęp do powiadomień	启用通知访问
+Włącz powiadomienia	开启通知
+Włączone	已开启
+Włączone · oczekiwanie na połączenie	已开启 · 等待连接
+Włączony	已启用
+Włączony · oczekiwanie na połączenie	已启用 · 等待连接
+Za dużo oczekujących próśb. Zatrzymaj poprzednie zadania.	等待中的请求过多。请停止之前的任务。
+Za dużo równoległych rozmów (maks. 	并行对话过多（最多 
+Za mało miejsca na klienta 	客户端空间不足 
+Za mało miejsca: przygotuj co najmniej 1 GB wolnego miejsca.	空间不足：请准备至少 1 GB 可用空间。
+Zachowaj diagnostykę rozruchu	保存启动诊断
+Zachowane pliki zostają w aplikacji po usunięciu zadania.	删除任务后，保留的文件仍会留在应用中。
+Zainstaluj aplikację	安装应用
+Zakończ dyktowanie	结束听写
+Zakres dostępu	访问范围
+Zaloguj się na oficjalnej stronie otwartej z linku. Jeśli klient poprosi o kod, wpisz go poniżej.	请在链接打开的官方页面登录。如果客户端要求输入代码，请在下方填写。
+Zamknij i odbierz dostęp	关闭并撤销访问权限
+Zapisuję 	正在保存 
+Zapisuję pliki	正在保存文件
+Zapisz lub udostępnij plik	保存或分享文件
+Zastąpić i uruchomić usługę w tle „	替换并运行后台服务“
+Zatrzymaj środowisko	停止环境
+Zatrzymano. Telefon znów jest Twój.	已停止。手机重新归你所有。
+Zatrzymać sesję 	停止会话 
+Zatrzymać wszystkie usługi?	停止所有服务？
+Zatrzymuję…	正在停止…
+Zatrzymywanie operacji i odbieranie dostępu…	正在停止操作并撤销访问权限…
+Zatrzymywanie środowiska	正在停止环境
+Zawartość	内容
+Zezwól androidagent na instalowanie aplikacji, a potem spróbuj ponownie.	请允许 androidagent 安装应用，然后重试。
+Zezwól androidagent na mikrofon, a potem stuknij mikrofon ponownie.	请允许 androidagent 使用麦克风，然后再次点击麦克风。
+Zezwól na dostęp do zdjęć	允许照片访问
+Zezwól na działanie w tle	允许后台运行
+Zezwól na instalowanie	允许安装
+Zezwól na instalowanie aplikacji	允许安装应用
+Zezwól na lokalizację	允许定位
+Zezwól na mikrofon	允许麦克风
+Zezwól na ustawienia z ograniczeniami.	请允许受限设置。
+Zezwól na zmianę ustawień	允许更改设置
+Zgoda jest opcjonalna — funkcje działają także bez powiadomień.	授权是可选的——没有通知，功能也能工作。
+Zgoda wymaga osobnego wątku narzędzia.	授权需要单独的工具线程。
+Zleć zadanie agentowi	将任务交给代理
+Zmiana ustawień systemu	更改系统设置
+Zmiany trafiają od razu do adaptera.	更改会立即应用到适配器。
+Zobacz, co załączam.	看看我附加了什么。
+Zresetować środowisko?	重置环境？
+Zrób zdjęcie	拍照
+\" is running; stop it first. (Usługa już działa.)	\" 正在运行；请先停止它。（服务已在运行。）
+\"Zainstaluj aplikację\"; ask the user to tap it. 	“安装应用”；请用户点击它。 
+\nCzas działania: 	\n运行时长： 
+\nPlik jest dostępny na ekranie Docker także po usunięciu zadania.	\n即使删除任务后，文件仍可在 Docker 屏幕上查看。
+\nSieć: 	\n网络： 
+\nWbudowane środowisko: 	\n内置环境： 
+\nWolna pamięć RAM: 	\n可用 RAM 内存： 
+\n\nBłąd: 	\n\n错误： 
+aby go ukryć; karty zatwierdzeń nadal się pojawią, gdy agent potrzebuje Twojej zgody.	将其隐藏；当代理需要你的授权时，审批卡片仍会出现。
+and '-', e.g. \"web\". (Nazwa: małe litery, cyfry i „-”.)	和“-”，例如“web”。（名称：小写字母、数字和“-”。）
+androidagent is in the background, so a notification \"Agent prosi o zdjęcie\" 	androidagent 在后台，因此通知“代理请求拍照” 
+androidagent przygotowuje własne środowisko terminalowe i oficjalnych klientów. Pobieranie klientów wymaga internetu.	androidagent 正在准备自己的终端环境和官方客户端。下载客户端需要互联网。
+androidagent · narzędzia dostępne	androidagent · 工具可用
+androidagent · środowisko terminalowe	androidagent · 终端环境
+bash · pełna sesja z klawiaturą	bash · 带键盘的完整会话
+brak · agent może uruchomić np. serwer WWW	无 · 代理可以启动例如 Web 服务器
+dodana ręcznie	手动添加
+domyślny	默认
+domyślny model	默认模型
+dostęp agentów	代理访问
+dostęp przyznany	已授予访问权限
+dostępni klienci: 	可用客户端： 
+enable developer mode in androidagent settings. (Włącz tryb programisty w ustawieniach androidagent.)	请在 androidagent 设置中启用开发者模式。
+gdy poprosisz o to w rozmowie. Treść powiadomień nigdy nie jest dla agenta poleceniem.	当你在对话中提出要求时。通知内容对代理来说永远不是命令。
+i w menu z trzema kropkami wybierz Zezwól na ustawienia z ograniczeniami, jeśli ta opcja jest dostępna. 	如果该选项可用，请在三点菜单中选择“允许受限设置”。 
+kod lub odpowiedź	代码或回复
+komenda lub odpowiedź	命令或回复
+model domyślny agenta	代理的默认模型
+na żywo	实时
+nic nie działa	没有东西在运行
+offset >= 0; limit musi wynosić 1–32768 bajtów	offset >= 0；limit 必须为 1–32768 字节
+plik do zgłoszenia problemu	用于提交问题的文件
+po błędzie	出错后
+połączone	已连接
+połączono	已连接
+procesy i historia agentów	代理进程与历史
+przygotowuje się automatycznie. Oficjalni klienci pobierają się osobno przez internet; logujesz się własnym kontem.	自动准备。官方客户端通过互联网单独下载；你使用自己的账户登录。
+przygotowywanie środowiska…	正在准备环境…
+przytrzymaj, aby usunąć	长按以删除
+sesja zakończona	会话已结束
+sesja zakończona · kod 	会话已结束 · 代码 
+sieć	网络
+sieć lokalna	本地网络
+uart · esp · adb · nośniki	uart · esp · adb · 存储介质
+urządzenie	设备
+ustawieniach Androida. Terminal działa z uprawnieniami androidagent; nie ma roota.	Android 设置中。终端以 androidagent 的权限运行；没有 root。
+usług	项服务
+usługa	服务
+usługi	服务
+w dół	向下
+w górę	向上
+we wbudowanym środowisku na tym telefonie.	在此手机的内置环境中。
+wiadomości	消息
+wiadomość	消息
+wysyła się, gdy przestaniesz mówić.	当你停止说话时发送。
+wyłączone	已关闭
+własny	自定义
+z Remote Control. Możesz kontynuować ją w oficjalnej aplikacji Claude. Dostępność zależy od konta Claude.	来自 Remote Control。你可以在 Claude 官方应用中继续。可用性取决于 Claude 账户。
+zachowane pliki pozostaną	保留的文件将保留
+zadań	个任务
+zakończona	已结束
+zaloguj się	登录
+załącznik	附件
+załączniki	附件
+załączników	个附件
+zewnętrzna	外部
+zgody Androida dla agentów	代理的 Android 授权
+zwiń	收起
+zwiń · łącznie 	收起 · 共 
+~/services · brak usług	~/services · 无服务
+Łączę kropki	正在连接点
+ładowanie	加载中
+Ścieżka	路径
+Ścieżka pliku	文件路径
+Ścieżka poza katalogiem	路径超出目录
+Ścieżka poza katalogiem środowiska	路径超出环境目录
+Środowisko Docker	Docker 环境
+Środowisko agentów	代理环境
+Środowisko działa	环境运行中
+Środowisko gotowe	环境就绪
+Środowisko i konta	环境与账户
+Środowisko i konto są gotowe.	环境和账户已就绪。
+Środowisko jest jeszcze przygotowywane	环境仍在准备中
+Środowisko jest zatrzymane	环境已停止
+Środowisko korzysta z pamięci i baterii telefonu. Pierwsze uruchomienie wymaga rozpakowania Linuxa; duże projekty potrzebują dodatkowego miejsca.	环境会占用手机内存和电池。首次启动需要解压 Linux；大型项目需要更多空间。
+Środowisko nie jest jeszcze przygotowane	环境尚未准备好
+Środowisko oczekuje na przygotowanie.	环境正在等待准备。
+Środowisko się przygotowuje	环境正在准备
+Środowisko terminalowe jest przygotowywane. Otwórz konfigurację.	终端环境正在准备。请打开配置。
+Środowisko tworzenia aplikacji jest aktywne	应用构建环境已激活
+Środowisko zakończyło działanie. 	环境已停止运行。 
+środowisko nieprzygotowane	环境未准备好
+środowisko · konto · wygląd	环境 · 账户 · 外观
+Źródła i licencje	来源与许可
+Źródła i licencje środowiska	环境来源与许可
+Żadna aplikacja na tym telefonie tego nie obsługuje.	此手机上没有任何应用支持它。
+Żadna aplikacja nie otworzy pliku 	没有应用会打开文件 
+Żadna aplikacja w telefonie nie otworzy tego pliku. Spróbuj Udostępnij albo Zapisz w Pobranych.	手机上没有应用能打开此文件。请尝试“分享”或“保存到下载”。
+Żądanie zewnętrznego narzędzia.\n\n	外部工具请求。\n\n
+” już działa. Zatrzymaj ją najpierw.	”已在运行。请先停止它。
+” już działa.)	”已在运行。）
+… wcześniejsze wiadomości · otwórz w aplikacji	… 更早的消息 · 在应用中打开
+── błąd uruchomienia · 	── 启动错误 · 
+✻ Kombinuję… (12s · Stop)	✻ 正在组合… (12s · 停止)
+✻ Kombinuję… (12s)	✻ 正在组合… (12s)
+Uwzględnij w przygotowaniu	在准备中包含
+ agencie.	。代理。
+ i sprawdzanie pierwszego uruchomienia	和首次启动检查
+ jest zainstalowany i zalogowany.	已安装并登录。
+ plik w projekcie	项目中的文件
+ zapisanych	已保存
+ · ponowne uruchomienie za 	 · 重启倒计时 
+ · uruchamianie	 · 正在启动
+ · zadanie #	 · 任务 #
+ — stan telefonu	 — 手机状态
+ — stan telefonu bez logowania	 — 手机状态（未登录）
+(empty log · dziennik jest pusty)	（空日志 · 日志为空）
++  Nowa rozmowa	+  新对话
++ Nowy plik	+ 新建文件
+, nieprzeczytana	，未读
+. Zwolnij co najmniej 1 GB.	。请至少释放 1 GB。
+.log · 2 pliki po 512 KB	.log · 2 个文件，每个 512 KB
+22 linie	22 行
+3 linie	3 行
+8080 (opcjonalnie)	8080（可选）
+Adres aplikacji 	应用地址 
+Adres w sieci Wi-Fi 	Wi-Fi 网络中的地址 
+Agent pracuje	代理工作中
+Agent · wymaga Twojej akcji	代理 · 需要你的操作
+Aktualizacja nadzoru Dockera wymaga co najmniej 64 MB wolnego miejsca.	更新 Docker 监控至少需要 64 MB 可用空间。
+Aktywne sesje	活动会话
+Anuluj przygotowanie	取消准备
+Aplikacja jeszcze nie odpowiada	应用尚未响应
+Aplikacja zainstalowana.	应用已安装。
+Archiwum nie zawiera klienta dla 	归档不包含适用于 
+Autostart czeka na otwarcie aplikacji	自启动等待应用打开
+Bateria 	电池 
+Brak Wi-Fi	无 Wi-Fi
+Brak dziennika	无日志
+Brak historii	无历史记录
+Brak odpowiedzi	无响应
+Brak polecenia mostu	缺少桥接命令
+Brak skryptu pierwszego uruchomienia Termux	缺少 Termux 首次启动脚本
+Brak wolnego portu 	无可用端口 
+Bursztynowy	琥珀色
+Codex i Claude Code na Twoim telefonie.	Codex 和 Claude Code 在你的手机上。
+Czytaj odpowiedzi	朗读回复
+Czytam 	正在读取 
+Czytam ekran	正在读取屏幕
+Czytam plik	正在读取文件
+Dalej	下一步
+Docker na telefonie	手机上的 Docker
+Dodaj i uruchom	添加并运行
+Dokumenty i inne pliki do 25 MB	文档和其他文件，最大 25 MB
+Dziennik przygotowania	准备日志
+Edytor pliku 	文件编辑器 
+Edytuj	编辑
+Gotowe	就绪
+Gotowy do rozmowy	可以对话了
+Gotowy do uruchomienia	可以启动
+INNY MODEL	其他模型
+Importuj plik	导入文件
+Informacje o aplikacji	应用信息
+Instalowanie 	正在安装 
+Instalowanie aplikacji	正在安装应用
+Katalog	目录
+Klient jest przygotowany i zalogowany do konta.	客户端已准备好并已登录账户。
+Komenda do uruchomienia	要运行的命令
+Komenda na drugim telefonie	在第二台手机上的命令
+Komenda w kontenerze	容器中的命令
+Konfiguracja anulowana	配置已取消
+Konto 	账户 
+Kontynuuj w aplikacji Claude	在 Claude 应用中继续
+Kopiuj adres 	复制地址 
+Logowanie do konta	登录账户
+Logowanie do konta modelu jest osobnym krokiem. 	登录模型账户是单独的步骤。 
+Model 	模型 
+Moja aplikacja WWW	我的 Web 应用
+Nadpisz plik	覆盖文件
+Najpierw przygotuj klienta 	请先准备客户端 
+Napisz do agenta	给代理留言
+Nazwa modelu z Twojego konta…	来自你账户的模型名称…
+Nazwa pliku lub folderu	文件或文件夹名称
+Nieprzygotowane	未准备好
+Nieznany klient	未知客户端
+Nowa rozmowa	新对话
+Nowa rozmowa z 	新对话，附带 
+Nowa rozmowa · 	新对话 · 
+Nowa sesja	新会话
+Nowe zadanie	新任务
+Nowy	新建
+Nowy element	新建条目
+Nowy plik	新建文件
+Nowy plik lub folder	新建文件或文件夹
+Obraz	镜像
+Obraz przekracza limit rozpakowywania	镜像超出解压限制
+Oczekiwanie…	等待中…
+Odczyt i zapis	读写
+Odczytaj tekst	读取文本
+Oficjalny klient agenta	官方代理客户端
+Opublikuj port 8080 kontenera	发布容器的 8080 端口
+Ostatnie	最近
+Ostatnie aplikacje	最近的应用
+Pierwsza rozmowa	第一个对话
+Plik	文件
+Plik 	文件 
+Plik do zachowania	要保留的文件
+Plik przekracza limit rozmiaru	文件超出大小限制
+Pliki	文件
+Pliki projektu	项目文件
+Pliki · strona 	文件 · 第 
+Pobieranie 	正在下载 
+Pobieranie oficjalnego klienta 	正在下载官方客户端 
+Pobierz plik	下载文件
+Polecenie anulowane przez Stop	命令已被“停止”取消
+Powiadomienia, mikrofon, bateria	通知、麦克风、电池
+Procesory	处理器
+Przerwano przygotowanie	准备已取消
+Przygotowanie	准备
+Przygotowanie, 	准备， 
+Przygotowywanie	正在准备
+Przygotuj 	准备 
+Przygotuj klienta	准备客户端
+Pusty katalog	空目录
+Pusty plik	空文件
+Rozmowy	对话
+Rozmowy · 	对话 · 
+Serwery i procesy	服务器与进程
+Sesja w terminalu	终端中的会话
+Sesja w tle	后台会话
+Sesje →	会话 →
+Sprawdzam aplikacje	正在检查应用
+Sprawdzam stan telefonu	正在检查手机状态
+Sprawdzanie…	正在检查…
+Start rozmowy anulowany przez Stop.	对话启动已被“停止”取消。
+Sterowanie ekranem	屏幕控制
+Sterowanie opcjonalne	控制可选
+Szybkie ustawienia	快速设置
+Terminal UART	UART 终端
+Terminal i logi	终端与日志
+Terminal nie jest uruchomiony	终端未运行
+To nie jest poprawny plik APK.	这不是有效的 APK 文件。
+Twoje konto	你的账户
+Twoje rozmowy	你的对话
+Tylko odczyt	只读
+Ukryj dymek	隐藏气泡
+Uprawnienia	权限
+Uprawnienia Androida	Android 权限
+Uprawnienia opcjonalne	可选权限
+Uprawnienia telefonu	手机权限
+Uruchamiaj przy starcie aplikacji	应用启动时运行
+Uruchamiam polecenie	正在运行命令
+Uruchamianie Dockera	正在启动 Docker
+Uruchamianie Linuxa i Dockera	正在启动 Linux 和 Docker
+Uruchom	运行
+Uruchom kontener	启动容器
+Ustawienia baterii	电池设置
+Ustawienia instalowania	安装设置
+Ustawienia lokalizacji	定位设置
+Ustawienia mikrofonu	麦克风设置
+Ustawienia systemowe aplikacji	应用系统设置
+Wbudowany terminal	内置终端
+Wbudowany terminal bash	内置 bash 终端
+Wbudowany terminal gotowy	内置终端已就绪
+Wczytaj plik	加载文件
+Wczytano 	已加载 
+Wczytywanie transkrypcji…	正在加载记录…
+Wczytywanie…	正在加载…
+Wstecz	返回
+Wszystkie rozmowy	全部对话
+Wtedy w Informacjach o aplikacji wybierz w menu z trzema kropkami 	然后在应用信息的三点菜单中选择 
+Wybierz	选择
+Wybierz agenta	选择代理
+Wybierz co najmniej jednego agenta	请至少选择一个代理
+Wybierz katalog	选择目录
+Wybierz model	选择模型
+Wybierz profil	选择配置
+Wybierz z galerii	从图库选择
+Wykonywanie…	执行中…
+Wymaga zgody	需要授权
+Zachowaj plik	保留文件
+Zachowane pliki	保留的文件
+Zacznij od telefonu	从手机开始
+Zaczynamy	开始
+Zadania	任务
+Zadanie	任务
+Zadanie Docker	Docker 任务
+Zaloguj 	登录 
+Zamknij	关闭
+Zapisz	保存
+Zapisz log	保存日志
+Zapisz plik	保存文件
+Zapisz w Pobranych	保存到下载
+Zastosuj	应用
+Zatrzymaj	停止
+Zatrzymaj wszystkie	全部停止
+Zatrzymaj zadanie	停止任务
+Zatrzymywanie…	正在停止…
+Zbuduj obraz	构建镜像
+Zlecam podzadanie	委托子任务
+[obraz]	[图片]
+bez modelu i bez logowania	无需模型，无需登录
+brak	无
+brak odpowiedzi	无响应
+brak zapisanych	无已保存
+budowanie	正在构建
+czas 	时间 
+gotowe barwy	就绪颜色
+gotowy	就绪
+jeszcze nieprzygotowani	尚未准备好
+jeszcze nieprzygotowany	尚未准备好
+katalog · 	目录 · 
+katalogu domowego	主目录
+konsola Linuxa z tego uruchomienia	本次启动的 Linux 控制台
+kontener, obraz i pliki robocze	容器、镜像和工作文件
+konto ChatGPT	ChatGPT 账户
+konto Claude	Claude 账户
+linie	线路
+nazwa, np. notatki.md	名称，例如 notatki.md
+nieprzygotowany	未准备好
+nowy plik · 	新文件 · 
+oczekiwanie…	等待中…
+od agenta	来自代理
+odczyt	读取
+ostatnie 	最近 
+przygotowanie 	准备 
+przygotowanie wymagane	需要准备
+przygotowywanie	正在准备
+pusty projekt z Dockerfile	带 Dockerfile 的空项目
+rozmiar	大小
+sesja aktywna	会话活动
+sprawdzanie	正在检查
+strona WWW · port 8080 kontenera	Web 页面 · 容器 8080 端口
+telefon	手机
+teraz	现在
+tylko odczyt	只读
+typ	类型
+uruchamianie…	正在启动…
+uruchomienie	启动
+wczoraj	昨天
+wszystko gotowe	全部就绪
+wymaga przygotowania	需要准备
+wymaga zgody	需要授权
+zadania	任务
+zadanie	任务
+zatrzymywanie	正在停止
+zgody Androida	Android 授权
+” w powiadomieniu aplikacji 	”在应用通知中 
+← Poprzednie pliki	← 上一个文件
+── koniec · kod 	── 结束 · 代码 
+── zatrzymywanie · 	── 正在停止 · 
+● niezapisane · 	 ● 未保存 · 
+Aplikacja	应用
+Bateria	电池
+Agent	代理
+Komenda	命令
+Konto ChatGPT	ChatGPT 账户
+Model	模型
+Pliki projektu	项目文件
+Rozmowy	对话
+Sesje	会话
+Ustawienia	设置
+Uprawnienia	权限
+Zadanie	任务
+Zadania	任务

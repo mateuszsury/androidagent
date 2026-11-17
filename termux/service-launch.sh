@@ -12,7 +12,7 @@ case $dir in
   '~/'*) dir=$HOME/${dir#'~/'} ;;
 esac
 if ! cd -- "$dir" 2>/dev/null; then
-  printf '[androidagent] Brak katalogu roboczego: %s\n' "$dir" >&2
+  printf '[androidagent] 缺少工作目录：%s\n' "$dir" >&2
   exit 126
 fi
 export ANDROIDAGENT_SERVICE="$name"

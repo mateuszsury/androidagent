@@ -47,9 +47,9 @@ final class NetAddresses {
                 case WIFI: return "Wi-Fi";
                 case HOTSPOT: return "hotspot";
                 case ETHERNET: return "Ethernet";
-                case CELLULAR: return "sieć komórkowa";
+                case CELLULAR: return "移动网络";
                 case VPN: return "VPN";
-                default: return iface.isEmpty() ? "sieć" : iface;
+                default: return iface.isEmpty() ? "网络" : iface;
             }
         }
     }

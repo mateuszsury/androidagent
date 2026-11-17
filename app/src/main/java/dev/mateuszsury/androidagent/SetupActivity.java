@@ -24,12 +24,12 @@ import static dev.mateuszsury.androidagent.Ui.*;
 
 /** Settings: embedded environment, account state and the existing appearance preferences. */
 public class SetupActivity extends Screen {
-    private static final String[][] MODES = {{"system", "Systemowy"}, {"light", "Jasny"}, {"dark", "Ciemny"}};
-    private static final String[][] SURFACES = {{"warm", "Ciepła"}, {"neutral", "Neutralna"}, {"black", "Czarna"}};
+    private static final String[][] MODES = {{"system", "Systemowy"}, {"light", "Jasny"}, {"dark", "深色"}};
+    private static final String[][] SURFACES = {{"warm", "暖色"}, {"neutral", "Neutralna"}, {"black", "黑色"}};
     /** Polish names for {@link Theme#ACCENTS}, by hex. */
     private static final String[][] ACCENT_NAMES = {
-            {"#D97757", "Koralowy"}, {"#4F8BFF", "Oceaniczny"}, {"#3FB98A", "Miętowy"},
-            {"#9A7CFF", "Fioletowy"}, {"#E5678F", "Różany"}, {"#E0A43A", "Bursztynowy"},
+            {"#D97757", "Koralowy"}, {"#4F8BFF", "海洋"}, {"#3FB98A", "薄荷"},
+            {"#9A7CFF", "Fioletowy"}, {"#E5678F", "粉色"}, {"#E0A43A", "琥珀色"},
     };
 
     private ScrollView scroll;
@@ -51,7 +51,7 @@ public class SetupActivity extends Screen {
         LinearLayout root = column(this);
         root.setBackgroundColor(BG);
         root.setFitsSystemWindows(true);
-        root.addView(RootHeader.build(this, "Ustawienia", "środowisko · konto · wygląd"), full());
+        root.addView(RootHeader.build(this, "设置", "环境 · 账户 · 外观"), full());
         scroll = new ScrollView(this);
         scroll.setVerticalScrollBarEnabled(false);
         list = column(this);
@@ -139,8 +139,8 @@ public class SetupActivity extends Screen {
         int scrollY = scroll.getScrollY();
         list.removeAllViews();
 
-        TextView intro = text(this, "Codex z kontem ChatGPT lub Claude Code z kontem Claude. Oficjalni klienci działają "
-                + "we wbudowanym środowisku na tym telefonie.", 14, MUTED);
+        TextView intro = text(this, "使用 ChatGPT 账户的 Codex 或 Claude 账户的 Claude Code。官方客户端运行"
+                + "在此手机的内置环境中。", 14, MUTED);
         intro.setLineSpacing(dp(this, 2), 1f);
         intro.setPadding(dp(this, 20), dp(this, 14), dp(this, 20), dp(this, 2));
         list.addView(intro, full());
@@ -157,43 +157,43 @@ public class SetupActivity extends Screen {
         Step[] steps = new Step[5];
 
         String environment = runtime.ready()
-                ? "Terminal, pliki i most narzędzi są dostępne w androidagent. Nie potrzebujesz osobnej aplikacji Termux."
+                ? "终端、文件和工具桥都在 androidagent 中。你不需要单独的 Termux 应用。"
                 : runtime.busy() ? runtime.status() + " · " + runtime.progress() + "%"
-                : "androidagent przygotowuje własne środowisko terminalowe i oficjalnych klientów. Pobieranie klientów wymaga internetu.";
+                : "androidagent 正在准备自己的终端环境和官方客户端。下载客户端需要互联网。";
         if (runtime.error() != null && !runtime.error().isEmpty()) environment = runtime.error();
-        steps[0] = step("Wbudowane środowisko", environment, runtime.ready(),
-                runtime.ready() ? "Otwórz środowisko" : runtime.busy() ? "Pokaż postęp" : "Przygotuj / ponów",
+        steps[0] = step("内置环境", environment, runtime.ready(),
+                runtime.ready() ? "打开环境" : runtime.busy() ? "显示进度" : "准备 / 重试",
                 v -> EmbeddedRuntime.open(this), null, null);
 
-        String account = accountReady ? agent + " jest zainstalowany i zalogowany."
-                : !agentInstalled ? "Najpierw przygotuj klienta " + agent + " w panelu środowiska."
-                : "Klient " + agent + " jest gotowy. Zaloguj się do własnego konta przez oficjalną stronę. Instalacja środowiska nie loguje Cię automatycznie.";
-        steps[1] = step("Konto " + agent, account, accountReady,
-                accountReady ? "Sprawdź konto" : agentInstalled ? "Zaloguj się" : "Przygotuj klienta",
+        String account = accountReady ? agent + "已安装并登录。"
+                : !agentInstalled ? "请先准备客户端 " + agent + "在环境面板中。"
+                : "Klient " + agent + "已就绪。请通过官方页面登录你自己的账户。安装环境不会自动登录。";
+        steps[1] = step("账户 " + agent, account, accountReady,
+                accountReady ? "检查账户" : agentInstalled ? "登录" : "准备客户端",
                 v -> {
                     if (accountReady) ping();
                     else if (agentInstalled) TermuxSetup.signIn(this, backend);
                     else EmbeddedRuntime.open(this);
-                }, agentInstalled && !accountReady ? "Sprawdź ponownie" : null, v -> ping());
+                }, agentInstalled && !accountReady ? "重新检查" : null, v -> ping());
 
-        String a11yText = "Pozwala odczytywać ekran, dotykać i wpisywać tekst w innych aplikacjach. Rozmowy, terminal i Docker działają bez tej zgody.";
+        String a11yText = "允许读取屏幕、触摸其他应用并在其中输入文本。对话、终端和 Docker 无需此授权即可工作。";
         if (!a11y && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
-            a11yText += " Android może najpierw wymagać zezwolenia na ustawienia z ograniczeniami w informacjach o aplikacji.";
-        steps[2] = step("Sterowanie ekranem", a11yText, a11y,
-                "Przegląd uprawnień", v -> PermissionGuide.open(this), null, null);
+            a11yText += "Android 可能首先要求在应用信息中允许受限设置。";
+        steps[2] = step("屏幕控制", a11yText, a11y,
+                "权限检查", v -> PermissionGuide.open(this), null, null);
         steps[2].optional = true;
 
         PowerManager pm = getSystemService(PowerManager.class);
         boolean background = pm != null && pm.isIgnoringBatteryOptimizations(getPackageName());
-        steps[3] = step("Praca w tle",
-                "Wyjątek optymalizacji baterii pomaga utrzymać długie zadania. Android wymaga Twojej zgody; ustawienie dotyczy tylko androidagent.",
-                background, "Przegląd uprawnień", v -> PermissionGuide.open(this), null, null);
+        steps[3] = step("后台运行",
+                "电池优化白名单有助于维持长任务。Android 需要你的同意；该设置仅适用于 androidagent。",
+                background, "权限检查", v -> PermissionGuide.open(this), null, null);
         steps[3].optional = true;
 
-        steps[4] = step("Pierwsza rozmowa", Prefs.hadReply(this)
-                        ? "Historia rozmów jest zapisana. Możesz wrócić do niej z ekranu głównego."
-                        : "Po zalogowaniu rozpocznij rozmowę. /status odczytuje stan telefonu lokalnie i działa bez modelu.",
-                Prefs.hadReply(this), "Otwórz rozmowy", v -> startActivity(new Intent(this, MainActivity.class)
+        steps[4] = step("第一个对话", Prefs.hadReply(this)
+                        ? "对话历史已保存。你可以从主屏幕返回。"
+                        : "登录后开始对话。/status 在本地读取手机状态，无需模型。",
+                Prefs.hadReply(this), "打开对话", v -> startActivity(new Intent(this, MainActivity.class)
                         .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)), null, null);
         steps[4].optional = true;
         setupCard(steps);
@@ -202,19 +202,19 @@ public class SetupActivity extends Screen {
         list.addView(sectionLabel(this, "Powiadomienia"));
         boolean notify = NotificationPermission.enabled(this);
         LinearLayout notifications = card(this);
-        notifications.addView(statusTitle(notify ? "Powiadomienia aplikacji włączone" : "Powiadomienia aplikacji wyłączone",
+        notifications.addView(statusTitle(notify ? "应用通知已开启" : "应用通知已关闭",
                 notify ? OK : FAINT), full());
-        TextView nb = text(this, "Pokazują pracę agentów, USB i Dockera oraz przycisk Stop. "
-                + "Zgoda jest opcjonalna — funkcje działają także bez powiadomień.", 13, MUTED);
+        TextView nb = text(this, "它们显示代理、USB 和 Docker 的工作以及停止按钮。"
+                + "授权是可选的——没有通知，功能也能工作。", 13, MUTED);
         nb.setPadding(dp(this, 22), 0, 0, 0);
         notifications.addView(nb, topGap(4));
-        Button notificationSettings = button(this, "Ustawienia powiadomień", false);
+        Button notificationSettings = button(this, "通知设置", false);
         notificationSettings.setOnClickListener(v -> startActivity(NotificationPermission.settingsIntent(this)));
         notifications.addView(notificationSettings, buttonGap(12));
         addCard(notifications);
 
         // ----------------------------------------------------------- appearance
-        list.addView(sectionLabel(this, "Wygląd"));
+        list.addView(sectionLabel(this, "外观"));
         LinearLayout ap = card(this);
         ap.setPadding(dp(this, 16), dp(this, 14), dp(this, 16), dp(this, 16));
         ap.addView(fieldLabel("Tryb", null));
@@ -224,46 +224,46 @@ public class SetupActivity extends Screen {
         }), topGap(8));
         int accent = Prefs.accent(this);
         String accentName = accentName(accent);
-        ap.addView(fieldLabel("Akcent", (accentName == null ? "własny" : accentName.toLowerCase(java.util.Locale.ROOT))
+        ap.addView(fieldLabel("Akcent", (accentName == null ? "自定义" : accentName.toLowerCase(java.util.Locale.ROOT))
                 + " · " + Theme.hex(accent)), topGap(20));
         ap.addView(swatches(), topGap(10));
-        ap.addView(fieldLabel("Powierzchnia", null), topGap(20));
+        ap.addView(fieldLabel("表面", null), topGap(20));
         ap.addView(segmented(this, SURFACES, Prefs.surface(this), false, v -> {
             Prefs.setSurface(this, v);
             themeChanged();
         }), topGap(8));
-        TextView sn = text(this, "Ciepła to oryginalny odcień androidagent. Czarna (true black) działa tylko w trybie ciemnym.",
+        TextView sn = text(this, "暖色是 androidagent 的原始色调。纯黑（true black）仅在深色模式下生效。",
                 13, MUTED);
         ap.addView(sn, topGap(10));
         addCard(ap);
 
         // ---------------------------------------------------------------- agent
-        list.addView(sectionLabel(this, "Agent"));
+        list.addView(sectionLabel(this, "代理"));
         LinearLayout ag = card(this);
         ag.setPadding(dp(this, 16), dp(this, 14), dp(this, 16), dp(this, 16));
-        ag.addView(title(this, "Domyślny agent", 15));
-        TextView brainInfo = text(this, "Nowe rozmowy użyją wybranego agenta. Claude Code korzysta z Twojego konta Claude, a Codex z konta ChatGPT.", 13, MUTED);
+        ag.addView(title(this, "默认代理", 15));
+        TextView brainInfo = text(this, "新对话将使用所选代理。Claude Code 使用你的 Claude 账户，Codex 使用 ChatGPT 账户。", 13, MUTED);
         brainInfo.setPadding(0, dp(this, 4), 0, 0);
         ag.addView(brainInfo);
-        TextView clients = monoText(this, "dostępni klienci: " + (hasClaude && hasCodex ? "claude-code, codex"
-                : hasClaude ? "claude-code" : hasCodex ? "codex" : "jeszcze nieprzygotowani"), 11, FAINT);
+        TextView clients = monoText(this, "可用客户端： " + (hasClaude && hasCodex ? "claude-code, codex"
+                : hasClaude ? "claude-code" : hasCodex ? "codex" : "尚未准备好"), 11, FAINT);
         clients.setPadding(0, dp(this, 6), 0, 0);
         ag.addView(clients);
         ag.addView(segmented(this, new String[][]{{"claude", "Claude Code"}, {"codex", "Codex"}}, backend, false, v -> {
             Prefs.setBackend(this, v);
             if (!"both".equals(Prefs.agents(this))) Prefs.setAgents(this, v);
-            Toast.makeText(this, "Nowe rozmowy użyją: " + ("codex".equals(v) ? "Codex" : "Claude Code")
-                    + ". Agenta możesz też zmienić na ekranie głównym.", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "新对话将使用：" + ("codex".equals(v) ? "Codex" : "Claude Code")
+                    + "。你也可以在主屏幕切换代理。", Toast.LENGTH_LONG).show();
             render();
         }), topGap(12));
         addCard(ag);
 
         // ----------------------------------------------------------- experience
-        list.addView(sectionLabel(this, "Doświadczenie"));
+        list.addView(sectionLabel(this, "体验"));
         LinearLayout ex = card(this);
         ex.setPadding(0, dp(this, 2), 0, dp(this, 2));
-        ex.addView(switchRow(this, "Dymek czatu", "Unosi się nad innymi aplikacjami. Przeciągnij go na przycisk zamknięcia, "
-                + "aby go ukryć; karty zatwierdzeń nadal się pojawią, gdy agent potrzebuje Twojej zgody.",
+        ex.addView(switchRow(this, "聊天气泡", "它悬浮在其他应用之上。将其拖到关闭按钮上， "
+                + "将其隐藏；当代理需要你的授权时，审批卡片仍会出现。",
                 Prefs.bubbleEnabled(this), on -> {
             Prefs.setBubbleEnabled(this, on);
             if (on) HiddenNotice.cancel(this);
@@ -272,16 +272,16 @@ public class SetupActivity extends Screen {
             rendered = state();
         }), full());
         ex.addView(divider(this), lineParams());
-        ex.addView(switchRow(this, "Czytaj odpowiedzi na głos", "Rozmawiaj mikrofonem w dowolnym czacie; wiadomość "
-                + "wysyła się, gdy przestaniesz mówić.", Prefs.speakReplies(this), on -> {
+        ex.addView(switchRow(this, "朗读回复", "在任何聊天中用麦克风对话；消息 "
+                + "当你停止说话时发送。", Prefs.speakReplies(this), on -> {
             Prefs.setSpeakReplies(this, on);
             if (!on) Voice.stopSpeaking();
             rendered = state();
         }), full());
         ex.addView(divider(this), lineParams());
         final boolean dev = Prefs.devMode(this);
-        ex.addView(switchRow(this, "Tryb programisty", "Codex i Claude Code mogą wykonywać komendy i zmieniać pliki dostępne dla androidagent. "
-                + "Katalog startowy: ~/.buddy/work. Dostęp obejmuje również inne pliki dostępne dla aplikacji.", dev, on -> {
+        ex.addView(switchRow(this, "Tryb programisty", "Codex 和 Claude Code 可以执行命令并修改 androidagent 可访问的文件。"
+                + "起始目录：~/.buddy/work。访问范围还包括该应用可访问的其他文件。", dev, on -> {
             Prefs.setDevMode(this, on);
             render();
         }), full());
@@ -291,9 +291,9 @@ public class SetupActivity extends Screen {
             warn.setPadding(dp(this, 12), dp(this, 10), dp(this, 12), dp(this, 10));
             warn.setBackground(outlined(this, ERR_SOFT, 10, Theme.withAlpha(ERR, 0x40), 1));
             warn.addView(icon(this, R.drawable.ms_warning, ERR, 18));
-            TextView wt = text(this, "Komendy agentów we wbudowanym środowisku wykonują się bez osobnego potwierdzenia. "
-                    + "Android ogranicza je do uprawnień androidagent; nie są ograniczone do katalogu projektu. "
-                    + "Komendy narzędzia telefonu run_command wymagają zatwierdzenia dokładnej treści.", 13, ERR);
+            TextView wt = text(this, "代理命令在内置环境中执行，无需单独确认。"
+                    + "Android 将其限制在 androidagent 的权限内；并不限制在项目目录内。"
+                    + "手机工具 run_command 命令需要确认确切内容。", 13, ERR);
             wt.setPadding(dp(this, 10), 0, 0, 0);
             warn.addView(wt, weight1());
             LinearLayout.LayoutParams wp = full();
@@ -304,25 +304,25 @@ public class SetupActivity extends Screen {
         addCard(ex);
 
         // ------------------------------------------------------- remote control
-        list.addView(sectionLabel(this, "Zdalna kontynuacja Claude"));
+        list.addView(sectionLabel(this, "Claude 远程继续"));
         LinearLayout rc = card(this);
-        TextView rct = text(this, "Przycisk telefonu w rozmowie Claude Code otwiera tę sesję we wbudowanym terminalu "
-                + "z Remote Control. Możesz kontynuować ją w oficjalnej aplikacji Claude. Dostępność zależy od konta Claude.", 14, MUTED);
+        TextView rct = text(this, "在 Claude Code 对话中，电话按钮会在内置终端中打开此会话 "
+                + "来自 Remote Control。你可以在 Claude 官方应用中继续。可用性取决于 Claude 账户。", 14, MUTED);
         rct.setLineSpacing(dp(this, 2), 1f);
         rc.addView(rct);
         addCard(rc);
 
-        list.addView(sectionLabel(this, "Narzędzia agentów"));
+        list.addView(sectionLabel(this, "代理工具"));
         LinearLayout pt = card(this);
         pt.setPadding(dp(this, 16), dp(this, 14), dp(this, 16), dp(this, 16));
-        TextView ptt = text(this, "Most narzędzi jest konfigurowany automatycznie dla rozmów w androidagent. "
-                + "Terminal, pliki i oficjalne logowanie znajdziesz w panelu środowiska. Uprawnienia Androida pozostają pod Twoją kontrolą.", 14, MUTED);
+        TextView ptt = text(this, "工具桥会为 androidagent 中的对话自动配置。"
+                + "终端、文件和官方登录可在环境面板中找到。Android 权限仍由你控制。", 14, MUTED);
         ptt.setLineSpacing(dp(this, 2), 1f);
         pt.addView(ptt);
-        Button runtimeButton = button(this, "Otwórz środowisko i klientów", false);
+        Button runtimeButton = button(this, "打开环境与客户端", false);
         runtimeButton.setOnClickListener(v -> EmbeddedRuntime.open(this));
         pt.addView(runtimeButton, fullButton(14));
-        Button permissionsButton = button(this, "Przegląd uprawnień", false);
+        Button permissionsButton = button(this, "权限检查", false);
         permissionsButton.setOnClickListener(v -> PermissionGuide.open(this));
         pt.addView(permissionsButton, fullButton(8));
         addCard(pt);
@@ -368,10 +368,10 @@ public class SetupActivity extends Screen {
         c.setPadding(dp(this, 16), dp(this, 14), dp(this, 16), dp(this, 16));
         LinearLayout head = row(this);
         LinearLayout titles = column(this);
-        TextView ht = title(this, "Przygotowanie", 16);
+        TextView ht = title(this, "准备", 16);
         ht.setAccessibilityHeading(true);
         titles.addView(ht);
-        TextView hs = monoText(this, complete ? "wszystko gotowe" : "wymagane: " + done + " z " + required, 11, FAINT);
+        TextView hs = monoText(this, complete ? "全部就绪" : "wymagane: " + done + " z " + required, 11, FAINT);
         hs.setPadding(0, dp(this, 2), 0, 0);
         titles.addView(hs);
         head.addView(titles, weight1());
@@ -381,7 +381,7 @@ public class SetupActivity extends Screen {
         LinearLayout.LayoutParams chp = new LinearLayout.LayoutParams(dp(this, 22), dp(this, 22));
         chp.leftMargin = dp(this, 8);
         head.addView(chevron, chp);
-        head.setContentDescription("Przygotowanie, " + done + " z " + required + (open ? ", zwiń" : ", rozwiń"));
+        head.setContentDescription("准备， " + done + " z " + required + (open ? "，收起" : "，展开"));
         head.setOnClickListener(v -> {
             Motion.rotate(chevron, open ? 0 : 180);
             setupOpen = !open;
@@ -424,7 +424,7 @@ public class SetupActivity extends Screen {
             r.setPadding(0, dp(this, 12), 0, 0);
             if (complete) r.addView(toolDot(this, OK));
             else r.addView(new Spark(this).animated(false).color(ACCENT), new LinearLayout.LayoutParams(dp(this, 14), dp(this, 14)));
-            TextView s = single(text(this, complete ? "Środowisko i konto są gotowe." : "Następny krok: " + steps[next].title, 13, MUTED));
+            TextView s = single(text(this, complete ? "环境和账户已就绪。" : "下一步：" + steps[next].title, 13, MUTED));
             s.setPadding(dp(this, 8), 0, 0, 0);
             r.addView(s, weight1());
             c.addView(r, full());
@@ -432,7 +432,7 @@ public class SetupActivity extends Screen {
             for (int i = 0; i < steps.length; i++) c.addView(stepRow(steps[i], i, i == next), full());
         }
         if (!complete) {
-            TextView guide = monoText(this, "Otwórz przewodnik →", 13, ACCENT_TEXT);
+            TextView guide = monoText(this, "打开指南 →", 13, ACCENT_TEXT);
             guide.setTypeface(mono(this, 600));
             guide.setPadding(0, dp(this, 10), dp(this, 8), dp(this, 2));
             guide.setBackgroundResource(ripple(this, false));
@@ -473,7 +473,7 @@ public class SetupActivity extends Screen {
         if (!isNext) t.setTypeface(sans(this, 500));
         tr.addView(t, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
         if (isDone) {
-            tr.addView(monoText(this, "gotowe", 11, OK));
+            tr.addView(monoText(this, "完成", 11, OK));
         } else if (st.optional) {
             tr.addView(monoText(this, "opcjonalne", 11, FAINT));
         }
@@ -530,13 +530,13 @@ public class SetupActivity extends Screen {
             boolean on = col == current;
             preset |= on;
             String name = accentName(col);
-            r.addView(swatch(col, on, false, (name == null ? a[1] : name) + (on ? ", wybrany" : ""), v -> {
+            r.addView(swatch(col, on, false, (name == null ? a[1] : name) + (on ? ", 已选择" : ""), v -> {
                 if (on) return;
                 Prefs.setAccent(this, col);
                 themeChanged();
             }), new LinearLayout.LayoutParams(0, dp(this, 44), 1));
         }
-        r.addView(swatch(preset ? CARD2 : current, !preset, preset, "Własny kolor" + (!preset ? ", wybrany" : ""),
+        r.addView(swatch(preset ? CARD2 : current, !preset, preset, "自定义颜色" + (!preset ? ", 已选择" : ""),
                 v -> customAccent()), new LinearLayout.LayoutParams(0, dp(this, 44), 1));
         return r;
     }
@@ -569,10 +569,10 @@ public class SetupActivity extends Screen {
 
     private void customAccent() {
         LinearLayout c = column(this);
-        TextView heading = title(this, "Własny akcent", 20);
+        TextView heading = title(this, "自定义强调色", 20);
         heading.setAccessibilityHeading(true);
         c.addView(heading);
-        TextView s = text(this, "Dowolny kolor jako kod hex, np. #4F8BFF.", 13, MUTED);
+        TextView s = text(this, "任意十六进制颜色，例如 #4F8BFF。", 13, MUTED);
         s.setPadding(0, dp(this, 4), 0, dp(this, 14));
         c.addView(s);
         LinearLayout r = row(this);
@@ -582,16 +582,16 @@ public class SetupActivity extends Screen {
         final EditText et = input(this, "#RRGGBB", true);
         et.setText(Theme.hex(Prefs.accent(this)));
         et.setSingleLine(true);
-        et.setContentDescription("Kod koloru hex");
+        et.setContentDescription("十六进制颜色代码");
         LinearLayout.LayoutParams ep = weight1();
         ep.leftMargin = dp(this, 12);
         r.addView(et, ep);
-        Button apply = button(this, "Zastosuj", true);
+        Button apply = button(this, "应用", true);
         LinearLayout.LayoutParams app = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, dp(this, 46));
         app.leftMargin = dp(this, 8);
         r.addView(apply, app);
         c.addView(r, full());
-        TextView sw = monoText(this, "gotowe barwy", 11, FAINT);
+        TextView sw = monoText(this, "就绪颜色", 11, FAINT);
         sw.setPadding(0, dp(this, 16), 0, dp(this, 6));
         c.addView(sw);
         LinearLayout presets = row(this);

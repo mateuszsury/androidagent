@@ -79,7 +79,7 @@ final class ControlIndicator {
         NotificationManager nm = svc.getSystemService(NotificationManager.class);
         NotificationChannel ch = new NotificationChannel(CHANNEL, "androidagent steruje telefonem",
                 NotificationManager.IMPORTANCE_DEFAULT);
-        ch.setDescription("Widoczne na pasku stanu, gdy agent obsługuje telefon.");
+        ch.setDescription("当代理操作手机时，它会显示在状态栏中。");
         ch.setSound(null, null);
         ch.enableVibration(false);
         nm.createNotificationChannel(ch);
@@ -89,7 +89,7 @@ final class ControlIndicator {
         PendingIntent open = PendingIntent.getActivity(svc, 3,
                 new Intent(svc, MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
                 PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
-        String hint = "Nie dotykaj ekranu, dopóki agent nie skończy, albo stuknij Zatrzymaj, by przejąć sterowanie.";
+        String hint = "在代理完成前请勿触碰屏幕，或点击“停止”以接管控制。";
         Bundle extras = new Bundle();
         // Android 16 Live Update: shows as a chip in the status bar (Notification.EXTRA_REQUEST_PROMOTED_ONGOING)
         extras.putBoolean("android.requestPromotedOngoing", true);
@@ -104,7 +104,7 @@ final class ControlIndicator {
                 .setCategory(Notification.CATEGORY_PROGRESS)
                 .setContentIntent(open)
                 .addExtras(extras)
-                .addAction(new Notification.Action.Builder(null, "Zatrzymaj", stop).build());
+                .addAction(new Notification.Action.Builder(null, "停止", stop).build());
         if (android.os.Build.VERSION.SDK_INT >= 36) b.setShortCriticalText("androidagent");
         try {
             nm.notify(NOTIFICATION_ID, b.build());

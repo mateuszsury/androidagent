@@ -45,7 +45,7 @@ final class RootHeader {
         return texts.getChildCount() > 1 ? (TextView) texts.getChildAt(1) : null;
     }
 
-    /** A small live indicator for a header: pulsing dot + mono label, e.g. "na żywo". */
+    /** A small live indicator for a header: pulsing dot + mono label, e.g. "实时". */
     static LinearLayout live(Context c, String label, int color) {
         LinearLayout l = row(c);
         l.setPadding(dp(c, 10), dp(c, 4), dp(c, 12), dp(c, 4));

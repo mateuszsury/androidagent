@@ -36,7 +36,7 @@ import java.util.Date;
 import java.util.Locale;
 
 /**
- * "Pliki środowiska": a small browser for the embedded runtime home, starting in the agent workspace
+ * "环境文件": a small browser for the embedded runtime home, starting in the agent workspace
  * ~/.buddy/work. Text files open in a mono editor; any workspace file can be opened, shared, saved to
  * Downloads or (APKs) installed with the same code as the agent's MCP tools. No storage permission.
  */
@@ -69,10 +69,10 @@ public final class RuntimeFilesActivity extends Screen {
         stage.setBackgroundColor(BG);
         stage.setFitsSystemWindows(true);
         browser = column(this);
-        TextView create = barAction(this, "Nowy");
-        create.setContentDescription("Nowy plik lub folder");
+        TextView create = barAction(this, "新建");
+        create.setContentDescription("新建文件或文件夹");
         create.setOnClickListener(v -> createSheet());
-        LinearLayout bar = topBar(this, "Pliki środowiska", "~/" + FileTools.WORK, create);
+        LinearLayout bar = topBar(this, "环境文件", "~/" + FileTools.WORK, create);
         backButton(bar).setOnClickListener(v -> back());
         subtitle = (TextView) ((LinearLayout) ((LinearLayout) bar.getChildAt(0)).getChildAt(1)).getChildAt(1);
         browser.addView(bar, full());
@@ -147,19 +147,19 @@ public final class RuntimeFilesActivity extends Screen {
             shown++;
         }
         if (box == null) {
-            list.addView(emptyState(this, "Pusty katalog",
-                    "Agent zapisuje tu projekty i wyniki pracy. Utwórz plik lub folder przyciskiem Nowy."), full());
+            list.addView(emptyState(this, "空目录",
+                    "代理在这里保存项目和工作成果。用“新建”按钮创建文件或文件夹。"), full());
         } else {
             list.addView(box, full());
             if (entries.length > shown) {
-                TextView more = monoText(this, "… i jeszcze " + (entries.length - shown) + " elementów", 12, FAINT);
+                TextView more = monoText(this, "… 以及另外 " + (entries.length - shown) + "项", 12, FAINT);
                 more.setPadding(dp(this, 4), dp(this, 10), 0, 0);
                 list.addView(more, full());
             }
         }
         TextView footer = monoText(this, FileTools.inWorkspace(this, directory)
-                ? shown + (shown == 1 ? " element" : " elem.") + " · przytrzymaj plik, aby zobaczyć działania"
-                : "poza ~/" + FileTools.WORK + " · otwieranie i udostępnianie działa tylko w katalogu roboczym", 11, FAINT);
+                ? shown + (shown == 1 ? " element" : " elem.") + "· 长按文件查看操作"
+                : "poza ~/" + FileTools.WORK + "· 打开和分享仅在工作目录中有效", 11, FAINT);
         footer.setPadding(dp(this, 4), dp(this, 12), dp(this, 4), 0);
         list.addView(footer, full());
         listScroll.scrollTo(0, 0);
@@ -195,7 +195,7 @@ public final class RuntimeFilesActivity extends Screen {
             seg.setGravity(Gravity.CENTER_VERTICAL);
             if (!last) {
                 seg.setBackgroundResource(ripple(this, false));
-                seg.setContentDescription("Przejdź do " + (i == 0 ? "katalogu domowego" : target.getName()));
+                seg.setContentDescription("前往 " + (i == 0 ? "主目录" : target.getName()));
                 seg.setOnClickListener(v -> {
                     directory = target;
                     render();
@@ -244,7 +244,7 @@ public final class RuntimeFilesActivity extends Screen {
         texts.addView(meta, full());
         r.addView(texts, weight1());
         if (file.isDirectory()) r.addView(Ui.icon(this, R.drawable.ms_chevron_right, FAINT, 20));
-        r.setContentDescription((file.isDirectory() ? "Folder " : "Plik ") + file.getName() + ", " + meta.getText());
+        r.setContentDescription((file.isDirectory() ? "Folder " : "文件 ") + file.getName() + ", " + meta.getText());
         r.setOnClickListener(v -> {
             if (file.isDirectory()) {
                 directory = file;
@@ -263,7 +263,7 @@ public final class RuntimeFilesActivity extends Screen {
         if (file.isDirectory()) {
             String[] children = file.list();
             int n = children == null ? 0 : children.length;
-            return "katalog · " + n + (n == 1 ? " element" : " elem.") + " · " + date(file.lastModified());
+            return "目录 · " + n + (n == 1 ? " element" : " elem.") + " · " + date(file.lastModified());
         }
         return size(file.length()) + " · " + date(file.lastModified());
     }
@@ -319,24 +319,24 @@ public final class RuntimeFilesActivity extends Screen {
         c.addView(head, full());
         LinearLayout facts = column(this);
         facts.setPadding(0, dp(this, 12), 0, dp(this, 4));
-        facts.addView(keyValue(this, "rozmiar", size(file.length())), full());
+        facts.addView(keyValue(this, "大小", size(file.length())), full());
         facts.addView(keyValue(this, "zmieniono", date(file.lastModified())), full());
-        facts.addView(keyValue(this, "typ", FileTools.mime(file.getName())), full());
+        facts.addView(keyValue(this, "类型", FileTools.mime(file.getName())), full());
         boolean workspace = FileTools.inWorkspace(this, file);
         if (FileTools.isApk(file) && workspace) {
             try {
                 JSONObject apk = FileTools.apkInfo(this, file.getCanonicalFile());
-                facts.addView(keyValue(this, "pakiet", apk.optString("package")), full());
-                String installed = apk.isNull("installed_version_code") ? "nie" : "wersja " + apk.optLong("installed_version_code");
-                facts.addView(keyValue(this, "wersja", apk.optString("version_name") + " (" + apk.optLong("version_code") + ")"), full());
-                facts.addView(keyValue(this, "zainstalowana", installed), full());
+                facts.addView(keyValue(this, "包名", apk.optString("package")), full());
+                String installed = apk.isNull("installed_version_code") ? "未安装" : "版本 " + apk.optLong("installed_version_code");
+                facts.addView(keyValue(this, "版本", apk.optString("version_name") + " (" + apk.optLong("version_code") + ")"), full());
+                facts.addView(keyValue(this, "已安装", installed), full());
             } catch (Exception e) {
                 facts.addView(keyValue(this, "apk", FileTools.polish(e)), full());
             }
         }
         c.addView(facts, full());
         final Dialog[] sheet = {null};
-        if (editable(file)) c.addView(sheetButton("Edytuj", R.drawable.ms_description, false, () -> {
+        if (editable(file)) c.addView(sheetButton("编辑", R.drawable.ms_description, false, () -> {
             sheet[0].dismiss();
             openEditor(file);
         }), sheetParams());
@@ -345,20 +345,20 @@ public final class RuntimeFilesActivity extends Screen {
                 sheet[0].dismiss();
                 install(file);
             }), sheetParams());
-            else c.addView(sheetButton("Otwórz", R.drawable.ms_open_in_new, true, () -> {
+            else c.addView(sheetButton("打开", R.drawable.ms_open_in_new, true, () -> {
                 sheet[0].dismiss();
                 act(() -> FileTools.open(this, file.getCanonicalFile(), ""));
             }), sheetParams());
-            c.addView(sheetButton("Udostępnij", R.drawable.ms_share, false, () -> {
+            c.addView(sheetButton("分享", R.drawable.ms_share, false, () -> {
                 sheet[0].dismiss();
                 act(() -> FileTools.share(this, file.getCanonicalFile(), ""));
             }), sheetParams());
-            c.addView(sheetButton("Zapisz w Pobranych", R.drawable.ms_download, false, () -> {
+            c.addView(sheetButton("保存到下载", R.drawable.ms_download, false, () -> {
                 sheet[0].dismiss();
                 saveToDownloads(file);
             }), sheetParams());
         } else {
-            TextView note = text(this, "Otwieranie, udostępnianie i instalowanie działa tylko dla plików w ~/"
+            TextView note = text(this, "打开、分享和安装仅适用于 ~/ 中的文件"
                     + FileTools.WORK + ".", 13, MUTED);
             note.setPadding(0, dp(this, 8), 0, 0);
             c.addView(note, full());
@@ -404,7 +404,7 @@ public final class RuntimeFilesActivity extends Screen {
     }
 
     private void install(File file) {
-        Toast.makeText(this, "Przygotowuję instalator Androida…", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "正在准备 Android 安装器…", Toast.LENGTH_SHORT).show();
         new Thread(() -> {
             String message;
             try {
@@ -428,7 +428,7 @@ public final class RuntimeFilesActivity extends Screen {
             String message;
             try {
                 JSONObject result = FileTools.saveToDownloads(this, file.getCanonicalFile(), "");
-                message = "Zapisano w " + result.optString("saved");
+                message = "已保存到 " + result.optString("saved");
             } catch (Exception e) {
                 message = FileTools.polish(e);
             }
@@ -443,17 +443,17 @@ public final class RuntimeFilesActivity extends Screen {
 
     private void createSheet() {
         LinearLayout c = column(this);
-        c.addView(title(this, "Nowy element", 18), full());
+        c.addView(title(this, "新建条目", 18), full());
         TextView where = single(monoText(this, "w " + FileTools.display(this, directory), 11, FAINT));
         where.setPadding(0, dp(this, 4), 0, dp(this, 14));
         c.addView(where, full());
-        EditText name = input(this, "nazwa, np. notatki.md", true);
+        EditText name = input(this, "名称，例如 notatki.md", true);
         name.setSingleLine(true);
-        name.setContentDescription("Nazwa pliku lub folderu");
+        name.setContentDescription("文件或文件夹名称");
         c.addView(name, full());
         LinearLayout buttons = Ui.row(this);
-        Button folder = button(this, "Utwórz folder", false);
-        Button file = button(this, "Utwórz plik", true);
+        Button folder = button(this, "创建文件夹", false);
+        Button file = button(this, "创建文件", true);
         LinearLayout.LayoutParams fp = new LinearLayout.LayoutParams(0, dp(this, 48), 1);
         buttons.addView(folder, fp);
         LinearLayout.LayoutParams pp = new LinearLayout.LayoutParams(0, dp(this, 48), 1);
@@ -467,7 +467,7 @@ public final class RuntimeFilesActivity extends Screen {
             File target = newChild(name.getText().toString());
             if (target == null) return;
             if (!target.mkdirs()) {
-                Toast.makeText(this, "Nie udało się utworzyć folderu", Toast.LENGTH_LONG).show();
+                Toast.makeText(this, "创建文件夹失败", Toast.LENGTH_LONG).show();
                 return;
             }
             sheet.dismiss();
@@ -490,12 +490,12 @@ public final class RuntimeFilesActivity extends Screen {
     private File newChild(String raw) {
         String value = raw.trim();
         if (value.isEmpty() || value.contains("/") || ".".equals(value) || "..".equals(value) || value.indexOf('\0') >= 0) {
-            Toast.makeText(this, "Nieprawidłowa nazwa", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "名称无效", Toast.LENGTH_LONG).show();
             return null;
         }
         File target = new File(directory, value);
         if (target.exists() || !allowed(target)) {
-            Toast.makeText(this, target.exists() ? "Taki element już istnieje" : "Nieprawidłowa nazwa", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, target.exists() ? "该元素已存在" : "名称无效", Toast.LENGTH_LONG).show();
             return null;
         }
         return target;
@@ -505,7 +505,7 @@ public final class RuntimeFilesActivity extends Screen {
 
     private void openEditor(File file) {
         if (!allowed(file) || file.length() > TEXT_LIMIT) {
-            Toast.makeText(this, "Edytor obsługuje pliki tekstowe do 256 KB", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "编辑器支持最大 256 KB 的文本文件", Toast.LENGTH_LONG).show();
             return;
         }
         String value;
@@ -523,13 +523,13 @@ public final class RuntimeFilesActivity extends Screen {
         original = value;
         editorView = column(this);
         editorView.setBackgroundColor(BG);
-        TextView save = barAction(this, "Zapisz");
+        TextView save = barAction(this, "保存");
         save.setOnClickListener(v -> saveEditor());
         LinearLayout bar = topBar(this, file.getName(), FileTools.display(this, file), save);
         backButton(bar).setOnClickListener(v -> closeEditor(false));
         editorView.addView(bar, full());
-        editor = input(this, "Pusty plik", true);
-        editor.setContentDescription("Edytor pliku " + file.getName());
+        editor = input(this, "空文件", true);
+        editor.setContentDescription("文件编辑器 " + file.getName());
         editor.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE
                 | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
         editor.setSingleLine(false);
@@ -563,16 +563,16 @@ public final class RuntimeFilesActivity extends Screen {
         int lines = 1;
         for (int i = 0; i < s.length(); i++) if (s.charAt(i) == '\n') lines++;
         boolean dirty = !s.toString().equals(original);
-        String base = "UTF-8 · " + lines + (lines == 1 ? " wiersz" : " wierszy") + " · "
+        String base = "UTF-8 · " + lines + (lines == 1 ? " 行" : " 行") + " · "
                 + size(s.toString().getBytes(StandardCharsets.UTF_8).length);
-        editorStatus.setText(dirty ? "● niezapisane · " + base : (editing != null && editing.exists() ? "zapisane · " : "nowy plik · ") + base);
+        editorStatus.setText(dirty ? " ● 未保存 · " + base : (editing != null && editing.exists() ? "已保存 · " : "新文件 · ") + base);
         editorStatus.setTextColor(dirty ? WARN : FAINT);
     }
 
     private boolean saveEditor() {
         if (editing == null) return false;
         try {
-            if (!allowed(editing)) throw new IOException("Ścieżka poza katalogiem");
+            if (!allowed(editing)) throw new IOException("路径超出目录");
             File parent = editing.getParentFile();
             if (parent != null && !parent.isDirectory()) parent.mkdirs();
             String value = editor.getText().toString();
@@ -581,7 +581,7 @@ public final class RuntimeFilesActivity extends Screen {
             }
             original = value;
             updateStatus();
-            Toast.makeText(this, "Zapisano " + editing.getName(), Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "已保存 " + editing.getName(), Toast.LENGTH_SHORT).show();
             return true;
         } catch (Exception e) {
             Toast.makeText(this, FileTools.polish(e), Toast.LENGTH_LONG).show();
@@ -592,8 +592,8 @@ public final class RuntimeFilesActivity extends Screen {
     private void closeEditor(boolean force) {
         if (editing == null) return;
         if (!force && !editor.getText().toString().equals(original)) {
-            confirmSheet(this, "Odrzucić zmiany?", "Zmiany w " + editing.getName() + " nie zostały zapisane.",
-                    "Odrzuć", true, () -> closeEditor(true));
+            confirmSheet(this, "放弃更改？", "Zmiany w " + editing.getName() + "未保存。",
+                    "拒绝", true, () -> closeEditor(true));
             return;
         }
         android.view.inputmethod.InputMethodManager imm = getSystemService(android.view.inputmethod.InputMethodManager.class);

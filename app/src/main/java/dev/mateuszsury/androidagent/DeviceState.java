@@ -23,10 +23,10 @@ final class DeviceState {
             : nc.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)
                 ? "Wi-Fi"
                 : nc.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)
-                    ? "sieć komórkowa"
+                    ? "移动网络"
                     : nc.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET)
                         ? "Ethernet"
-                        : "połączono";
+                        : "已连接";
     java.util.List<NetAddresses.Address> addresses = NetAddresses.read(c);
     org.json.JSONArray lan = new org.json.JSONArray();
     for (NetAddresses.Address a : NetAddresses.lan(addresses)) lan.put(a.ip);
@@ -82,23 +82,23 @@ final class DeviceState {
         + "\n\nBateria: "
         + j.getInt("battery_percent")
         + "%"
-        + (j.getBoolean("charging") ? " · ładowanie" : "")
-        + "\nWolna pamięć RAM: "
+        + (j.getBoolean("charging") ? "· 加载中" : "")
+        + "\n可用 RAM 内存： "
         + gb(j.getLong("ram_available_bytes"))
         + " / "
         + gb(j.getLong("ram_total_bytes"))
         + "\nWolne miejsce: "
         + gb(j.getLong("storage_available_bytes"))
-        + "\nSieć: "
+        + "\n网络： "
         + j.getString("network")
         + lanLine(j)
-        + "\nCzas działania: "
+        + "\n运行时长： "
         + j.getLong("uptime_seconds") / 60
         + " min\n\nSterowanie ekranem: "
-        + (j.getBoolean("accessibility_connected") ? "aktywne" : "wyłączone")
-        + "\nWbudowane środowisko: "
-        + (j.getBoolean("runtime_ready") ? "gotowe"
-            : j.getBoolean("runtime_busy") ? "przygotowywanie" : "wymaga przygotowania")
+        + (j.getBoolean("accessibility_connected") ? "已开启" : "已关闭")
+        + "\n内置环境： "
+        + (j.getBoolean("runtime_ready") ? "就绪"
+            : j.getBoolean("runtime_busy") ? "正在准备" : "需要准备")
         + "\n\nOdczyt lokalny · bez zapytania do modelu";
   }
 }
